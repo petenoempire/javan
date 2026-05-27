@@ -7,8 +7,6 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { ThemeProvider } from "@/lib/theme";
-import { AuthProvider } from "@/lib/auth";
-import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 
@@ -46,8 +44,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0a0a1a" },
-      { title: "Admiralty — Where culture goes live" },
+      { title: "Admiralty" },
       { name: "description", content: "Admiralty is a premium short-video and live-streaming community." },
+      { property: "og:title", content: "Admiralty" },
+      { name: "twitter:title", content: "Admiralty" },
+      { property: "og:description", content: "Admiralty is a premium short-video and live-streaming community." },
+      { name: "twitter:description", content: "Admiralty is a premium short-video and live-streaming community." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/14e7b854-379e-4555-a731-6a6a982769ba" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/14e7b854-379e-4555-a731-6a6a982769ba" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -76,10 +82,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <Outlet />
-          <Toaster theme="dark" position="top-center" toastOptions={{ className: "glass-strong" }} />
-        </AuthProvider>
+        <Outlet />
       </ThemeProvider>
     </QueryClientProvider>
   );
