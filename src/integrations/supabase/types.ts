@@ -14,7 +14,180 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gifts_sent: {
+        Row: {
+          coin_value: number
+          created_at: string
+          gift_key: string
+          gift_name: string
+          id: string
+          recipient_id: string
+          sender_id: string
+          stream_id: string | null
+        }
+        Insert: {
+          coin_value: number
+          created_at?: string
+          gift_key: string
+          gift_name: string
+          id?: string
+          recipient_id: string
+          sender_id: string
+          stream_id?: string | null
+        }
+        Update: {
+          coin_value?: number
+          created_at?: string
+          gift_key?: string
+          gift_name?: string
+          id?: string
+          recipient_id?: string
+          sender_id?: string
+          stream_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gifts_sent_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gifts_sent_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          body: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          read: boolean
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          read?: boolean
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          read?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          coins: number
+          cover_url: string | null
+          created_at: string
+          display_name: string
+          earned_coins: number
+          handle: string
+          id: string
+          is_verified: boolean
+          location: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          coins?: number
+          cover_url?: string | null
+          created_at?: string
+          display_name: string
+          earned_coins?: number
+          handle: string
+          id: string
+          is_verified?: boolean
+          location?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          coins?: number
+          cover_url?: string | null
+          created_at?: string
+          display_name?: string
+          earned_coins?: number
+          handle?: string
+          id?: string
+          is_verified?: boolean
+          location?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +196,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      notification_kind:
+        | "follow"
+        | "like"
+        | "comment"
+        | "gift"
+        | "mention"
+        | "live"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +329,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      notification_kind: [
+        "follow",
+        "like",
+        "comment",
+        "gift",
+        "mention",
+        "live",
+      ],
+    },
   },
 } as const
