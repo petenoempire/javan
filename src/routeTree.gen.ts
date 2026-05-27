@@ -14,8 +14,10 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
 
@@ -44,6 +46,11 @@ const CreateRoute = CreateRouteImport.update({
   path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -53,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileEditRoute = ProfileEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const LiveIdRoute = LiveIdRouteImport.update({
   id: '/live/$id',
@@ -68,42 +80,49 @@ const InboxIdRoute = InboxIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/wallet': typeof WalletRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
+  '/profile/edit': typeof ProfileEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/wallet': typeof WalletRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
+  '/profile/edit': typeof ProfileEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/wallet': typeof WalletRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
+  '/profile/edit': typeof ProfileEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin'
+    | '/auth'
     | '/create'
     | '/discover'
     | '/inbox'
@@ -111,10 +130,12 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/inbox/$id'
     | '/live/$id'
+    | '/profile/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
+    | '/auth'
     | '/create'
     | '/discover'
     | '/inbox'
@@ -122,10 +143,12 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/inbox/$id'
     | '/live/$id'
+    | '/profile/edit'
   id:
     | '__root__'
     | '/'
     | '/admin'
+    | '/auth'
     | '/create'
     | '/discover'
     | '/inbox'
@@ -133,15 +156,17 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/inbox/$id'
     | '/live/$id'
+    | '/profile/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
   CreateRoute: typeof CreateRoute
   DiscoverRoute: typeof DiscoverRoute
   InboxRoute: typeof InboxRouteWithChildren
-  ProfileRoute: typeof ProfileRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   WalletRoute: typeof WalletRoute
   LiveIdRoute: typeof LiveIdRoute
 }
@@ -183,6 +208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -196,6 +228,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/profile/edit': {
+      id: '/profile/edit'
+      path: '/edit'
+      fullPath: '/profile/edit'
+      preLoaderRoute: typeof ProfileEditRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/live/$id': {
       id: '/live/$id'
@@ -224,13 +263,25 @@ const InboxRouteChildren: InboxRouteChildren = {
 
 const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
 
+interface ProfileRouteChildren {
+  ProfileEditRoute: typeof ProfileEditRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileEditRoute: ProfileEditRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
   CreateRoute: CreateRoute,
   DiscoverRoute: DiscoverRoute,
   InboxRoute: InboxRouteWithChildren,
-  ProfileRoute: ProfileRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   WalletRoute: WalletRoute,
   LiveIdRoute: LiveIdRoute,
 }
