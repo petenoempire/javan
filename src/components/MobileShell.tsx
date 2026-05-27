@@ -4,13 +4,13 @@ import { useTheme } from "@/lib/theme";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
-const nav = [
+const nav: { to: string; label: string; icon: typeof Home; primary?: boolean }[] = [
   { to: "/", label: "Home", icon: Home },
   { to: "/discover", label: "Discover", icon: Compass },
   { to: "/create", label: "Create", icon: Plus, primary: true },
   { to: "/inbox", label: "Inbox", icon: MessageCircle },
   { to: "/profile", label: "Profile", icon: User },
-] as const;
+];
 
 export function MobileShell({ children, immersive = false }: { children: ReactNode; immersive?: boolean }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
