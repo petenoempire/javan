@@ -3,13 +3,13 @@ import { LayoutDashboard, Users, Film, DollarSign, Settings, Shield, LogOut, Arr
 import { useAuth } from "@/lib/auth";
 import type { ReactNode } from "react";
 
-const nav = [
+const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }> = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/content", label: "Content", icon: Film },
   { to: "/admin/revenue", label: "Revenue", icon: DollarSign },
   { to: "/admin/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 export function AdminShell({ children, title, subtitle }: { children: ReactNode; title: string; subtitle?: string }) {
   const { profile, signOut } = useAuth();
