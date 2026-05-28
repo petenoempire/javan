@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Flag, Eye, Heart, MessageCircle } from "lucide-react";
 
-export const Route = createFileRoute("/_admin/content")({
+export const Route = createFileRoute("/admin/content")({
   component: AdminContent,
 });
 

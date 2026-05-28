@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
-export const Route = createFileRoute("/_admin/revenue")({
+export const Route = createFileRoute("/admin/revenue")({
   component: AdminRevenue,
 });
 

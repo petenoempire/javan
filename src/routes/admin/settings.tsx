@@ -7,7 +7,7 @@ import { Shield, UserPlus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_admin/settings")({
+export const Route = createFileRoute("/admin/settings")({
   component: AdminSettings,
 });
 

@@ -5,7 +5,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { Search, BadgeCheck, Coins } from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute("/_admin/users")({
+export const Route = createFileRoute("/admin/users")({
   component: AdminUsers,
 });
 

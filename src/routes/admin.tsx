@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useIsAdmin } from "@/lib/useRole";
 import { Shield, Lock } from "lucide-react";
 
-export const Route = createFileRoute("/_admin")({
+export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Console · Admiralty" }, { name: "robots", content: "noindex,nofollow" }] }),
   component: AdminGate,
 });
