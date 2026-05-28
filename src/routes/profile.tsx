@@ -3,6 +3,7 @@ import { MobileShell } from "@/components/MobileShell";
 import { videos } from "@/lib/mock";
 import { Settings, Share2, Wallet, BarChart3, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useIsAdmin } from "@/lib/useRole";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile · Admiralty" }] }),
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/profile")({
 
 function Profile() {
   const { profile, user, signOut, loading } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   if (loading) return <MobileShell><div className="px-5 pt-20 text-sm text-muted-foreground">Loading…</div></MobileShell>;
@@ -69,16 +71,18 @@ function Profile() {
             <div className="glass rounded-2xl p-3"><div className="font-display text-lg font-bold">{profile?.coins ?? 0}</div><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Coins</div></div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className={`mt-4 grid gap-2 ${isAdmin ? "grid-cols-3" : "grid-cols-2"}`}>
             <Link to="/profile/edit" className="bg-gradient-primary flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-primary-foreground shadow-glow">
               <Pencil className="h-3.5 w-3.5" /> Edit
             </Link>
             <Link to="/wallet" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
               <Wallet className="h-3.5 w-3.5" /> Wallet
             </Link>
-            <Link to="/admin" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
-              <BarChart3 className="h-3.5 w-3.5" /> Panel
-            </Link>
+            {isAdmin && (
+              <Link to="/admin" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
+                <BarChart3 className="h-3.5 w-3.5" /> Admin
+              </Link>
+            )}
           </div>
         </div>
       </div>
