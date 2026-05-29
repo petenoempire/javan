@@ -14,6 +14,62 @@ export type Database = {
   }
   public: {
     Tables: {
+      comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -95,6 +151,71 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_actions: {
+        Row: {
+          action: Database["public"]["Enums"]["moderation_action"]
+          admin_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          reason: string | null
+          target_user_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["moderation_action"]
+          admin_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+          target_user_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["moderation_action"]
+          admin_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           actor_id: string | null
@@ -143,6 +264,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          banned: boolean
           bio: string | null
           coins: number
           cover_url: string | null
@@ -153,11 +275,13 @@ export type Database = {
           id: string
           is_verified: boolean
           location: string | null
+          suspended_until: string | null
           updated_at: string
           website: string | null
         }
         Insert: {
           avatar_url?: string | null
+          banned?: boolean
           bio?: string | null
           coins?: number
           cover_url?: string | null
@@ -168,11 +292,13 @@ export type Database = {
           id: string
           is_verified?: boolean
           location?: string | null
+          suspended_until?: string | null
           updated_at?: string
           website?: string | null
         }
         Update: {
           avatar_url?: string | null
+          banned?: boolean
           bio?: string | null
           coins?: number
           cover_url?: string | null
@@ -183,8 +309,48 @@ export type Database = {
           id?: string
           is_verified?: boolean
           location?: string | null
+          suspended_until?: string | null
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_id?: string
+          target_type?: string
         }
         Relationships: []
       }
@@ -209,6 +375,122 @@ export type Database = {
         }
         Relationships: []
       }
+      verifications: {
+        Row: {
+          country: string
+          created_at: string
+          document_type: string
+          document_url: string
+          id: string
+          kind: Database["public"]["Enums"]["verification_kind"]
+          legal_name: string
+          notes: string | null
+          review_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_url: string | null
+          status: Database["public"]["Enums"]["verification_status"]
+          user_id: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          document_type: string
+          document_url: string
+          id?: string
+          kind?: Database["public"]["Enums"]["verification_kind"]
+          legal_name: string
+          notes?: string | null
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          user_id: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          document_type?: string
+          document_url?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["verification_kind"]
+          legal_name?: string
+          notes?: string | null
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_url?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      video_likes: {
+        Row: {
+          created_at: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_likes_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          music: string | null
+          status: string
+          tags: string[]
+          thumbnail_url: string | null
+          user_id: string
+          video_url: string
+          views: number
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          music?: string | null
+          status?: string
+          tags?: string[]
+          thumbnail_url?: string | null
+          user_id: string
+          video_url: string
+          views?: number
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          music?: string | null
+          status?: string
+          tags?: string[]
+          thumbnail_url?: string | null
+          user_id?: string
+          video_url?: string
+          views?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -226,6 +508,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      moderation_action:
+        | "warn"
+        | "suspend"
+        | "unsuspend"
+        | "ban"
+        | "unban"
+        | "verify"
+        | "unverify"
       notification_kind:
         | "follow"
         | "like"
@@ -233,6 +523,9 @@ export type Database = {
         | "gift"
         | "mention"
         | "live"
+      report_status: "open" | "reviewed" | "dismissed" | "actioned"
+      verification_kind: "individual" | "business"
+      verification_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -361,6 +654,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      moderation_action: [
+        "warn",
+        "suspend",
+        "unsuspend",
+        "ban",
+        "unban",
+        "verify",
+        "unverify",
+      ],
       notification_kind: [
         "follow",
         "like",
@@ -369,6 +671,9 @@ export const Constants = {
         "mention",
         "live",
       ],
+      report_status: ["open", "reviewed", "dismissed", "actioned"],
+      verification_kind: ["individual", "business"],
+      verification_status: ["pending", "approved", "rejected"],
     },
   },
 } as const

@@ -1,67 +1,90 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Send, Smile, Image as ImageIcon, Check, CheckCheck } from "lucide-react";
+import { ArrowLeft, Send } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { chats } from "@/lib/mock";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/inbox/$id")({
   component: Chat,
 });
 
-type Msg = { id: number; from: "me" | "them"; text: string; status: "sent" | "delivered" | "read" };
-
-const seed: Msg[] = [
-  { id: 1, from: "them", text: "yo did you see the new track drop", status: "read" },
-  { id: 2, from: "me", text: "yessir, on repeat 🔥", status: "read" },
-  { id: 3, from: "them", text: "let's collab on that edit ✨", status: "read" },
-];
-
 function Chat() {
   const { id } = Route.useParams();
-  const chat = chats.find((c) => c.id === id) ?? chats[0];
-  const [messages, setMessages] = useState<Msg[]>(seed);
+  const { user } = useAuth();
+  const qc = useQueryClient();
   const [text, setText] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  const { data: conv } = useQuery({
+    queryKey: ["conv", id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("conversations").select("id,user_a,user_b").eq("id", id).maybeSingle();
+      if (!data) return null;
+      const otherId = data.user_a === user!.id ? data.user_b : data.user_a;
+      const { data: prof } = await supabase.from("profiles").select("id,handle,display_name,avatar_url").eq("id", otherId).maybeSingle();
+      return { ...data, other: prof };
+    },
+  });
 
-  const send = () => {
-    if (!text.trim()) return;
-    const m: Msg = { id: Date.now(), from: "me", text, status: "sent" };
-    setMessages((p) => [...p, m]);
+  const { data: messages = [] } = useQuery({
+    queryKey: ["messages", id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("messages").select("*").eq("conversation_id", id).order("created_at", { ascending: true });
+      return data ?? [];
+    },
+  });
+
+  useEffect(() => {
+    const ch = supabase
+      .channel(`msgs:${id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${id}` }, () => {
+        qc.invalidateQueries({ queryKey: ["messages", id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [id, qc]);
+
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
+
+  const send = async () => {
+    if (!user || !text.trim()) return;
+    const body = text.trim();
     setText("");
-    setTimeout(() => setMessages((p) => p.map((x) => x.id === m.id ? { ...x, status: "delivered" } : x)), 600);
-    setTimeout(() => setMessages((p) => p.map((x) => x.id === m.id ? { ...x, status: "read" } : x)), 1600);
-    setTimeout(() => setMessages((p) => [...p, { id: Date.now() + 1, from: "them", text: "🙌", status: "read" }]), 2200);
+    const { error } = await supabase.from("messages").insert({ conversation_id: id, sender_id: user.id, body });
+    if (error) { toast.error(error.message); return; }
+    await supabase.from("conversations").update({ last_message_at: new Date().toISOString() }).eq("id", id);
   };
+
+  if (!user) return <div className="flex h-[100dvh] items-center justify-center text-sm">Sign in to chat.</div>;
 
   return (
     <div className="mx-auto flex h-[100dvh] max-w-[480px] flex-col bg-background">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
         <Link to="/inbox" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
-        <img src={chat.user.avatar} className="h-9 w-9 rounded-full" alt="" />
+        {conv?.other?.avatar_url
+          ? <img src={conv.other.avatar_url} className="h-9 w-9 rounded-full" alt="" />
+          : <div className="bg-gradient-primary h-9 w-9 rounded-full" />}
         <div className="flex-1">
-          <div className="font-display text-sm font-semibold">{chat.user.name}</div>
-          <div className="text-[11px] text-accent">{chat.online ? "Active now" : "Offline"}</div>
+          <div className="font-display text-sm font-semibold">{conv?.other?.display_name ?? "Conversation"}</div>
+          <div className="text-[11px] text-muted-foreground">@{conv?.other?.handle ?? ""}</div>
         </div>
       </header>
 
       <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
-        {messages.map((m) => (
-          <div key={m.id} className={`flex ${m.from === "me" ? "justify-end" : "justify-start"}`}>
+        {messages.length === 0 && (
+          <div className="mt-10 text-center text-sm text-muted-foreground">Start the conversation.</div>
+        )}
+        {messages.map((m: any) => (
+          <div key={m.id} className={`flex ${m.sender_id === user.id ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
-              m.from === "me"
+              m.sender_id === user.id
                 ? "bg-gradient-primary rounded-br-md text-primary-foreground shadow-glow"
                 : "glass rounded-bl-md"
-            }`}>
-              <div>{m.text}</div>
-              {m.from === "me" && (
-                <div className="mt-1 flex justify-end text-[10px] opacity-80">
-                  {m.status === "sent" && <Check className="h-3 w-3" />}
-                  {m.status === "delivered" && <CheckCheck className="h-3 w-3" />}
-                  {m.status === "read" && <CheckCheck className="h-3 w-3 text-accent" />}
-                </div>
-              )}
-            </div>
+            }`}>{m.body}</div>
           </div>
         ))}
         <div ref={endRef} />
@@ -69,11 +92,8 @@ function Chat() {
 
       <div className="border-t border-border p-3">
         <div className="glass flex items-center gap-2 rounded-full px-3 py-2">
-          <button className="text-muted-foreground"><Smile className="h-5 w-5" /></button>
-          <button className="text-muted-foreground"><ImageIcon className="h-5 w-5" /></button>
           <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
+            value={text} onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
             placeholder="Message…"
             className="flex-1 bg-transparent text-sm outline-none"

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as DiscoverRouteImport } from './routes/discover'
@@ -21,14 +22,21 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
+import { Route as AdminVerificationsRouteImport } from './routes/admin/verifications'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
 
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -86,6 +94,11 @@ const InboxIdRoute = InboxIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => InboxRoute,
 } as any)
+const AdminVerificationsRoute = AdminVerificationsRouteImport.update({
+  id: '/verifications',
+  path: '/verifications',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -99,6 +112,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 const AdminRevenueRoute = AdminRevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminContentRoute = AdminContentRouteImport.update({
@@ -115,11 +133,14 @@ export interface FileRoutesByFullPath {
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -132,11 +153,14 @@ export interface FileRoutesByTo {
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -151,11 +175,14 @@ export interface FileRoutesById {
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/verifications': typeof AdminVerificationsRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -171,11 +198,14 @@ export interface FileRouteTypes {
     | '/discover'
     | '/inbox'
     | '/profile'
+    | '/verify'
     | '/wallet'
     | '/admin/content'
+    | '/admin/reports'
     | '/admin/revenue'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/verifications'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -188,11 +218,14 @@ export interface FileRouteTypes {
     | '/discover'
     | '/inbox'
     | '/profile'
+    | '/verify'
     | '/wallet'
     | '/admin/content'
+    | '/admin/reports'
     | '/admin/revenue'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/verifications'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -206,11 +239,14 @@ export interface FileRouteTypes {
     | '/discover'
     | '/inbox'
     | '/profile'
+    | '/verify'
     | '/wallet'
     | '/admin/content'
+    | '/admin/reports'
     | '/admin/revenue'
     | '/admin/settings'
     | '/admin/users'
+    | '/admin/verifications'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -225,6 +261,7 @@ export interface RootRouteChildren {
   DiscoverRoute: typeof DiscoverRoute
   InboxRoute: typeof InboxRouteWithChildren
   ProfileRoute: typeof ProfileRouteWithChildren
+  VerifyRoute: typeof VerifyRoute
   WalletRoute: typeof WalletRoute
   LiveIdRoute: typeof LiveIdRoute
 }
@@ -236,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -315,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InboxIdRouteImport
       parentRoute: typeof InboxRoute
     }
+    '/admin/verifications': {
+      id: '/admin/verifications'
+      path: '/verifications'
+      fullPath: '/admin/verifications'
+      preLoaderRoute: typeof AdminVerificationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -336,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRevenueRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/content': {
       id: '/admin/content'
       path: '/content'
@@ -348,17 +406,21 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminContentRoute: typeof AdminContentRoute
+  AdminReportsRoute: typeof AdminReportsRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminUsersRoute: typeof AdminUsersRoute
+  AdminVerificationsRoute: typeof AdminVerificationsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminContentRoute: AdminContentRoute,
+  AdminReportsRoute: AdminReportsRoute,
   AdminRevenueRoute: AdminRevenueRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminUsersRoute: AdminUsersRoute,
+  AdminVerificationsRoute: AdminVerificationsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -393,6 +455,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiscoverRoute: DiscoverRoute,
   InboxRoute: InboxRouteWithChildren,
   ProfileRoute: ProfileRouteWithChildren,
+  VerifyRoute: VerifyRoute,
   WalletRoute: WalletRoute,
   LiveIdRoute: LiveIdRoute,
 }
