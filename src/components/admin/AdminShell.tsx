@@ -1,11 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, Film, DollarSign, Settings, Shield, LogOut, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Users, Film, DollarSign, Settings, Shield, LogOut, ArrowLeft, ShieldCheck, Flag } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import type { ReactNode } from "react";
 
 const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }> = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/verifications", label: "Verifications", icon: ShieldCheck },
+  { to: "/admin/reports", label: "Reports", icon: Flag },
   { to: "/admin/content", label: "Content", icon: Film },
   { to: "/admin/revenue", label: "Revenue", icon: DollarSign },
   { to: "/admin/settings", label: "Settings", icon: Settings },
@@ -17,7 +19,6 @@ export function AdminShell({ children, title, subtitle }: { children: ReactNode;
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground">
-      {/* Top bar */}
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 lg:px-8">
           <div className="flex items-center gap-3">
@@ -45,7 +46,6 @@ export function AdminShell({ children, title, subtitle }: { children: ReactNode;
       </header>
 
       <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 lg:px-8">
-        {/* Sidebar (desktop) */}
         <aside className="hidden w-56 shrink-0 lg:block">
           <nav className="sticky top-20 space-y-1">
             {nav.map((n) => {
@@ -66,7 +66,6 @@ export function AdminShell({ children, title, subtitle }: { children: ReactNode;
           </nav>
         </aside>
 
-        {/* Main */}
         <main className="min-w-0 flex-1 pb-24 lg:pb-6">
           <div className="mb-6">
             <h1 className="font-display text-2xl font-bold md:text-3xl">{title}</h1>
@@ -76,13 +75,12 @@ export function AdminShell({ children, title, subtitle }: { children: ReactNode;
         </main>
       </div>
 
-      {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/95 backdrop-blur-xl lg:hidden">
-        <div className="grid grid-cols-5">
+        <div className="no-scrollbar flex overflow-x-auto">
           {nav.map((n) => {
             const active = n.exact ? path === n.to : path.startsWith(n.to);
             return (
-              <Link key={n.to} to={n.to} className={`flex flex-col items-center gap-1 py-2.5 text-[10px] ${active ? "text-primary" : "text-muted-foreground"}`}>
+              <Link key={n.to} to={n.to} className={`flex min-w-[72px] flex-1 flex-col items-center gap-1 py-2.5 text-[10px] ${active ? "text-primary" : "text-muted-foreground"}`}>
                 <n.icon className="h-4 w-4" />
                 {n.label}
               </Link>
