@@ -30,13 +30,17 @@ function AdminUsers() {
 
   const act = async (u: any, action: "suspend" | "unsuspend" | "ban" | "unban" | "verify" | "unverify") => {
     if (!user) return;
-    let updates: Record<string, any> = {};
-    if (action === "suspend") updates = { suspended_until: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString() };
-    if (action === "unsuspend") updates = { suspended_until: null };
-    if (action === "ban") updates = { banned: true };
-    if (action === "unban") updates = { banned: false };
-    if (action === "verify") updates = { is_verified: true };
-    if (action === "unverify") updates = { is_verified: false };
+    const updates: {
+      suspended_until?: string | null;
+      banned?: boolean;
+      is_verified?: boolean;
+    } = {};
+    if (action === "suspend") updates.suspended_until = new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString();
+    if (action === "unsuspend") updates.suspended_until = null;
+    if (action === "ban") updates.banned = true;
+    if (action === "unban") updates.banned = false;
+    if (action === "verify") updates.is_verified = true;
+    if (action === "unverify") updates.is_verified = false;
 
     const { error: pErr } = await supabase.from("profiles").update(updates).eq("id", u.id);
     if (pErr) { toast.error(pErr.message); return; }
