@@ -87,9 +87,10 @@ function PublicProfile() {
               ? <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-background object-cover shadow-elegant" alt="" />
               : <div className="bg-gradient-primary h-24 w-24 rounded-full border-4 border-background shadow-elegant" />}
             {!isSelf && (
-              <ReportDialog targetType="user" targetId={profile.id}>
-                <button className="glass rounded-full p-2"><Flag className="h-4 w-4" /></button>
-              </ReportDialog>
+              <>
+                <button onClick={() => setReportOpen(true)} className="glass rounded-full p-2"><Flag className="h-4 w-4" /></button>
+                <ReportDialog target={reportOpen ? { type: "user", id: profile.id } : null} onClose={() => setReportOpen(false)} />
+              </>
             )}
           </div>
           <div className="mt-3 flex items-center gap-2">
