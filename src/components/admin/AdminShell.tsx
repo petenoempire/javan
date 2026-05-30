@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, Film, DollarSign, Settings, Shield, LogOut, ArrowLeft, ShieldCheck, Flag } from "lucide-react";
+import { LayoutDashboard, Users, Film, DollarSign, Settings, Shield, LogOut, ArrowLeft, ShieldCheck, Flag, ArrowDownToLine } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import type { ReactNode } from "react";
 
@@ -10,6 +10,7 @@ const nav: Array<{ to: string; label: string; icon: typeof LayoutDashboard; exac
   { to: "/admin/reports", label: "Reports", icon: Flag },
   { to: "/admin/content", label: "Content", icon: Film },
   { to: "/admin/revenue", label: "Revenue", icon: DollarSign },
+  { to: "/admin/payouts", label: "Payouts", icon: ArrowDownToLine },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
