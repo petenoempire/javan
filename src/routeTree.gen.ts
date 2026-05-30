@@ -19,6 +19,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
@@ -27,6 +28,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminPayoutsRouteImport } from './routes/admin/payouts'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
 
 const WalletRoute = WalletRouteImport.update({
@@ -79,6 +81,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileEditRoute = ProfileEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -119,6 +126,11 @@ const AdminReportsRoute = AdminReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPayoutsRoute = AdminPayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminContentRoute = AdminContentRouteImport.update({
   id: '/content',
   path: '/content',
@@ -136,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -144,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -156,6 +170,7 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -164,6 +179,7 @@ export interface FileRoutesByTo {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -178,6 +194,7 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -186,6 +203,7 @@ export interface FileRoutesById {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -201,6 +219,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/wallet'
     | '/admin/content'
+    | '/admin/payouts'
     | '/admin/reports'
     | '/admin/revenue'
     | '/admin/settings'
@@ -209,6 +228,7 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/u/$handle'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -221,6 +241,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/wallet'
     | '/admin/content'
+    | '/admin/payouts'
     | '/admin/reports'
     | '/admin/revenue'
     | '/admin/settings'
@@ -229,6 +250,7 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/u/$handle'
     | '/admin'
   id:
     | '__root__'
@@ -242,6 +264,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/wallet'
     | '/admin/content'
+    | '/admin/payouts'
     | '/admin/reports'
     | '/admin/revenue'
     | '/admin/settings'
@@ -250,6 +273,7 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/u/$handle'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -264,6 +288,7 @@ export interface RootRouteChildren {
   VerifyRoute: typeof VerifyRoute
   WalletRoute: typeof WalletRoute
   LiveIdRoute: typeof LiveIdRoute
+  UHandleRoute: typeof UHandleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -338,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/edit': {
       id: '/profile/edit'
       path: '/edit'
@@ -394,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReportsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/payouts': {
+      id: '/admin/payouts'
+      path: '/payouts'
+      fullPath: '/admin/payouts'
+      preLoaderRoute: typeof AdminPayoutsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/content': {
       id: '/admin/content'
       path: '/content'
@@ -406,6 +445,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminContentRoute: typeof AdminContentRoute
+  AdminPayoutsRoute: typeof AdminPayoutsRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -416,6 +456,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminContentRoute: AdminContentRoute,
+  AdminPayoutsRoute: AdminPayoutsRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminRevenueRoute: AdminRevenueRoute,
   AdminSettingsRoute: AdminSettingsRoute,
@@ -458,6 +499,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyRoute: VerifyRoute,
   WalletRoute: WalletRoute,
   LiveIdRoute: LiveIdRoute,
+  UHandleRoute: UHandleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

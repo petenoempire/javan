@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      coin_purchases: {
+        Row: {
+          coins: number
+          created_at: string
+          id: string
+          provider: string
+          provider_ref: string | null
+          status: string
+          updated_at: string
+          usd_cents: number
+          user_id: string
+        }
+        Insert: {
+          coins: number
+          created_at?: string
+          id?: string
+          provider?: string
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+          usd_cents: number
+          user_id: string
+        }
+        Update: {
+          coins?: number
+          created_at?: string
+          id?: string
+          provider?: string
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+          usd_cents?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           body: string
@@ -261,6 +297,51 @@ export type Database = {
           },
         ]
       }
+      payout_requests: {
+        Row: {
+          admin_notes: string | null
+          coins: number
+          created_at: string
+          id: string
+          payout_details: string
+          payout_method: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          usd_cents: number
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          coins: number
+          created_at?: string
+          id?: string
+          payout_details: string
+          payout_method: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          usd_cents: number
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          coins?: number
+          created_at?: string
+          id?: string
+          payout_details?: string
+          payout_method?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          usd_cents?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -498,6 +579,10 @@ export type Database = {
     Functions: {
       admin_count: { Args: never; Returns: number }
       claim_first_admin: { Args: never; Returns: boolean }
+      get_or_create_conversation: {
+        Args: { other_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -523,6 +608,9 @@ export type Database = {
         | "gift"
         | "mention"
         | "live"
+        | "message"
+        | "payout"
+        | "topup"
       report_status: "open" | "reviewed" | "dismissed" | "actioned"
       verification_kind: "individual" | "business"
       verification_status: "pending" | "approved" | "rejected"
@@ -670,6 +758,9 @@ export const Constants = {
         "gift",
         "mention",
         "live",
+        "message",
+        "payout",
+        "topup",
       ],
       report_status: ["open", "reviewed", "dismissed", "actioned"],
       verification_kind: ["individual", "business"],
