@@ -55,12 +55,13 @@ export function GiftPanel({ open, onClose, onSend, recipientId }: { open: boolea
                   <div className="font-display font-bold">{coins.toLocaleString()}</div>
                 </div>
               </div>
-              <button
-                onClick={() => topUp(500)}
+              <Link
+                to="/wallet"
+                onClick={onClose}
                 className="bg-gradient-primary rounded-full px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow active:scale-95"
               >
                 Top up
-              </button>
+              </Link>
             </div>
             <div className="grid grid-cols-4 gap-3">
               {gifts.map((g) => {
