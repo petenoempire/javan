@@ -80,7 +80,7 @@ function Profile() {
             <Stat n={profile?.coins ?? 0} label="Coins" />
           </div>
 
-          <div className={`mt-4 grid gap-2 ${isAdmin ? "grid-cols-4" : "grid-cols-3"}`}>
+          <div className="mt-4 grid grid-cols-3 gap-2">
             <Link to="/profile/edit" className="bg-gradient-primary flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-primary-foreground shadow-glow">
               <Pencil className="h-3.5 w-3.5" /> Edit
             </Link>
@@ -95,11 +95,6 @@ function Profile() {
               <div className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-accent">
                 <BadgeCheck className="h-3.5 w-3.5" /> Verified
               </div>
-            )}
-            {isAdmin && (
-              <Link to="/admin" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
-                <BarChart3 className="h-3.5 w-3.5" /> Admin
-              </Link>
             )}
           </div>
         </div>
