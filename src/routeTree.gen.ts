@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as DiscoverRouteImport } from './routes/discover'
@@ -39,6 +40,11 @@ const WalletRoute = WalletRouteImport.update({
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/inbox'
     | '/profile'
+    | '/sitemap.xml'
     | '/verify'
     | '/wallet'
     | '/admin/content'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/inbox'
     | '/profile'
+    | '/sitemap.xml'
     | '/verify'
     | '/wallet'
     | '/admin/content'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/inbox'
     | '/profile'
+    | '/sitemap.xml'
     | '/verify'
     | '/wallet'
     | '/admin/content'
@@ -285,6 +297,7 @@ export interface RootRouteChildren {
   DiscoverRoute: typeof DiscoverRoute
   InboxRoute: typeof InboxRouteWithChildren
   ProfileRoute: typeof ProfileRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerifyRoute: typeof VerifyRoute
   WalletRoute: typeof WalletRoute
   LiveIdRoute: typeof LiveIdRoute
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       path: '/verify'
       fullPath: '/verify'
       preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -496,6 +516,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiscoverRoute: DiscoverRoute,
   InboxRoute: InboxRouteWithChildren,
   ProfileRoute: ProfileRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerifyRoute: VerifyRoute,
   WalletRoute: WalletRoute,
   LiveIdRoute: LiveIdRoute,
