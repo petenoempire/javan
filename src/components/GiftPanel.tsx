@@ -3,15 +3,25 @@ import { X, Coins } from "lucide-react";
 import { gifts, type Gift } from "@/lib/mock";
 import { useWallet } from "@/lib/store";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 
-export function GiftPanel({ open, onClose, onSend }: { open: boolean; onClose: () => void; onSend: (g: Gift) => void }) {
-  const { coins, spend, topUp } = useWallet();
+export function GiftPanel({ open, onClose, onSend, recipientId }: { open: boolean; onClose: () => void; onSend: (g: Gift) => void; recipientId?: string }) {
+  const { coins, refetch } = useWallet();
   const [selected, setSelected] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
-  const send = (g: Gift) => {
-    if (!spend(g.cost)) return;
+  const send = async (g: Gift) => {
+    if (!recipientId) { toast.error("No recipient"); return; }
+    if (coins < g.cost) { toast.error("Insufficient coins"); return; }
+    setSending(true);
+    const { error } = await supabase.rpc("send_gift", { _recipient: recipientId, _gift_key: g.id });
+    setSending(false);
+    if (error) { toast.error(error.message); return; }
     setSelected(g.id);
     onSend(g);
+    refetch();
     setTimeout(() => setSelected(null), 500);
   };
 
@@ -45,12 +55,13 @@ export function GiftPanel({ open, onClose, onSend }: { open: boolean; onClose: (
                   <div className="font-display font-bold">{coins.toLocaleString()}</div>
                 </div>
               </div>
-              <button
-                onClick={() => topUp(500)}
+              <Link
+                to="/wallet"
+                onClick={onClose}
                 className="bg-gradient-primary rounded-full px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow active:scale-95"
               >
                 Top up
-              </button>
+              </Link>
             </div>
             <div className="grid grid-cols-4 gap-3">
               {gifts.map((g) => {
