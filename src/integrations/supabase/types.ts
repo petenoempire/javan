@@ -161,6 +161,33 @@ export type Database = {
           },
         ]
       }
+      gift_catalog: {
+        Row: {
+          active: boolean
+          coin_value: number
+          created_at: string
+          gift_key: string
+          name: string
+          tier: string
+        }
+        Insert: {
+          active?: boolean
+          coin_value: number
+          created_at?: string
+          gift_key: string
+          name: string
+          tier?: string
+        }
+        Update: {
+          active?: boolean
+          coin_value?: number
+          created_at?: string
+          gift_key?: string
+          name?: string
+          tier?: string
+        }
+        Relationships: []
+      }
       gifts_sent: {
         Row: {
           coin_value: number
@@ -633,6 +660,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      send_gift: {
+        Args: { _gift_key: string; _recipient: string; _stream_id?: string }
+        Returns: string
       }
     }
     Enums: {
