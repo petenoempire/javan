@@ -2,9 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MobileShell } from "@/components/MobileShell";
 import { supabase } from "@/integrations/supabase/client";
-import { Share2, Wallet, BarChart3, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin, ShieldCheck, Film } from "lucide-react";
+import { Share2, Wallet, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin, ShieldCheck, Film } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { useIsAdmin } from "@/lib/useRole";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile · Admiralty" }] }),
@@ -13,7 +12,6 @@ export const Route = createFileRoute("/profile")({
 
 function Profile() {
   const { profile, user, signOut, loading } = useAuth();
-  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   const { data: stats } = useQuery({
@@ -82,7 +80,7 @@ function Profile() {
             <Stat n={profile?.coins ?? 0} label="Coins" />
           </div>
 
-          <div className={`mt-4 grid gap-2 ${isAdmin ? "grid-cols-4" : "grid-cols-3"}`}>
+          <div className="mt-4 grid grid-cols-3 gap-2">
             <Link to="/profile/edit" className="bg-gradient-primary flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-primary-foreground shadow-glow">
               <Pencil className="h-3.5 w-3.5" /> Edit
             </Link>
@@ -97,11 +95,6 @@ function Profile() {
               <div className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-accent">
                 <BadgeCheck className="h-3.5 w-3.5" /> Verified
               </div>
-            )}
-            {isAdmin && (
-              <Link to="/admin" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
-                <BarChart3 className="h-3.5 w-3.5" /> Admin
-              </Link>
             )}
           </div>
         </div>
