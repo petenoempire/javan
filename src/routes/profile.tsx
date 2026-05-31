@@ -2,9 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MobileShell } from "@/components/MobileShell";
 import { supabase } from "@/integrations/supabase/client";
-import { Share2, Wallet, BarChart3, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin, ShieldCheck, Film } from "lucide-react";
+import { Share2, Wallet, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin, ShieldCheck, Film } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { useIsAdmin } from "@/lib/useRole";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile · Admiralty" }] }),
@@ -13,7 +12,6 @@ export const Route = createFileRoute("/profile")({
 
 function Profile() {
   const { profile, user, signOut, loading } = useAuth();
-  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   const { data: stats } = useQuery({
