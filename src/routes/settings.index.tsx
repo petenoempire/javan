@@ -1,38 +1,69 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, UserCircle, Bell, Lock, Palette, HelpCircle, ChevronRight, LogOut } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/settings/")({
   head: () => ({ meta: [{ title: "Settings and Privacy · Admiralty" }] }),
   component: SettingsHome,
 });
 
-type Item = { to: string; label: string; icon: typeof UserCircle; hint?: string };
+type Item = { to?: string; label: string; icon: typeof UserCircle; hint?: string; soon?: boolean };
 const groups: { title: string; items: Item[] }[] = [
   {
     title: "Account",
     items: [
       { to: "/settings/account", label: "Account", icon: UserCircle, hint: "Verification, security, identity" },
-      { to: "/settings/privacy", label: "Privacy", icon: Lock, hint: "Who can see your content" },
+      { label: "Privacy", icon: Lock, hint: "Who can see your content", soon: true },
     ],
   },
   {
     title: "Preferences",
     items: [
-      { to: "/settings/notifications", label: "Notifications", icon: Bell },
-      { to: "/settings/appearance", label: "Appearance", icon: Palette },
+      { label: "Notifications", icon: Bell, soon: true },
+      { label: "Appearance", icon: Palette, soon: true },
     ],
   },
   {
     title: "Support",
-    items: [{ to: "/settings/help", label: "Help center", icon: HelpCircle }],
+    items: [{ label: "Help center", icon: HelpCircle, soon: true }],
   },
 ];
 
 function SettingsHome() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+
+  const renderItem = (item: Item, i: number) => {
+    const Icon = item.icon;
+    const inner = (
+      <>
+        <div className="ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <div className="truncate text-sm font-semibold">{item.label}</div>
+            {item.soon && (
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                Soon
+              </span>
+            )}
+          </div>
+          {item.hint && <div className="truncate text-[11px] text-muted-foreground">{item.hint}</div>}
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </>
+    );
+    const cls = `flex items-center gap-3 px-4 py-3.5 active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`;
+    return item.to ? (
+      <Link key={item.label} to={item.to} className={cls}>{inner}</Link>
+    ) : (
+      <button key={item.label} onClick={() => toast.info(`${item.label} is coming soon`)} className={`${cls} text-left w-full`}>
+        {inner}
+      </button>
+    );
+  };
 
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-24">
@@ -48,27 +79,7 @@ function SettingsHome() {
               {g.title}
             </div>
             <div className="glass overflow-hidden rounded-3xl">
-              {g.items.map((item, i) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className={`flex items-center gap-3 px-4 py-3.5 active:bg-primary/5 ${
-                      i > 0 ? "border-t border-border/40" : ""
-                    }`}
-                  >
-                    <div className="ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold">{item.label}</div>
-                      {item.hint && <div className="truncate text-[11px] text-muted-foreground">{item.hint}</div>}
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </Link>
-                );
-              })}
+              {g.items.map((item, i) => renderItem(item, i))}
             </div>
           </div>
         ))}

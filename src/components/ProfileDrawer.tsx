@@ -1,13 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
+import { toast } from "sonner";
 import {
   X, Wallet, Activity, DownloadCloud, QrCode,
   Plus, Music2, Mic2, Settings, ChevronRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-type Item = { to: string; label: string; icon: LucideIcon; hint?: string };
+type Item = { to?: string; label: string; icon: LucideIcon; hint?: string; soon?: boolean };
 type Section = { title: string; items: Item[] };
 
 const sections: Section[] = [
@@ -19,8 +20,8 @@ const sections: Section[] = [
     title: "Personal tools",
     items: [
       { to: "/inbox", label: "Activity Center", icon: Activity },
-      { to: "/settings/offline", label: "Offline videos", icon: DownloadCloud },
-      { to: "/settings/qr", label: "Your QR code", icon: QrCode },
+      { label: "Offline videos", icon: DownloadCloud, soon: true },
+      { label: "Your QR code", icon: QrCode, soon: true },
     ],
   },
   {
@@ -44,6 +45,48 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  const renderItem = (item: Item, i: number) => {
+    const Icon = item.icon;
+    const inner = (
+      <>
+        <div className="bg-primary/10 ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl">
+          <Icon className="h-5 w-5 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <div className="truncate text-sm font-semibold">{item.label}</div>
+            {item.soon && (
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                Soon
+              </span>
+            )}
+          </div>
+          {item.hint && <div className="truncate text-[11px] text-muted-foreground">{item.hint}</div>}
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </>
+    );
+    const cls = `flex items-center gap-3 px-4 py-3.5 transition active:bg-primary/5 ${
+      i > 0 ? "border-t border-border/40" : ""
+    }`;
+    if (item.to) {
+      return (
+        <Link key={item.label} to={item.to} onClick={onClose} className={cls}>
+          {inner}
+        </Link>
+      );
+    }
+    return (
+      <button
+        key={item.label}
+        onClick={() => toast.info(`${item.label} is coming soon`)}
+        className={`${cls} text-left`}
+      >
+        {inner}
+      </button>
+    );
+  };
 
   return (
     <AnimatePresence>
@@ -89,30 +132,7 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
                     {sec.title}
                   </div>
                   <div className="glass overflow-hidden rounded-3xl">
-                    {sec.items.map((item, i) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.to}
-                          to={item.to}
-                          onClick={onClose}
-                          className={`flex items-center gap-3 px-4 py-3.5 transition active:bg-primary/5 ${
-                            i > 0 ? "border-t border-border/40" : ""
-                          }`}
-                        >
-                          <div className="bg-gradient-primary/10 ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl">
-                            <Icon className="h-5 w-5 text-primary" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-semibold">{item.label}</div>
-                            {item.hint && (
-                              <div className="truncate text-[11px] text-muted-foreground">{item.hint}</div>
-                            )}
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </Link>
-                      );
-                    })}
+                    {sec.items.map((item, i) => renderItem(item, i))}
                   </div>
                 </div>
               ))}
