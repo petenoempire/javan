@@ -8,7 +8,8 @@ export const Route = createFileRoute("/settings/")({
   component: SettingsHome,
 });
 
-const groups = [
+type Item = { to: string; label: string; icon: typeof UserCircle; hint?: string };
+const groups: { title: string; items: Item[] }[] = [
   {
     title: "Account",
     items: [
