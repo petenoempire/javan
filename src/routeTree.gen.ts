@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as DiscoverRouteImport } from './routes/discover'
@@ -19,8 +20,10 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
+import { Route as SettingsAccountRouteImport } from './routes/settings.account'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
@@ -45,6 +48,11 @@ const VerifyRoute = VerifyRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -82,6 +90,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -91,6 +104,11 @@ const UHandleRoute = UHandleRouteImport.update({
   id: '/u/$handle',
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsAccountRoute = SettingsAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const ProfileEditRoute = ProfileEditRouteImport.update({
   id: '/edit',
@@ -151,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
@@ -164,8 +183,10 @@ export interface FileRoutesByFullPath {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/settings/account': typeof SettingsAccountRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -187,8 +208,10 @@ export interface FileRoutesByTo {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/settings/account': typeof SettingsAccountRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
+  '/settings': typeof SettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -199,6 +222,7 @@ export interface FileRoutesById {
   '/discover': typeof DiscoverRoute
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
+  '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
@@ -212,8 +236,10 @@ export interface FileRoutesById {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/settings/account': typeof SettingsAccountRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -225,6 +251,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/inbox'
     | '/profile'
+    | '/settings'
     | '/sitemap.xml'
     | '/verify'
     | '/wallet'
@@ -238,8 +265,10 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/settings/account'
     | '/u/$handle'
     | '/admin/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -261,8 +290,10 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/settings/account'
     | '/u/$handle'
     | '/admin'
+    | '/settings'
   id:
     | '__root__'
     | '/'
@@ -272,6 +303,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/inbox'
     | '/profile'
+    | '/settings'
     | '/sitemap.xml'
     | '/verify'
     | '/wallet'
@@ -285,8 +317,10 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/settings/account'
     | '/u/$handle'
     | '/admin/'
+    | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -297,6 +331,7 @@ export interface RootRouteChildren {
   DiscoverRoute: typeof DiscoverRoute
   InboxRoute: typeof InboxRouteWithChildren
   ProfileRoute: typeof ProfileRouteWithChildren
+  SettingsRoute: typeof SettingsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerifyRoute: typeof VerifyRoute
   WalletRoute: typeof WalletRoute
@@ -325,6 +360,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -376,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -389,6 +438,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/u/$handle'
       preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/settings/account': {
+      id: '/settings/account'
+      path: '/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof SettingsAccountRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/profile/edit': {
       id: '/profile/edit'
@@ -508,6 +564,20 @@ const ProfileRouteChildren: ProfileRouteChildren = {
 const ProfileRouteWithChildren =
   ProfileRoute._addFileChildren(ProfileRouteChildren)
 
+interface SettingsRouteChildren {
+  SettingsAccountRoute: typeof SettingsAccountRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAccountRoute: SettingsAccountRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
@@ -516,6 +586,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiscoverRoute: DiscoverRoute,
   InboxRoute: InboxRouteWithChildren,
   ProfileRoute: ProfileRouteWithChildren,
+  SettingsRoute: SettingsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerifyRoute: VerifyRoute,
   WalletRoute: WalletRoute,
@@ -525,3 +596,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
