@@ -2,9 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
+import { MusicHub } from "@/components/MusicHub";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { ArrowLeft, BadgeCheck, MapPin, Link as LinkIcon, MessageCircle, UserPlus, UserCheck, Flag } from "lucide-react";
+import { ArrowLeft, BadgeCheck, MapPin, Link as LinkIcon, MessageCircle, UserPlus, UserCheck, Flag, Film, AudioLines } from "lucide-react";
 import { toast } from "sonner";
 import { ReportDialog } from "@/components/ReportDialog";
 
@@ -19,23 +20,25 @@ function PublicProfile() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [reportOpen, setReportOpen] = useState(false);
+  const [tab, setTab] = useState<"videos" | "music">("videos");
 
   const { data, isLoading } = useQuery({
     queryKey: ["public-profile", handle, user?.id],
     queryFn: async () => {
       const { data: profile } = await supabase.from("profiles").select("*").eq("handle", handle).maybeSingle();
       if (!profile) return null;
-      const [{ count: followers }, { count: following }, { data: videos }] = await Promise.all([
+      const [{ count: followers }, { count: following }, { data: videos }, { data: artist }] = await Promise.all([
         supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", profile.id),
         supabase.from("follows").select("following_id", { count: "exact", head: true }).eq("follower_id", profile.id),
         supabase.from("videos").select("id,thumbnail_url,video_url,caption").eq("user_id", profile.id).eq("status", "active").order("created_at", { ascending: false }),
+        supabase.from("artist_profiles").select("status").eq("user_id", profile.id).eq("status", "approved").maybeSingle(),
       ]);
       let isFollowing = false;
       if (user && user.id !== profile.id) {
         const { data: f } = await supabase.from("follows").select("follower_id").eq("follower_id", user.id).eq("following_id", profile.id).maybeSingle();
         isFollowing = !!f;
       }
-      return { profile, followers: followers ?? 0, following: following ?? 0, videos: videos ?? [], isFollowing };
+      return { profile, followers: followers ?? 0, following: following ?? 0, videos: videos ?? [], isFollowing, isArtist: !!artist };
     },
   });
 
@@ -69,7 +72,7 @@ function PublicProfile() {
     </MobileShell>
   );
 
-  const { profile, followers, following, videos, isFollowing } = data;
+  const { profile, followers, following, videos, isFollowing, isArtist } = data;
   const isSelf = user?.id === profile.id;
 
   return (
@@ -96,6 +99,11 @@ function PublicProfile() {
           <div className="mt-3 flex items-center gap-2">
             <h1 className="font-display text-2xl font-bold">@{profile.handle}</h1>
             {profile.is_verified && <BadgeCheck className="h-5 w-5 fill-accent text-background" />}
+            {isArtist && (
+              <span className="bg-gradient-primary inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow-glow">
+                <AudioLines className="h-3 w-3" /> Artist
+              </span>
+            )}
           </div>
           <div className="text-sm text-foreground">{profile.display_name}</div>
           {profile.bio && <p className="mt-2 text-sm text-muted-foreground">{profile.bio}</p>}
@@ -112,20 +120,14 @@ function PublicProfile() {
 
           {!isSelf && (
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                onClick={toggleFollow}
+              <button onClick={toggleFollow}
                 className={`flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold transition ${
-                  isFollowing
-                    ? "glass text-foreground"
-                    : "bg-gradient-primary text-primary-foreground shadow-glow"
-                }`}
-              >
+                  isFollowing ? "glass text-foreground" : "bg-gradient-primary text-primary-foreground shadow-glow"
+                }`}>
                 {isFollowing ? <><UserCheck className="h-4 w-4" /> Following</> : <><UserPlus className="h-4 w-4" /> Follow</>}
               </button>
-              <button
-                onClick={startMessage}
-                className="bg-gradient-gold flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-background shadow-glow active:scale-[0.98]"
-              >
+              <button onClick={startMessage}
+                className="bg-gradient-gold flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-background shadow-glow active:scale-[0.98]">
                 <MessageCircle className="h-4 w-4" /> Message
               </button>
             </div>
@@ -133,8 +135,26 @@ function PublicProfile() {
         </div>
       </div>
 
+      {isArtist && (
+        <div className="mx-5 mb-3 grid grid-cols-2 gap-1 rounded-2xl bg-muted/40 p-1">
+          <button onClick={() => setTab("videos")}
+            className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${tab === "videos" ? "bg-background text-foreground shadow-elegant" : "text-muted-foreground"}`}>
+            <Film className="h-4 w-4" /> Videos
+          </button>
+          <button onClick={() => setTab("music")}
+            className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${tab === "music" ? "bg-background text-foreground shadow-elegant" : "text-muted-foreground"}`}>
+            <div className="bg-gradient-primary flex h-4 w-4 items-center justify-center rounded-full">
+              <AudioLines className="h-2.5 w-2.5 text-primary-foreground" />
+            </div>
+            Music Hub
+          </button>
+        </div>
+      )}
+
       <div className="px-5">
-        {videos.length === 0 ? (
+        {tab === "music" && isArtist ? (
+          <MusicHub artistUserId={profile.id} />
+        ) : videos.length === 0 ? (
           <div className="glass rounded-3xl p-8 text-center text-sm text-muted-foreground">No videos yet.</div>
         ) : (
           <div className="mb-3 grid grid-cols-3 gap-1">

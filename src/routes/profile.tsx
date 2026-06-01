@@ -1,8 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
+import { ProfileDrawer } from "@/components/ProfileDrawer";
+import { MusicHub } from "@/components/MusicHub";
 import { supabase } from "@/integrations/supabase/client";
-import { Share2, Wallet, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin, ShieldCheck, Film } from "lucide-react";
+import { Share2, Wallet, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin, Film, Menu, AudioLines } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/profile")({
@@ -13,6 +16,8 @@ export const Route = createFileRoute("/profile")({
 function Profile() {
   const { profile, user, signOut, loading } = useAuth();
   const navigate = useNavigate();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [tab, setTab] = useState<"videos" | "music">("videos");
 
   const { data: stats } = useQuery({
     queryKey: ["profile-stats", user?.id],
@@ -26,6 +31,16 @@ function Profile() {
       return { followers: followers.count ?? 0, following: following.count ?? 0, videos: videos.data ?? [] };
     },
   });
+
+  const { data: artist } = useQuery({
+    queryKey: ["my-artist-pub", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("artist_profiles").select("status").eq("user_id", user!.id).maybeSingle();
+      return data;
+    },
+  });
+  const isArtist = artist?.status === "approved";
 
   if (loading) return <MobileShell><div className="px-5 pt-20 text-sm text-muted-foreground">Loading…</div></MobileShell>;
 
@@ -46,10 +61,22 @@ function Profile() {
 
   return (
     <MobileShell>
+      <ProfileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
       <div className="relative">
         {profile?.cover_url
           ? <img src={profile.cover_url} className="h-40 w-full object-cover" alt="" />
           : <div className="bg-gradient-primary h-40 w-full opacity-80" />}
+
+        {/* Hamburger menu, top-left of banner */}
+        <button
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Open menu"
+          className="glass absolute left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-full shadow-elegant active:scale-90"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
         <div className="px-5 pb-6">
           <div className="-mt-12 flex items-end justify-between">
             {profile?.avatar_url
@@ -80,28 +107,35 @@ function Profile() {
             <Stat n={profile?.coins ?? 0} label="Coins" />
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          {/* Edit + Wallet only — Verify lives in Settings → Account → Verification */}
+          <div className="mt-4 grid grid-cols-2 gap-2">
             <Link to="/profile/edit" className="bg-gradient-primary flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-primary-foreground shadow-glow">
               <Pencil className="h-3.5 w-3.5" /> Edit
             </Link>
             <Link to="/wallet" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
               <Wallet className="h-3.5 w-3.5" /> Wallet
             </Link>
-            {!profile?.is_verified ? (
-              <Link to="/verify" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
-                <ShieldCheck className="h-3.5 w-3.5" /> Verify
-              </Link>
-            ) : (
-              <div className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-accent">
-                <BadgeCheck className="h-3.5 w-3.5" /> Verified
-              </div>
-            )}
           </div>
         </div>
       </div>
 
+      {/* Content tabs: Videos / Music Hub (artists only) */}
+      {isArtist && (
+        <div className="mx-5 mb-3 grid grid-cols-2 gap-1 rounded-2xl bg-muted/40 p-1">
+          <TabBtn active={tab === "videos"} onClick={() => setTab("videos")}><Film className="h-4 w-4" /> Videos</TabBtn>
+          <TabBtn active={tab === "music"} onClick={() => setTab("music")}>
+            <div className="bg-gradient-primary flex h-4 w-4 items-center justify-center rounded-full">
+              <AudioLines className="h-2.5 w-2.5 text-primary-foreground" />
+            </div>
+            Music Hub
+          </TabBtn>
+        </div>
+      )}
+
       <div className="px-5">
-        {stats && stats.videos.length === 0 ? (
+        {tab === "music" && isArtist ? (
+          <MusicHub artistUserId={user.id} />
+        ) : stats && stats.videos.length === 0 ? (
           <div className="glass flex flex-col items-center gap-3 rounded-3xl p-8 text-center">
             <Film className="h-7 w-7 text-primary" />
             <div className="font-display font-semibold">No videos yet</div>
@@ -130,5 +164,16 @@ function Stat({ n, label }: { n: number; label: string }) {
       <div className="font-display text-lg font-bold">{n.toLocaleString()}</div>
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
     </div>
+  );
+}
+
+function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick}
+      className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${
+        active ? "bg-background text-foreground shadow-elegant" : "text-muted-foreground"
+      }`}>
+      {children}
+    </button>
   );
 }
