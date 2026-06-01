@@ -14,6 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
+      artist_profiles: {
+        Row: {
+          apple_music_url: string | null
+          bio: string | null
+          created_at: string
+          genre: string | null
+          id: string
+          proof_url: string | null
+          review_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          soundcloud_url: string | null
+          spotify_url: string | null
+          stage_name: string
+          status: string
+          updated_at: string
+          user_id: string
+          youtube_url: string | null
+        }
+        Insert: {
+          apple_music_url?: string | null
+          bio?: string | null
+          created_at?: string
+          genre?: string | null
+          id?: string
+          proof_url?: string | null
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          soundcloud_url?: string | null
+          spotify_url?: string | null
+          stage_name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          youtube_url?: string | null
+        }
+        Update: {
+          apple_music_url?: string | null
+          bio?: string | null
+          created_at?: string
+          genre?: string | null
+          id?: string
+          proof_url?: string | null
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          soundcloud_url?: string | null
+          spotify_url?: string | null
+          stage_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      artist_tracks: {
+        Row: {
+          album: string | null
+          apple_music_url: string | null
+          artist_user_id: string
+          artwork_url: string | null
+          audio_url: string | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          position: number
+          soundcloud_url: string | null
+          spotify_url: string | null
+          title: string
+          updated_at: string
+          youtube_url: string | null
+        }
+        Insert: {
+          album?: string | null
+          apple_music_url?: string | null
+          artist_user_id: string
+          artwork_url?: string | null
+          audio_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          position?: number
+          soundcloud_url?: string | null
+          spotify_url?: string | null
+          title: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Update: {
+          album?: string | null
+          apple_music_url?: string | null
+          artist_user_id?: string
+          artwork_url?: string | null
+          audio_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          position?: number
+          soundcloud_url?: string | null
+          spotify_url?: string | null
+          title?: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       coin_purchases: {
         Row: {
           coins: number
