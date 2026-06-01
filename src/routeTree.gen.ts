@@ -27,6 +27,8 @@ import { Route as SettingsAccountRouteImport } from './routes/settings.account'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
+import { Route as ArtistStudioRouteImport } from './routes/artist.studio'
+import { Route as ArtistOnboardingRouteImport } from './routes/artist.onboarding'
 import { Route as AdminVerificationsRouteImport } from './routes/admin/verifications'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -34,6 +36,7 @@ import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminPayoutsRouteImport } from './routes/admin/payouts'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
+import { Route as SettingsAccountVerificationRouteImport } from './routes/settings.account.verification'
 
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
@@ -125,6 +128,16 @@ const InboxIdRoute = InboxIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => InboxRoute,
 } as any)
+const ArtistStudioRoute = ArtistStudioRouteImport.update({
+  id: '/artist/studio',
+  path: '/artist/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistOnboardingRoute = ArtistOnboardingRouteImport.update({
+  id: '/artist/onboarding',
+  path: '/artist/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminVerificationsRoute = AdminVerificationsRouteImport.update({
   id: '/verifications',
   path: '/verifications',
@@ -160,6 +173,12 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/content',
   getParentRoute: () => AdminRoute,
 } as any)
+const SettingsAccountVerificationRoute =
+  SettingsAccountVerificationRouteImport.update({
+    id: '/verification',
+    path: '/verification',
+    getParentRoute: () => SettingsAccountRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -180,13 +199,16 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/verifications': typeof AdminVerificationsRoute
+  '/artist/onboarding': typeof ArtistOnboardingRoute
+  '/artist/studio': typeof ArtistStudioRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
-  '/settings/account': typeof SettingsAccountRoute
+  '/settings/account': typeof SettingsAccountRouteWithChildren
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/settings/account/verification': typeof SettingsAccountVerificationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -205,13 +227,16 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/verifications': typeof AdminVerificationsRoute
+  '/artist/onboarding': typeof ArtistOnboardingRoute
+  '/artist/studio': typeof ArtistStudioRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
-  '/settings/account': typeof SettingsAccountRoute
+  '/settings/account': typeof SettingsAccountRouteWithChildren
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/settings/account/verification': typeof SettingsAccountVerificationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -233,13 +258,16 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/verifications': typeof AdminVerificationsRoute
+  '/artist/onboarding': typeof ArtistOnboardingRoute
+  '/artist/studio': typeof ArtistStudioRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
-  '/settings/account': typeof SettingsAccountRoute
+  '/settings/account': typeof SettingsAccountRouteWithChildren
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/settings/account/verification': typeof SettingsAccountVerificationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -262,6 +290,8 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/verifications'
+    | '/artist/onboarding'
+    | '/artist/studio'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -269,6 +299,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
+    | '/settings/account/verification'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -287,6 +318,8 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/verifications'
+    | '/artist/onboarding'
+    | '/artist/studio'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -294,6 +327,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/admin'
     | '/settings'
+    | '/settings/account/verification'
   id:
     | '__root__'
     | '/'
@@ -314,6 +348,8 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/verifications'
+    | '/artist/onboarding'
+    | '/artist/studio'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -321,6 +357,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
+    | '/settings/account/verification'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -335,6 +372,8 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerifyRoute: typeof VerifyRoute
   WalletRoute: typeof WalletRoute
+  ArtistOnboardingRoute: typeof ArtistOnboardingRoute
+  ArtistStudioRoute: typeof ArtistStudioRoute
   LiveIdRoute: typeof LiveIdRoute
   UHandleRoute: typeof UHandleRoute
 }
@@ -467,6 +506,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InboxIdRouteImport
       parentRoute: typeof InboxRoute
     }
+    '/artist/studio': {
+      id: '/artist/studio'
+      path: '/artist/studio'
+      fullPath: '/artist/studio'
+      preLoaderRoute: typeof ArtistStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artist/onboarding': {
+      id: '/artist/onboarding'
+      path: '/artist/onboarding'
+      fullPath: '/artist/onboarding'
+      preLoaderRoute: typeof ArtistOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/verifications': {
       id: '/admin/verifications'
       path: '/verifications'
@@ -516,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/settings/account/verification': {
+      id: '/settings/account/verification'
+      path: '/verification'
+      fullPath: '/settings/account/verification'
+      preLoaderRoute: typeof SettingsAccountVerificationRouteImport
+      parentRoute: typeof SettingsAccountRoute
+    }
   }
 }
 
@@ -564,13 +624,25 @@ const ProfileRouteChildren: ProfileRouteChildren = {
 const ProfileRouteWithChildren =
   ProfileRoute._addFileChildren(ProfileRouteChildren)
 
+interface SettingsAccountRouteChildren {
+  SettingsAccountVerificationRoute: typeof SettingsAccountVerificationRoute
+}
+
+const SettingsAccountRouteChildren: SettingsAccountRouteChildren = {
+  SettingsAccountVerificationRoute: SettingsAccountVerificationRoute,
+}
+
+const SettingsAccountRouteWithChildren = SettingsAccountRoute._addFileChildren(
+  SettingsAccountRouteChildren,
+)
+
 interface SettingsRouteChildren {
-  SettingsAccountRoute: typeof SettingsAccountRoute
+  SettingsAccountRoute: typeof SettingsAccountRouteWithChildren
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
-  SettingsAccountRoute: SettingsAccountRoute,
+  SettingsAccountRoute: SettingsAccountRouteWithChildren,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 
@@ -590,9 +662,21 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerifyRoute: VerifyRoute,
   WalletRoute: WalletRoute,
+  ArtistOnboardingRoute: ArtistOnboardingRoute,
+  ArtistStudioRoute: ArtistStudioRoute,
   LiveIdRoute: LiveIdRoute,
   UHandleRoute: UHandleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
