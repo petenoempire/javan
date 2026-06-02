@@ -15,6 +15,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as InboxRouteImport } from './routes/inbox'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -27,6 +28,7 @@ import { Route as SettingsAccountRouteImport } from './routes/settings.account'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
+import { Route as HelpChatRouteImport } from './routes/help.chat'
 import { Route as ArtistStudioRouteImport } from './routes/artist.studio'
 import { Route as ArtistOnboardingRouteImport } from './routes/artist.onboarding'
 import { Route as AdminVerificationsRouteImport } from './routes/admin/verifications'
@@ -66,6 +68,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const InboxRoute = InboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiscoverRoute = DiscoverRouteImport.update({
@@ -128,6 +135,11 @@ const InboxIdRoute = InboxIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => InboxRoute,
 } as any)
+const HelpChatRoute = HelpChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => HelpRoute,
+} as any)
 const ArtistStudioRoute = ArtistStudioRouteImport.update({
   id: '/artist/studio',
   path: '/artist/studio',
@@ -186,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
@@ -201,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/admin/verifications': typeof AdminVerificationsRoute
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
+  '/help/chat': typeof HelpChatRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -215,6 +229,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -229,6 +244,7 @@ export interface FileRoutesByTo {
   '/admin/verifications': typeof AdminVerificationsRoute
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
+  '/help/chat': typeof HelpChatRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -245,6 +261,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
@@ -260,6 +277,7 @@ export interface FileRoutesById {
   '/admin/verifications': typeof AdminVerificationsRoute
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
+  '/help/chat': typeof HelpChatRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -277,6 +295,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/help'
     | '/inbox'
     | '/profile'
     | '/settings'
@@ -292,6 +311,7 @@ export interface FileRouteTypes {
     | '/admin/verifications'
     | '/artist/onboarding'
     | '/artist/studio'
+    | '/help/chat'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -306,6 +326,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/help'
     | '/inbox'
     | '/profile'
     | '/sitemap.xml'
@@ -320,6 +341,7 @@ export interface FileRouteTypes {
     | '/admin/verifications'
     | '/artist/onboarding'
     | '/artist/studio'
+    | '/help/chat'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -335,6 +357,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/help'
     | '/inbox'
     | '/profile'
     | '/settings'
@@ -350,6 +373,7 @@ export interface FileRouteTypes {
     | '/admin/verifications'
     | '/artist/onboarding'
     | '/artist/studio'
+    | '/help/chat'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -366,6 +390,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CreateRoute: typeof CreateRoute
   DiscoverRoute: typeof DiscoverRoute
+  HelpRoute: typeof HelpRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
   ProfileRoute: typeof ProfileRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
@@ -420,6 +445,13 @@ declare module '@tanstack/react-router' {
       path: '/inbox'
       fullPath: '/inbox'
       preLoaderRoute: typeof InboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/discover': {
@@ -505,6 +537,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/inbox/$id'
       preLoaderRoute: typeof InboxIdRouteImport
       parentRoute: typeof InboxRoute
+    }
+    '/help/chat': {
+      id: '/help/chat'
+      path: '/chat'
+      fullPath: '/help/chat'
+      preLoaderRoute: typeof HelpChatRouteImport
+      parentRoute: typeof HelpRoute
     }
     '/artist/studio': {
       id: '/artist/studio'
@@ -603,6 +642,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface HelpRouteChildren {
+  HelpChatRoute: typeof HelpChatRoute
+}
+
+const HelpRouteChildren: HelpRouteChildren = {
+  HelpChatRoute: HelpChatRoute,
+}
+
+const HelpRouteWithChildren = HelpRoute._addFileChildren(HelpRouteChildren)
+
 interface InboxRouteChildren {
   InboxIdRoute: typeof InboxIdRoute
 }
@@ -656,6 +705,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CreateRoute: CreateRoute,
   DiscoverRoute: DiscoverRoute,
+  HelpRoute: HelpRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
   ProfileRoute: ProfileRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
@@ -670,13 +720,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
