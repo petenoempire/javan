@@ -28,6 +28,8 @@ const groups: { title: string; items: Item[] }[] = [
     title: "Support",
     items: [{ to: "/help", label: "Help center", icon: HelpCircle, hint: "Get answers or chat with us" }],
   },
+];
+
 
 function SettingsHome() {
   const { signOut } = useAuth();
