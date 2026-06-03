@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QrRouteImport } from './routes/qr'
@@ -19,6 +20,7 @@ import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as FollowingRouteImport } from './routes/following'
 import { Route as FollowersRouteImport } from './routes/followers'
 import { Route as DiscoverRouteImport } from './routes/discover'
@@ -59,6 +61,11 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -97,6 +104,11 @@ const InboxRoute = InboxRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FriendsRoute = FriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FollowingRoute = FollowingRouteImport.update({
@@ -254,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/discover': typeof DiscoverRoute
   '/followers': typeof FollowersRoute
   '/following': typeof FollowingRoute
+  '/friends': typeof FriendsRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
@@ -262,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/qr': typeof QrRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/studio': typeof StudioRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -294,6 +308,7 @@ export interface FileRoutesByTo {
   '/discover': typeof DiscoverRoute
   '/followers': typeof FollowersRoute
   '/following': typeof FollowingRoute
+  '/friends': typeof FriendsRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
@@ -301,6 +316,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRouteWithChildren
   '/qr': typeof QrRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/studio': typeof StudioRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -335,6 +351,7 @@ export interface FileRoutesById {
   '/discover': typeof DiscoverRoute
   '/followers': typeof FollowersRoute
   '/following': typeof FollowingRoute
+  '/friends': typeof FriendsRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
@@ -343,6 +360,7 @@ export interface FileRoutesById {
   '/qr': typeof QrRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/studio': typeof StudioRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -378,6 +396,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/followers'
     | '/following'
+    | '/friends'
     | '/help'
     | '/inbox'
     | '/notifications'
@@ -386,6 +405,7 @@ export interface FileRouteTypes {
     | '/qr'
     | '/settings'
     | '/sitemap.xml'
+    | '/studio'
     | '/verify'
     | '/wallet'
     | '/admin/content'
@@ -418,6 +438,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/followers'
     | '/following'
+    | '/friends'
     | '/help'
     | '/inbox'
     | '/notifications'
@@ -425,6 +446,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qr'
     | '/sitemap.xml'
+    | '/studio'
     | '/verify'
     | '/wallet'
     | '/admin/content'
@@ -458,6 +480,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/followers'
     | '/following'
+    | '/friends'
     | '/help'
     | '/inbox'
     | '/notifications'
@@ -466,6 +489,7 @@ export interface FileRouteTypes {
     | '/qr'
     | '/settings'
     | '/sitemap.xml'
+    | '/studio'
     | '/verify'
     | '/wallet'
     | '/admin/content'
@@ -500,6 +524,7 @@ export interface RootRouteChildren {
   DiscoverRoute: typeof DiscoverRoute
   FollowersRoute: typeof FollowersRoute
   FollowingRoute: typeof FollowingRoute
+  FriendsRoute: typeof FriendsRoute
   HelpRoute: typeof HelpRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
@@ -508,6 +533,7 @@ export interface RootRouteChildren {
   QrRoute: typeof QrRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  StudioRoute: typeof StudioRoute
   VerifyRoute: typeof VerifyRoute
   WalletRoute: typeof WalletRoute
   ArtistOnboardingRoute: typeof ArtistOnboardingRoute
@@ -530,6 +556,13 @@ declare module '@tanstack/react-router' {
       path: '/verify'
       fullPath: '/verify'
       preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -586,6 +619,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/friends': {
+      id: '/friends'
+      path: '/friends'
+      fullPath: '/friends'
+      preLoaderRoute: typeof FriendsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/following': {
@@ -891,6 +931,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiscoverRoute: DiscoverRoute,
   FollowersRoute: FollowersRoute,
   FollowingRoute: FollowingRoute,
+  FriendsRoute: FriendsRoute,
   HelpRoute: HelpRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
@@ -899,6 +940,7 @@ const rootRouteChildren: RootRouteChildren = {
   QrRoute: QrRoute,
   SettingsRoute: SettingsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  StudioRoute: StudioRoute,
   VerifyRoute: VerifyRoute,
   WalletRoute: WalletRoute,
   ArtistOnboardingRoute: ArtistOnboardingRoute,
@@ -909,13 +951,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
