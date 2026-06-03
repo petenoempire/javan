@@ -506,6 +506,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_views: {
+        Row: {
+          profile_id: string
+          viewed_at: string
+          viewer_id: string
+        }
+        Insert: {
+          profile_id: string
+          viewed_at?: string
+          viewer_id: string
+        }
+        Update: {
+          profile_id?: string
+          viewed_at?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
