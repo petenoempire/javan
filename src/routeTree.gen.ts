@@ -29,6 +29,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
+import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsAccountRouteImport } from './routes/settings.account'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
@@ -145,6 +146,11 @@ const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
+  id: '/appearance',
+  path: '/appearance',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsAccountRoute = SettingsAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/u/$handle': typeof UHandleRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/u/$handle': typeof UHandleRoute
@@ -325,6 +333,7 @@ export interface FileRoutesById {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/u/$handle': typeof UHandleRoute
@@ -364,6 +373,7 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/privacy'
     | '/u/$handle'
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/privacy'
     | '/u/$handle'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/privacy'
     | '/u/$handle'
@@ -606,6 +618,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/settings/notifications'
       preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/appearance': {
+      id: '/settings/appearance'
+      path: '/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof SettingsAppearanceRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/account': {
@@ -785,6 +804,7 @@ const SettingsAccountRouteWithChildren = SettingsAccountRoute._addFileChildren(
 
 interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRouteWithChildren
+  SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   SettingsPrivacyRoute: typeof SettingsPrivacyRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -792,6 +812,7 @@ interface SettingsRouteChildren {
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAccountRoute: SettingsAccountRouteWithChildren,
+  SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,
   SettingsPrivacyRoute: SettingsPrivacyRoute,
   SettingsIndexRoute: SettingsIndexRoute,
