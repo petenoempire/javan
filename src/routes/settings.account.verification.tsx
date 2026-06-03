@@ -7,7 +7,7 @@ import { ShieldCheck, ArrowLeft, Upload, Loader2, CheckCircle2, XCircle, Clock, 
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/account/verification")({
-  head: () => ({ meta: [{ title: "Verification · Admiralty" }] }),
+  head: () => ({ meta: [{ title: "Verification · Boogle" }] }),
   component: VerificationPage,
 });
 

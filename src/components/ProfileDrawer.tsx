@@ -121,7 +121,7 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
               </button>
               <div className="absolute bottom-3 left-5">
                 <div className="font-display text-2xl font-bold tracking-tight">Menu</div>
-                <div className="text-xs text-muted-foreground">Your Admiralty workspace</div>
+                <div className="text-xs text-muted-foreground">Your Boogle workspace</div>
               </div>
             </div>
 

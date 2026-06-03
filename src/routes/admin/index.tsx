@@ -32,7 +32,7 @@ function AdminOverview() {
   });
 
   return (
-    <AdminShell title="Overview" subtitle="Real activity from the Admiralty platform.">
+    <AdminShell title="Overview" subtitle="Real activity from the Boogle platform.">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <Card icon={Users} label="Registered users" value={stats?.users ?? 0} grad="bg-gradient-primary" />
         <Card icon={Film} label="Active videos" value={stats?.videos ?? 0} grad="bg-gradient-live" />

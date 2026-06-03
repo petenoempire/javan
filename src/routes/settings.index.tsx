@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings/")({
-  head: () => ({ meta: [{ title: "Settings and Privacy · Admiralty" }] }),
+  head: () => ({ meta: [{ title: "Settings and Privacy · Boogle" }] }),
   component: SettingsHome,
 });
 

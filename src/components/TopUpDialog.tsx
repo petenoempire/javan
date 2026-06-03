@@ -138,7 +138,7 @@ export function TopUpDialog({ children }: { children: React.ReactNode }) {
           {submitting ? "Processing…" : `Pay $${selected.usd.toFixed(2)} · ${selected.coins.toLocaleString()} coins`}
         </button>
         <p className="text-center text-[10px] text-muted-foreground">
-          Payments are processed securely. Card details are never stored on Admiralty servers.
+          Payments are processed securely. Card details are never stored on Boogle servers.
         </p>
       </DialogContent>
     </Dialog>
