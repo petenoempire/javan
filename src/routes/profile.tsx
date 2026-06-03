@@ -167,8 +167,8 @@ function Profile() {
               <div className="font-display text-lg font-bold">{(stats?.followers ?? 0).toLocaleString()}</div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</div>
             </Link>
-            <button
-              onClick={() => navigate({ to: "/wallet" })}
+            <Link
+              to="/studio"
               className="glass relative overflow-hidden rounded-2xl p-3 text-center transition active:scale-95"
             >
               <div className="bg-gradient-primary absolute -right-4 -top-4 h-12 w-12 rounded-full opacity-20 blur-md" />
@@ -177,7 +177,7 @@ function Profile() {
                 <div className="font-display text-lg font-bold">{(stats?.viewers ?? 0).toLocaleString()}</div>
               </div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Viewers</div>
-            </button>
+            </Link>
           </div>
 
           {/* Edit + Wallet */}
