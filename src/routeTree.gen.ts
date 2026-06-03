@@ -28,6 +28,7 @@ import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as SettingsAccountRouteImport } from './routes/settings.account'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
@@ -139,6 +140,11 @@ const SettingsPrivacyRoute = SettingsPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsAccountRoute = SettingsAccountRouteImport.update({
   id: '/account',
   path: '/account',
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/notifications'
     | '/settings/privacy'
     | '/u/$handle'
     | '/admin/'
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/notifications'
     | '/settings/privacy'
     | '/u/$handle'
     | '/admin'
@@ -425,6 +436,7 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/notifications'
     | '/settings/privacy'
     | '/u/$handle'
     | '/admin/'
@@ -587,6 +599,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/settings/privacy'
       preLoaderRoute: typeof SettingsPrivacyRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/settings/account': {
@@ -766,12 +785,14 @@ const SettingsAccountRouteWithChildren = SettingsAccountRoute._addFileChildren(
 
 interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRouteWithChildren
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   SettingsPrivacyRoute: typeof SettingsPrivacyRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAccountRoute: SettingsAccountRouteWithChildren,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
   SettingsPrivacyRoute: SettingsPrivacyRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
