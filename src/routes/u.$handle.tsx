@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { MusicHub } from "@/components/MusicHub";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,18 @@ function PublicProfile() {
       return { profile, followers: followers ?? 0, following: following ?? 0, videos: videos ?? [], isFollowing, isArtist: !!artist };
     },
   });
+
+  useEffect(() => {
+    if (!user || !data?.profile || user.id === data.profile.id) return;
+
+    supabase.from("profile_views").upsert({
+      profile_id: data.profile.id,
+      viewer_id: user.id,
+      viewed_at: new Date().toISOString(),
+    }, { onConflict: "profile_id,viewer_id" }).then(({ error }) => {
+      if (error) console.warn("Could not record profile view", error.message);
+    });
+  }, [user, data?.profile]);
 
   const toggleFollow = async () => {
     if (!user) return navigate({ to: "/auth" });
