@@ -13,6 +13,7 @@ import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as QrRouteImport } from './routes/qr'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -66,6 +67,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QrRoute = QrRouteImport.update({
+  id: '/qr',
+  path: '/qr',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/qr': typeof QrRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
@@ -292,6 +299,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/qr': typeof QrRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
@@ -332,6 +340,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/qr': typeof QrRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
@@ -374,6 +383,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/offline'
     | '/profile'
+    | '/qr'
     | '/settings'
     | '/sitemap.xml'
     | '/verify'
@@ -413,6 +423,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/offline'
     | '/profile'
+    | '/qr'
     | '/sitemap.xml'
     | '/verify'
     | '/wallet'
@@ -452,6 +463,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/offline'
     | '/profile'
+    | '/qr'
     | '/settings'
     | '/sitemap.xml'
     | '/verify'
@@ -493,6 +505,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   OfflineRoute: typeof OfflineRoute
   ProfileRoute: typeof ProfileRouteWithChildren
+  QrRoute: typeof QrRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerifyRoute: typeof VerifyRoute
@@ -531,6 +544,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qr': {
+      id: '/qr'
+      path: '/qr'
+      fullPath: '/qr'
+      preLoaderRoute: typeof QrRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -876,6 +896,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   OfflineRoute: OfflineRoute,
   ProfileRoute: ProfileRouteWithChildren,
+  QrRoute: QrRoute,
   SettingsRoute: SettingsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerifyRoute: VerifyRoute,
