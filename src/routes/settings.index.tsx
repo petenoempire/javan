@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, UserCircle, Bell, Lock, Palette, HelpCircle, ChevronRight, LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, UserCircle, Bell, Lock, Palette, HelpCircle, ChevronRight, LogOut, KeyRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings/")({
@@ -8,20 +7,21 @@ export const Route = createFileRoute("/settings/")({
   component: SettingsHome,
 });
 
-type Item = { to?: string; label: string; icon: typeof UserCircle; hint?: string; soon?: boolean };
+type Item = { to: string; label: string; icon: typeof UserCircle; hint?: string };
 const groups: { title: string; items: Item[] }[] = [
   {
     title: "Account",
     items: [
-      { to: "/settings/account", label: "Account", icon: UserCircle, hint: "Verification, security, identity" },
-      { label: "Privacy", icon: Lock, hint: "Who can see your content", soon: true },
+      { to: "/settings/account", label: "Account", icon: UserCircle, hint: "Verification, identity" },
+      { to: "/settings/security", label: "Password & Security", icon: KeyRound, hint: "Login, reset, safety" },
+      { to: "/settings/privacy", label: "Privacy", icon: Lock, hint: "Who can see your content" },
     ],
   },
   {
     title: "Preferences",
     items: [
-      { label: "Notifications", icon: Bell, soon: true },
-      { label: "Appearance", icon: Palette, soon: true },
+      { to: "/settings/notifications", label: "Notifications", icon: Bell, hint: "Pick what pings you" },
+      { to: "/settings/appearance", label: "Appearance", icon: Palette, hint: "Theme & display" },
     ],
   },
   {
@@ -30,39 +30,27 @@ const groups: { title: string; items: Item[] }[] = [
   },
 ];
 
-
 function SettingsHome() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
   const renderItem = (item: Item, i: number) => {
     const Icon = item.icon;
-    const inner = (
-      <>
+    return (
+      <Link
+        key={item.label}
+        to={item.to}
+        className={`flex items-center gap-3 px-4 py-3.5 active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`}
+      >
         <div className="ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
           <Icon className="h-5 w-5 text-primary" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <div className="truncate text-sm font-semibold">{item.label}</div>
-            {item.soon && (
-              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                Soon
-              </span>
-            )}
-          </div>
+          <div className="truncate text-sm font-semibold">{item.label}</div>
           {item.hint && <div className="truncate text-[11px] text-muted-foreground">{item.hint}</div>}
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </>
-    );
-    const cls = `flex items-center gap-3 px-4 py-3.5 active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`;
-    return item.to ? (
-      <Link key={item.label} to={item.to} className={cls}>{inner}</Link>
-    ) : (
-      <button key={item.label} onClick={() => toast.info(`${item.label} is coming soon`)} className={`${cls} text-left w-full`}>
-        {inner}
-      </button>
+      </Link>
     );
   };
 
@@ -76,12 +64,8 @@ function SettingsHome() {
       <div className="space-y-6 px-4 pt-5">
         {groups.map((g) => (
           <div key={g.title}>
-            <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              {g.title}
-            </div>
-            <div className="glass overflow-hidden rounded-3xl">
-              {g.items.map((item, i) => renderItem(item, i))}
-            </div>
+            <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{g.title}</div>
+            <div className="glass overflow-hidden rounded-3xl">{g.items.map((item, i) => renderItem(item, i))}</div>
           </div>
         ))}
 
