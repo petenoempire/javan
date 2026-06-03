@@ -14,8 +14,10 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as FollowersRouteImport } from './routes/followers'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -65,6 +67,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InboxRoute = InboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
@@ -73,6 +80,11 @@ const InboxRoute = InboxRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FollowersRoute = FollowersRouteImport.update({
+  id: '/followers',
+  path: '/followers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiscoverRoute = DiscoverRouteImport.update({
@@ -198,8 +210,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/followers': typeof FollowersRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -229,8 +243,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/followers': typeof FollowersRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
@@ -261,8 +277,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/followers': typeof FollowersRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -295,8 +313,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/followers'
     | '/help'
     | '/inbox'
+    | '/notifications'
     | '/profile'
     | '/settings'
     | '/sitemap.xml'
@@ -326,8 +346,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/followers'
     | '/help'
     | '/inbox'
+    | '/notifications'
     | '/profile'
     | '/sitemap.xml'
     | '/verify'
@@ -357,8 +379,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/followers'
     | '/help'
     | '/inbox'
+    | '/notifications'
     | '/profile'
     | '/settings'
     | '/sitemap.xml'
@@ -390,8 +414,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CreateRoute: typeof CreateRoute
   DiscoverRoute: typeof DiscoverRoute
+  FollowersRoute: typeof FollowersRoute
   HelpRoute: typeof HelpRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
+  NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -440,6 +466,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inbox': {
       id: '/inbox'
       path: '/inbox'
@@ -452,6 +485,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/followers': {
+      id: '/followers'
+      path: '/followers'
+      fullPath: '/followers'
+      preLoaderRoute: typeof FollowersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/discover': {
@@ -705,8 +745,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CreateRoute: CreateRoute,
   DiscoverRoute: DiscoverRoute,
+  FollowersRoute: FollowersRoute,
   HelpRoute: HelpRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
+  NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
