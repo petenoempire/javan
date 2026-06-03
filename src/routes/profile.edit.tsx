@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Camera, Loader2, Copy, Check, Pencil } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, Copy, Check, ChevronRight, GripVertical } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -10,22 +10,24 @@ export const Route = createFileRoute("/profile/edit")({
   component: EditProfile,
 });
 
+type SheetKind = null | "name" | "username" | "bio" | "ai";
+
 function EditProfile() {
   const { profile, user, refreshProfile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    display_name: "", handle: "", bio: "", location: "", website: "",
-    avatar_url: "" as string | null, cover_url: "" as string | null,
+    display_name: "", handle: "", bio: "",
+    avatar_url: "" as string | null,
   });
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState<null | "avatar" | "cover">(null);
+  const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sheet, setSheet] = useState<SheetKind>(null);
+  const [saving, setSaving] = useState(false);
+  const [order, setOrder] = useState<string[]>(["Boogle Studio", "Balance"]);
+  const dragIdx = useRef<number | null>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
-  const coverInput = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!authLoading && !user) navigate({ to: "/auth" });
-  }, [authLoading, user, navigate]);
+  useEffect(() => { if (!authLoading && !user) navigate({ to: "/auth" }); }, [authLoading, user, navigate]);
 
   useEffect(() => {
     if (profile) {
@@ -33,50 +35,25 @@ function EditProfile() {
         display_name: profile.display_name ?? "",
         handle: profile.handle ?? "",
         bio: profile.bio ?? "",
-        location: profile.location ?? "",
-        website: profile.website ?? "",
         avatar_url: profile.avatar_url,
-        cover_url: profile.cover_url,
       });
     }
   }, [profile]);
 
-  const upload = async (file: File, kind: "avatar" | "cover") => {
+  const persist = async (patch: Partial<typeof form>) => {
     if (!user) return;
-    setUploading(kind);
-    try {
-      const bucket = kind === "avatar" ? "avatars" : "covers";
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.id}/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
-      if (error) throw error;
-      const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-      setForm((p) => ({ ...p, [`${kind}_url`]: data.publicUrl }));
-      toast.success(`${kind === "avatar" ? "Avatar" : "Cover"} uploaded`);
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
-      setUploading(null);
-    }
-  };
-
-  const save = async () => {
-    if (!user) return;
+    const next = { ...form, ...patch };
+    setForm(next);
     setSaving(true);
     try {
       const { error } = await supabase.from("profiles").update({
-        display_name: form.display_name,
-        handle: form.handle.toLowerCase().replace(/[^a-z0-9_]/g, ""),
-        bio: form.bio,
-        location: form.location || null,
-        website: form.website || null,
-        avatar_url: form.avatar_url,
-        cover_url: form.cover_url,
+        display_name: next.display_name,
+        handle: next.handle.toLowerCase().replace(/[^a-z0-9_]/g, ""),
+        bio: next.bio,
+        avatar_url: next.avatar_url,
       }).eq("id", user.id);
       if (error) throw error;
       await refreshProfile();
-      toast.success("Profile updated");
-      navigate({ to: "/profile" });
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -84,133 +61,198 @@ function EditProfile() {
     }
   };
 
+  const uploadAvatar = async (file: File) => {
+    if (!user) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+      await persist({ avatar_url: data.publicUrl });
+      toast.success("Photo updated");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const profileLink = form.handle
     ? `${typeof window !== "undefined" ? window.location.origin : ""}/u/${form.handle}`
     : "";
   const copyLink = async () => {
-    if (!profileLink) return;
+    if (!profileLink) return toast.error("Set a username first");
     try {
       await navigator.clipboard.writeText(profileLink);
       setCopied(true);
       toast.success("Link copied");
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      toast.error("Couldn't copy");
-    }
+      setTimeout(() => setCopied(false), 1600);
+    } catch { toast.error("Couldn't copy"); }
   };
 
   if (authLoading || !profile) {
     return <div className="flex h-[100dvh] items-center justify-center bg-background"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   }
 
+  const reorder = (from: number, to: number) => {
+    if (from === to) return;
+    const next = [...order];
+    const [m] = next.splice(from, 1);
+    next.splice(to, 0, m);
+    setOrder(next);
+  };
+
+  const orderRoute = (label: string) =>
+    label === "Boogle Studio" ? "/studio" : "/wallet";
+
   return (
-    <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-16">
-      <header className="glass-strong sticky top-0 z-10 flex items-center justify-between border-b border-border px-4 py-3">
-        <Link to="/profile" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
-        <h1 className="font-display font-semibold">Edit profile</h1>
-        <button onClick={save} disabled={saving}
-          className="bg-gradient-primary rounded-full px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow disabled:opacity-60">
-          {saving ? "Saving…" : "Save"}
-        </button>
+    <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-muted/50 pb-16 dark:bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-10 flex items-center border-b border-border/40 bg-background/95 px-2 py-3 backdrop-blur">
+        <Link to="/profile" className="p-2" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
+        <h1 className="flex-1 text-center font-display text-base font-bold">Edit profile</h1>
+        <div className="w-9">{saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}</div>
       </header>
 
-      {/* Cover band */}
-      <button onClick={() => coverInput.current?.click()} className="relative block h-32 w-full overflow-hidden">
-        {form.cover_url ? (
-          <img src={form.cover_url} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <div className="bg-gradient-primary h-full w-full opacity-80" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-background" />
-        <div className="absolute right-3 top-3 glass flex h-9 w-9 items-center justify-center rounded-full">
-          {uploading === "cover" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-        </div>
-      </button>
-      <input ref={coverInput} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], "cover")} />
-
-      {/* Centered avatar */}
-      <div className="-mt-16 flex justify-center">
+      {/* Avatar block */}
+      <div className="flex flex-col items-center pt-8 pb-6">
         <button onClick={() => avatarInput.current?.click()}
-          className="relative block h-28 w-28 overflow-hidden rounded-full border-4 border-background shadow-elegant ring-2 ring-primary/30">
-          {form.avatar_url ? (
-            <img src={form.avatar_url} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="bg-gradient-primary h-full w-full" />
-          )}
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-center bg-black/55 py-1.5">
-            {uploading === "avatar" ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : <Camera className="h-4 w-4 text-white" />}
-          </div>
+          className="relative h-24 w-24 overflow-hidden rounded-full ring-2 ring-background shadow-elegant active:scale-95">
+          {form.avatar_url
+            ? <img src={form.avatar_url} alt="" className="h-full w-full object-cover" />
+            : <div className="bg-gradient-primary h-full w-full" />}
+          <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+            {uploading
+              ? <Loader2 className="h-5 w-5 animate-spin text-white" />
+              : <Camera className="h-5 w-5 text-white" />}
+          </span>
         </button>
+        <button onClick={() => avatarInput.current?.click()}
+          className="mt-3 text-sm font-semibold text-sky-500 active:opacity-70">
+          Change photo
+        </button>
+        <input ref={avatarInput} type="file" accept="image/*" hidden
+          onChange={(e) => e.target.files?.[0] && uploadAvatar(e.target.files[0])} />
       </div>
-      <input ref={avatarInput} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], "avatar")} />
 
-      <div className="px-5 pt-6">
-        {/* Identity card */}
-        <div className="glass rounded-3xl p-4">
-          <SectionLabel>Identity</SectionLabel>
-          <FloatingField label="Name" value={form.display_name} onChange={(v) => setForm((p) => ({ ...p, display_name: v }))} icon={<Pencil className="h-3.5 w-3.5" />} />
-          <FloatingField label="Username" value={form.handle} prefix="@" onChange={(v) => setForm((p) => ({ ...p, handle: v.toLowerCase().replace(/[^a-z0-9_]/g, "") }))} />
+      {/* Identity card */}
+      <Card>
+        <Row label="Name" value={form.display_name || "Add name"} onClick={() => setSheet("name")} />
+        <Row label="Username" value={form.handle ? `@${form.handle}` : "Set username"} onClick={() => setSheet("username")} />
+        <div className="flex items-center gap-3 border-t border-border/40 px-4 py-3.5">
+          <span className="text-sm font-medium">Profile link</span>
+          <span className="flex-1 truncate text-right text-sm text-muted-foreground">
+            {profileLink || "—"}
+          </span>
+          <button onClick={copyLink} aria-label="Copy link" className="rounded-full p-1.5 text-sky-500 active:opacity-60">
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </button>
+        </div>
+      </Card>
 
-          {/* Copy profile link */}
-          <div className="mt-3">
-            <span className="mb-1 block px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Custom profile link</span>
-            <button onClick={copyLink}
-              className="bg-gradient-primary/10 hover:bg-gradient-primary/20 group flex w-full items-center gap-2 rounded-2xl border border-primary/30 px-4 py-3 text-left transition">
-              <div className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{profileLink || "Set a username first"}</div>
-              <div className="bg-gradient-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-primary-foreground shadow-glow">
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </div>
-            </button>
+      <SectionLabel>Basic info</SectionLabel>
+      <Card>
+        <Row label="Bio" value={form.bio || "Add a bio"} onClick={() => setSheet("bio")} multiline />
+      </Card>
+
+      <SectionLabel>Others</SectionLabel>
+      <Card>
+        <Row label="AI self" value="Add AI self" muted onClick={() => setSheet("ai")} />
+      </Card>
+
+      <SectionLabel>Change display order</SectionLabel>
+      <Card>
+        {order.map((label, i) => (
+          <div
+            key={label}
+            draggable
+            onDragStart={() => (dragIdx.current = i)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => { if (dragIdx.current !== null) reorder(dragIdx.current, i); dragIdx.current = null; }}
+            className={`flex items-center gap-3 px-4 py-3.5 ${i > 0 ? "border-t border-border/40" : ""}`}
+          >
+            <Link to={orderRoute(label)} className="flex-1 text-sm font-medium">{label}</Link>
+            <GripVertical className="h-5 w-5 text-muted-foreground" />
           </div>
-        </div>
+        ))}
+      </Card>
 
-        {/* About card */}
-        <div className="glass mt-4 rounded-3xl p-4">
-          <SectionLabel>About</SectionLabel>
-          <FloatingTextarea label="Bio" value={form.bio} onChange={(v) => setForm((p) => ({ ...p, bio: v }))} placeholder="Tell people what you're about…" />
-        </div>
-
-        {/* Links card */}
-        <div className="glass mt-4 rounded-3xl p-4">
-          <SectionLabel>Links & location</SectionLabel>
-          <FloatingField label="Website" value={form.website} onChange={(v) => setForm((p) => ({ ...p, website: v }))} placeholder="https://" />
-          <FloatingField label="Location" value={form.location} onChange={(v) => setForm((p) => ({ ...p, location: v }))} placeholder="City, country" />
-        </div>
-      </div>
+      <EditSheet
+        sheet={sheet}
+        form={form}
+        onClose={() => setSheet(null)}
+        onSave={(patch) => { persist(patch); setSheet(null); }}
+      />
     </div>
   );
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <div className="mb-3 px-1 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{children}</div>;
+  return <div className="px-5 pb-2 pt-5 text-xs font-medium text-muted-foreground">{children}</div>;
 }
 
-function FloatingField({ label, value, onChange, prefix, placeholder, icon }: {
-  label: string; value: string; onChange: (v: string) => void; prefix?: string; placeholder?: string; icon?: React.ReactNode;
+function Card({ children }: { children: React.ReactNode }) {
+  return <div className="mx-3 overflow-hidden rounded-2xl bg-background shadow-sm">{children}</div>;
+}
+
+function Row({ label, value, onClick, muted, multiline }: {
+  label: string; value: string; onClick?: () => void; muted?: boolean; multiline?: boolean;
 }) {
   return (
-    <label className="mt-3 block first:mt-0">
-      <span className="mb-1 block px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-2 rounded-2xl border border-border bg-card/60 px-4 py-3 ring-1 ring-transparent focus-within:ring-primary/40">
-        {prefix && <span className="text-muted-foreground">{prefix}</span>}
-        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-          className="flex-1 bg-transparent text-sm outline-none" />
-        {icon && <span className="text-muted-foreground">{icon}</span>}
-      </div>
-    </label>
+    <button onClick={onClick}
+      className="flex w-full items-center gap-3 border-border/40 px-4 py-3.5 text-left first:border-t-0 [&:not(:first-child)]:border-t active:bg-muted/40">
+      <span className="text-sm font-medium">{label}</span>
+      <span className={`flex-1 truncate text-right text-sm ${muted ? "text-muted-foreground" : "text-foreground/80"} ${multiline ? "line-clamp-2 whitespace-normal" : ""}`}>
+        {value}
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+    </button>
   );
 }
 
-function FloatingTextarea({ label, value, onChange, placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
+function EditSheet({ sheet, form, onClose, onSave }: {
+  sheet: SheetKind; form: { display_name: string; handle: string; bio: string };
+  onClose: () => void; onSave: (patch: Partial<{ display_name: string; handle: string; bio: string }>) => void;
 }) {
+  const [val, setVal] = useState("");
+  useEffect(() => {
+    if (sheet === "name") setVal(form.display_name);
+    else if (sheet === "username") setVal(form.handle);
+    else if (sheet === "bio") setVal(form.bio);
+    else setVal("");
+  }, [sheet, form]);
+
+  if (!sheet) return null;
+  const config = {
+    name: { title: "Name", multi: false, placeholder: "Your name", commit: () => onSave({ display_name: val }) },
+    username: { title: "Username", multi: false, placeholder: "username", commit: () => onSave({ handle: val.toLowerCase().replace(/[^a-z0-9_]/g, "") }) },
+    bio: { title: "Bio", multi: true, placeholder: "Tell people about you", commit: () => onSave({ bio: val }) },
+    ai: { title: "AI self", multi: false, placeholder: "Coming soon", commit: onClose },
+  }[sheet];
+
   return (
-    <label className="block">
-      <span className="mb-1 block px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</span>
-      <div className="rounded-2xl border border-border bg-card/60 px-4 py-3 ring-1 ring-transparent focus-within:ring-primary/40">
-        <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={4} placeholder={placeholder}
-          className="w-full resize-none bg-transparent text-sm outline-none" />
+    <div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/55 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[480px] rounded-t-3xl bg-background p-5 shadow-elegant">
+        <div className="mb-4 flex items-center justify-between">
+          <button onClick={onClose} className="text-sm text-muted-foreground">Cancel</button>
+          <h3 className="font-display font-bold">{config.title}</h3>
+          <button onClick={config.commit} className="text-sm font-bold text-sky-500">Save</button>
+        </div>
+        {config.multi ? (
+          <textarea autoFocus value={val} onChange={(e) => setVal(e.target.value)} rows={5}
+            placeholder={config.placeholder}
+            className="w-full resize-none rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+        ) : (
+          <input autoFocus value={val} onChange={(e) => setVal(e.target.value)} placeholder={config.placeholder}
+            className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30" />
+        )}
+        {sheet === "ai" && (
+          <p className="mt-3 text-xs text-muted-foreground">AI self lets your audience chat with a version of you trained on your posts. We'll notify you when it opens.</p>
+        )}
       </div>
-    </label>
+    </div>
   );
 }

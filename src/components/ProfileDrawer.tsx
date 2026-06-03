@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
 import {
   X, Wallet, Activity, DownloadCloud, QrCode,
-  Plus, Music2, Mic2, Settings, ChevronRight, Sparkles,
+  Plus, Music2, Mic2, Settings, ChevronRight, Sparkles, LayoutDashboard,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -26,6 +26,7 @@ const sections: Section[] = [
   {
     title: "Creator tools",
     items: [
+      { to: "/studio", label: "Creator Tools", icon: LayoutDashboard, hint: "Posts, LIVE, analytics" },
       { to: "/create", label: "Upload a video", icon: Plus, hint: "Post to your feed" },
       { to: "/artist/studio", label: "Music Studio", icon: Music2, hint: "Manage your tracks" },
       { to: "/artist/onboarding", label: "Artist Account", icon: Mic2, hint: "Claim your official music profile" },
@@ -42,6 +43,7 @@ const sections: Section[] = [
     items: [{ to: "/settings", label: "Settings and Privacy", icon: Settings }],
   },
 ];
+
 
 export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   useEffect(() => {
