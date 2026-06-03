@@ -17,6 +17,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as FollowingRouteImport } from './routes/following'
 import { Route as FollowersRouteImport } from './routes/followers'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CreateRouteImport } from './routes/create'
@@ -80,6 +81,11 @@ const InboxRoute = InboxRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FollowingRoute = FollowingRouteImport.update({
+  id: '/following',
+  path: '/following',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FollowersRoute = FollowersRouteImport.update({
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/followers': typeof FollowersRoute
+  '/following': typeof FollowingRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/followers': typeof FollowersRoute
+  '/following': typeof FollowingRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/followers': typeof FollowersRoute
+  '/following': typeof FollowingRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/discover'
     | '/followers'
+    | '/following'
     | '/help'
     | '/inbox'
     | '/notifications'
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/discover'
     | '/followers'
+    | '/following'
     | '/help'
     | '/inbox'
     | '/notifications'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/discover'
     | '/followers'
+    | '/following'
     | '/help'
     | '/inbox'
     | '/notifications'
@@ -415,6 +427,7 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   DiscoverRoute: typeof DiscoverRoute
   FollowersRoute: typeof FollowersRoute
+  FollowingRoute: typeof FollowingRoute
   HelpRoute: typeof HelpRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
@@ -485,6 +498,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/following': {
+      id: '/following'
+      path: '/following'
+      fullPath: '/following'
+      preLoaderRoute: typeof FollowingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/followers': {
@@ -746,6 +766,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   DiscoverRoute: DiscoverRoute,
   FollowersRoute: FollowersRoute,
+  FollowingRoute: FollowingRoute,
   HelpRoute: HelpRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
