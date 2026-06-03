@@ -37,8 +37,17 @@ function EditProfile() {
         bio: profile.bio ?? "",
         avatar_url: profile.avatar_url,
       });
+    } else if (user) {
+      const emailName = user.email?.split("@")[0]?.replace(/[^a-zA-Z0-9_]/g, "") ?? "";
+      const fallbackHandle = (user.user_metadata?.handle as string | undefined) ?? emailName;
+      setForm({
+        display_name: (user.user_metadata?.display_name as string | undefined) ?? (user.user_metadata?.full_name as string | undefined) ?? fallbackHandle,
+        handle: fallbackHandle.toLowerCase(),
+        bio: "",
+        avatar_url: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+      });
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const persist = async (patch: Partial<typeof form>) => {
     if (!user) return;
@@ -46,12 +55,14 @@ function EditProfile() {
     setForm(next);
     setSaving(true);
     try {
-      const { error } = await supabase.from("profiles").update({
+      const cleanHandle = next.handle.toLowerCase().replace(/[^a-z0-9_]/g, "") || `user${user.id.slice(0, 6)}`;
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
         display_name: next.display_name,
-        handle: next.handle.toLowerCase().replace(/[^a-z0-9_]/g, ""),
+        handle: cleanHandle,
         bio: next.bio,
         avatar_url: next.avatar_url,
-      }).eq("id", user.id);
+      }, { onConflict: "id" });
       if (error) throw error;
       await refreshProfile();
     } catch (e: any) {
@@ -92,7 +103,7 @@ function EditProfile() {
     } catch { toast.error("Couldn't copy"); }
   };
 
-  if (authLoading || !profile) {
+  if (authLoading || (!user && !profile)) {
     return <div className="flex h-[100dvh] items-center justify-center bg-background"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   }
 

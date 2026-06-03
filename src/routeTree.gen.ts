@@ -36,6 +36,7 @@ import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsAccountRouteImport } from './routes/settings.account'
+import { Route as ProfileViewersRouteImport } from './routes/profile.viewers'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
@@ -186,6 +187,11 @@ const SettingsAccountRoute = SettingsAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => SettingsRoute,
 } as any)
+const ProfileViewersRoute = ProfileViewersRouteImport.update({
+  id: '/viewers',
+  path: '/viewers',
+  getParentRoute: () => ProfileRoute,
+} as any)
 const ProfileEditRoute = ProfileEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/profile/viewers': typeof ProfileViewersRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -332,6 +339,7 @@ export interface FileRoutesByTo {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/profile/viewers': typeof ProfileViewersRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -376,6 +384,7 @@ export interface FileRoutesById {
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
+  '/profile/viewers': typeof ProfileViewersRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -421,6 +430,7 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/profile/viewers'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/notifications'
@@ -462,6 +472,7 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/profile/viewers'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/notifications'
@@ -505,6 +516,7 @@ export interface FileRouteTypes {
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
+    | '/profile/viewers'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/notifications'
@@ -733,6 +745,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAccountRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/profile/viewers': {
+      id: '/profile/viewers'
+      path: '/viewers'
+      fullPath: '/profile/viewers'
+      preLoaderRoute: typeof ProfileViewersRouteImport
+      parentRoute: typeof ProfileRoute
+    }
     '/profile/edit': {
       id: '/profile/edit'
       path: '/edit'
@@ -880,10 +899,12 @@ const InboxRouteWithChildren = InboxRoute._addFileChildren(InboxRouteChildren)
 
 interface ProfileRouteChildren {
   ProfileEditRoute: typeof ProfileEditRoute
+  ProfileViewersRoute: typeof ProfileViewersRoute
 }
 
 const ProfileRouteChildren: ProfileRouteChildren = {
   ProfileEditRoute: ProfileEditRoute,
+  ProfileViewersRoute: ProfileViewersRoute,
 }
 
 const ProfileRouteWithChildren =

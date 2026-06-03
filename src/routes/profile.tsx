@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
@@ -21,28 +21,30 @@ type FeedTab = "posts" | "private" | "reposts" | "bookmarks" | "liked";
 function Profile() {
   const { profile, user, signOut, loading } = useAuth();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isProfileIndex = pathname === "/profile";
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [hub, setHub] = useState<"videos" | "music">("videos");
   const [feedTab, setFeedTab] = useState<FeedTab>("posts");
 
   const { data: stats } = useQuery({
     queryKey: ["profile-stats", user?.id],
-    enabled: !!user,
+    enabled: isProfileIndex && !!user,
     queryFn: async () => {
-      const [followers, following, videos] = await Promise.all([
+      const [followers, following, videos, viewers] = await Promise.all([
         supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", user!.id),
         supabase.from("follows").select("following_id", { count: "exact", head: true }).eq("follower_id", user!.id),
         supabase.from("videos").select("id,thumbnail_url,caption,video_url,views").eq("user_id", user!.id).eq("status", "active").order("created_at", { ascending: false }),
+        supabase.from("profile_views").select("viewer_id", { count: "exact", head: true }).eq("profile_id", user!.id),
       ]);
       const v = videos.data ?? [];
-      const viewers = v.reduce((s, x: any) => s + (x.views ?? 0), 0);
-      return { followers: followers.count ?? 0, following: following.count ?? 0, videos: v, viewers };
+      return { followers: followers.count ?? 0, following: following.count ?? 0, videos: v, viewers: viewers.count ?? 0 };
     },
   });
 
   const { data: liked = [] } = useQuery({
     queryKey: ["profile-liked", user?.id],
-    enabled: !!user && feedTab === "liked",
+    enabled: isProfileIndex && !!user && feedTab === "liked",
     queryFn: async () => {
       const { data: rows } = await supabase.from("video_likes").select("video_id").eq("user_id", user!.id).limit(60);
       const ids = (rows ?? []).map(r => r.video_id);
@@ -54,13 +56,15 @@ function Profile() {
 
   const { data: artist } = useQuery({
     queryKey: ["my-artist-pub", user?.id],
-    enabled: !!user,
+    enabled: isProfileIndex && !!user,
     queryFn: async () => {
       const { data } = await supabase.from("artist_profiles").select("status").eq("user_id", user!.id).maybeSingle();
       return data;
     },
   });
   const isArtist = artist?.status === "approved";
+
+  if (!isProfileIndex) return <Outlet />;
 
   if (loading) return <MobileShell><div className="px-5 pt-10 text-sm text-muted-foreground">Loading…</div></MobileShell>;
 
@@ -167,8 +171,9 @@ function Profile() {
               <div className="font-display text-lg font-bold">{(stats?.followers ?? 0).toLocaleString()}</div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</div>
             </Link>
-            <Link
-              to="/studio"
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/profile/viewers" })}
               className="glass relative overflow-hidden rounded-2xl p-3 text-center transition active:scale-95"
             >
               <div className="bg-gradient-primary absolute -right-4 -top-4 h-12 w-12 rounded-full opacity-20 blur-md" />
@@ -177,14 +182,14 @@ function Profile() {
                 <div className="font-display text-lg font-bold">{(stats?.viewers ?? 0).toLocaleString()}</div>
               </div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Viewers</div>
-            </Link>
+            </button>
           </div>
 
           {/* Edit + Wallet */}
           <div className="mt-4 grid grid-cols-2 gap-2">
-            <Link to="/profile/edit" className="bg-gradient-primary flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-primary-foreground shadow-glow">
+            <button type="button" onClick={() => navigate({ to: "/profile/edit" })} className="bg-gradient-primary flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-primary-foreground shadow-glow active:scale-[0.98]">
               <Pencil className="h-3.5 w-3.5" /> Edit Profile
-            </Link>
+            </button>
             <Link to="/wallet" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
               <Wallet className="h-3.5 w-3.5" /> Wallet
             </Link>
