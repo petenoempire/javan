@@ -14,6 +14,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HelpRouteImport } from './routes/help'
@@ -70,6 +71,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfflineRoute = OfflineRouteImport.update({
+  id: '/offline',
+  path: '/offline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -245,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
+  '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
+  '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
@@ -322,6 +330,7 @@ export interface FileRoutesById {
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
   '/notifications': typeof NotificationsRoute
+  '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/inbox'
     | '/notifications'
+    | '/offline'
     | '/profile'
     | '/settings'
     | '/sitemap.xml'
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/inbox'
     | '/notifications'
+    | '/offline'
     | '/profile'
     | '/sitemap.xml'
     | '/verify'
@@ -439,6 +450,7 @@ export interface FileRouteTypes {
     | '/help'
     | '/inbox'
     | '/notifications'
+    | '/offline'
     | '/profile'
     | '/settings'
     | '/sitemap.xml'
@@ -479,6 +491,7 @@ export interface RootRouteChildren {
   HelpRoute: typeof HelpRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
+  OfflineRoute: typeof OfflineRoute
   ProfileRoute: typeof ProfileRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -525,6 +538,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offline': {
+      id: '/offline'
+      path: '/offline'
+      fullPath: '/offline'
+      preLoaderRoute: typeof OfflineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -854,6 +874,7 @@ const rootRouteChildren: RootRouteChildren = {
   HelpRoute: HelpRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
+  OfflineRoute: OfflineRoute,
   ProfileRoute: ProfileRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
