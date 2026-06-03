@@ -27,6 +27,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
+import { Route as SettingsSecurityRouteImport } from './routes/settings.security'
 import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
@@ -135,6 +136,11 @@ const UHandleRoute = UHandleRouteImport.update({
   id: '/u/$handle',
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsPrivacyRoute = SettingsPrivacyRouteImport.update({
   id: '/privacy',
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/security': typeof SettingsSecurityRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -297,6 +304,7 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/security': typeof SettingsSecurityRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
   '/settings': typeof SettingsIndexRoute
@@ -336,6 +344,7 @@ export interface FileRoutesById {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/security': typeof SettingsSecurityRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -376,6 +385,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/privacy'
+    | '/settings/security'
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/privacy'
+    | '/settings/security'
     | '/u/$handle'
     | '/admin'
     | '/settings'
@@ -450,6 +461,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/privacy'
+    | '/settings/security'
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
@@ -605,6 +617,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/u/$handle'
       preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/settings/security': {
+      id: '/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof SettingsSecurityRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/settings/privacy': {
       id: '/settings/privacy'
@@ -807,6 +826,7 @@ interface SettingsRouteChildren {
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   SettingsPrivacyRoute: typeof SettingsPrivacyRoute
+  SettingsSecurityRoute: typeof SettingsSecurityRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
@@ -815,6 +835,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,
   SettingsPrivacyRoute: SettingsPrivacyRoute,
+  SettingsSecurityRoute: SettingsSecurityRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 
