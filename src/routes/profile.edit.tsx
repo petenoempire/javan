@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile/edit")({
-  head: () => ({ meta: [{ title: "Edit profile · Admiralty" }] }),
+  head: () => ({ meta: [{ title: "Edit profile · Boogle" }] }),
   component: EditProfile,
 });
 

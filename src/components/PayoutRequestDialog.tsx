@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowDownToLine, Building2, Wallet as WalletIcon, AlertTriangle } from "lucide-react";
+import { ArrowDownToLine, Building2, Wallet as WalletIcon, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
 const MIN_COINS = 10000;
+// 100 coins = $0.10 USD (2× baseline). USD value = coins / 1000.
+export const coinsToUsd = (coins: number) => coins / 1000;
+const usdCentsOf = (coins: number) => Math.round(coinsToUsd(coins) * 100);
 
-export function PayoutRequestDialog({ children, earnedCoins, verified }: { children: React.ReactNode; earnedCoins: number; verified: boolean }) {
+export function PayoutRequestDialog({ children, earnedCoins }: { children: React.ReactNode; earnedCoins: number; verified?: boolean }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -17,11 +20,10 @@ export function PayoutRequestDialog({ children, earnedCoins, verified }: { child
   const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const usd = (coins / 100).toFixed(2);
+  const usd = coinsToUsd(coins).toFixed(2);
 
   const submit = async () => {
     if (!user) return;
-    if (!verified) return toast.error("Account must be verified before requesting payouts.");
     if (coins < MIN_COINS) return toast.error(`Minimum payout is ${MIN_COINS.toLocaleString()} coins.`);
     if (coins > earnedCoins) return toast.error("Amount exceeds your available earnings.");
     if (!details.trim()) return toast.error("Enter your payout destination details.");
@@ -30,7 +32,7 @@ export function PayoutRequestDialog({ children, earnedCoins, verified }: { child
     const { error } = await supabase.from("payout_requests").insert({
       user_id: user.id,
       coins,
-      usd_cents: coins,
+      usd_cents: usdCentsOf(coins),
       payout_method: method,
       payout_details: details.trim(),
       status: "pending",
@@ -52,12 +54,10 @@ export function PayoutRequestDialog({ children, earnedCoins, verified }: { child
           </DialogTitle>
         </DialogHeader>
 
-        {!verified && (
-          <div className="flex gap-2 rounded-2xl border border-gold/50 bg-gold/10 p-3 text-xs">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-gold" />
-            <div>Your account must be verified before payouts are released. Submit ID under Verify to unlock this flow.</div>
-          </div>
-        )}
+        <div className="flex gap-2 rounded-2xl border border-primary/40 bg-primary/5 p-3 text-xs">
+          <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+          <div><span className="font-semibold">2× Creator Rewards active.</span> 100 coins = $0.10 USD — double the baseline rate.</div>
+        </div>
 
         <div className="space-y-3">
           <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Amount</label>
@@ -114,7 +114,7 @@ export function PayoutRequestDialog({ children, earnedCoins, verified }: { child
 
         <button
           onClick={submit}
-          disabled={submitting || !verified || earnedCoins < MIN_COINS}
+          disabled={submitting || earnedCoins < MIN_COINS}
           className="bg-gradient-gold mt-1 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-background shadow-glow disabled:opacity-60"
         >
           {submitting ? "Submitting…" : `Request $${usd} payout`}

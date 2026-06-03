@@ -7,7 +7,7 @@ import { ArrowLeft, Music2, Plus, Trash2, Loader2, Upload, X } from "lucide-reac
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/artist/studio")({
-  head: () => ({ meta: [{ title: "Music Studio · Admiralty" }] }),
+  head: () => ({ meta: [{ title: "Music Studio · Boogle" }] }),
   component: ArtistStudio,
 });
 

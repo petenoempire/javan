@@ -3,7 +3,7 @@ import { ArrowLeft, ShieldCheck, AtSign, KeyRound, ChevronRight, Mic2 } from "lu
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/account")({
-  head: () => ({ meta: [{ title: "Account · Admiralty" }] }),
+  head: () => ({ meta: [{ title: "Account · Boogle" }] }),
   component: AccountSettings,
 });
 

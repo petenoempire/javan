@@ -13,9 +13,14 @@ import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as QrRouteImport } from './routes/qr'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OfflineRouteImport } from './routes/offline'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as FollowingRouteImport } from './routes/following'
+import { Route as FollowersRouteImport } from './routes/followers'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -24,6 +29,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
+import { Route as SettingsSecurityRouteImport } from './routes/settings.security'
+import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
+import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsAccountRouteImport } from './routes/settings.account'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
@@ -60,9 +69,24 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QrRoute = QrRouteImport.update({
+  id: '/qr',
+  path: '/qr',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfflineRoute = OfflineRouteImport.update({
+  id: '/offline',
+  path: '/offline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InboxRoute = InboxRouteImport.update({
@@ -73,6 +97,16 @@ const InboxRoute = InboxRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FollowingRoute = FollowingRouteImport.update({
+  id: '/following',
+  path: '/following',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FollowersRoute = FollowersRouteImport.update({
+  id: '/followers',
+  path: '/followers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiscoverRoute = DiscoverRouteImport.update({
@@ -114,6 +148,26 @@ const UHandleRoute = UHandleRouteImport.update({
   id: '/u/$handle',
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsPrivacyRoute = SettingsPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
+  id: '/appearance',
+  path: '/appearance',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsAccountRoute = SettingsAccountRouteImport.update({
   id: '/account',
@@ -198,9 +252,14 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/followers': typeof FollowersRoute
+  '/following': typeof FollowingRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/notifications': typeof NotificationsRoute
+  '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/qr': typeof QrRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
@@ -219,6 +278,10 @@ export interface FileRoutesByFullPath {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/security': typeof SettingsSecurityRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -229,9 +292,14 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/followers': typeof FollowersRoute
+  '/following': typeof FollowingRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/notifications': typeof NotificationsRoute
+  '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/qr': typeof QrRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
@@ -249,6 +317,10 @@ export interface FileRoutesByTo {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/security': typeof SettingsSecurityRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
   '/settings': typeof SettingsIndexRoute
@@ -261,9 +333,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
+  '/followers': typeof FollowersRoute
+  '/following': typeof FollowingRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/notifications': typeof NotificationsRoute
+  '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/qr': typeof QrRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verify': typeof VerifyRoute
@@ -282,6 +359,10 @@ export interface FileRoutesById {
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
   '/settings/account': typeof SettingsAccountRouteWithChildren
+  '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/security': typeof SettingsSecurityRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -295,9 +376,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/followers'
+    | '/following'
     | '/help'
     | '/inbox'
+    | '/notifications'
+    | '/offline'
     | '/profile'
+    | '/qr'
     | '/settings'
     | '/sitemap.xml'
     | '/verify'
@@ -316,6 +402,10 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/appearance'
+    | '/settings/notifications'
+    | '/settings/privacy'
+    | '/settings/security'
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
@@ -326,9 +416,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/followers'
+    | '/following'
     | '/help'
     | '/inbox'
+    | '/notifications'
+    | '/offline'
     | '/profile'
+    | '/qr'
     | '/sitemap.xml'
     | '/verify'
     | '/wallet'
@@ -346,6 +441,10 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/appearance'
+    | '/settings/notifications'
+    | '/settings/privacy'
+    | '/settings/security'
     | '/u/$handle'
     | '/admin'
     | '/settings'
@@ -357,9 +456,14 @@ export interface FileRouteTypes {
     | '/auth'
     | '/create'
     | '/discover'
+    | '/followers'
+    | '/following'
     | '/help'
     | '/inbox'
+    | '/notifications'
+    | '/offline'
     | '/profile'
+    | '/qr'
     | '/settings'
     | '/sitemap.xml'
     | '/verify'
@@ -378,6 +482,10 @@ export interface FileRouteTypes {
     | '/live/$id'
     | '/profile/edit'
     | '/settings/account'
+    | '/settings/appearance'
+    | '/settings/notifications'
+    | '/settings/privacy'
+    | '/settings/security'
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
@@ -390,9 +498,14 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CreateRoute: typeof CreateRoute
   DiscoverRoute: typeof DiscoverRoute
+  FollowersRoute: typeof FollowersRoute
+  FollowingRoute: typeof FollowingRoute
   HelpRoute: typeof HelpRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
+  NotificationsRoute: typeof NotificationsRoute
+  OfflineRoute: typeof OfflineRoute
   ProfileRoute: typeof ProfileRouteWithChildren
+  QrRoute: typeof QrRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerifyRoute: typeof VerifyRoute
@@ -433,11 +546,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/qr': {
+      id: '/qr'
+      path: '/qr'
+      fullPath: '/qr'
+      preLoaderRoute: typeof QrRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/offline': {
+      id: '/offline'
+      path: '/offline'
+      fullPath: '/offline'
+      preLoaderRoute: typeof OfflineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inbox': {
@@ -452,6 +586,20 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/following': {
+      id: '/following'
+      path: '/following'
+      fullPath: '/following'
+      preLoaderRoute: typeof FollowingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/followers': {
+      id: '/followers'
+      path: '/followers'
+      fullPath: '/followers'
+      preLoaderRoute: typeof FollowersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/discover': {
@@ -509,6 +657,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/u/$handle'
       preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/settings/security': {
+      id: '/settings/security'
+      path: '/security'
+      fullPath: '/settings/security'
+      preLoaderRoute: typeof SettingsSecurityRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/privacy': {
+      id: '/settings/privacy'
+      path: '/privacy'
+      fullPath: '/settings/privacy'
+      preLoaderRoute: typeof SettingsPrivacyRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/appearance': {
+      id: '/settings/appearance'
+      path: '/appearance'
+      fullPath: '/settings/appearance'
+      preLoaderRoute: typeof SettingsAppearanceRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/settings/account': {
       id: '/settings/account'
@@ -687,11 +863,19 @@ const SettingsAccountRouteWithChildren = SettingsAccountRoute._addFileChildren(
 
 interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRouteWithChildren
+  SettingsAppearanceRoute: typeof SettingsAppearanceRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
+  SettingsPrivacyRoute: typeof SettingsPrivacyRoute
+  SettingsSecurityRoute: typeof SettingsSecurityRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAccountRoute: SettingsAccountRouteWithChildren,
+  SettingsAppearanceRoute: SettingsAppearanceRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
+  SettingsPrivacyRoute: SettingsPrivacyRoute,
+  SettingsSecurityRoute: SettingsSecurityRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 
@@ -705,9 +889,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CreateRoute: CreateRoute,
   DiscoverRoute: DiscoverRoute,
+  FollowersRoute: FollowersRoute,
+  FollowingRoute: FollowingRoute,
   HelpRoute: HelpRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
+  NotificationsRoute: NotificationsRoute,
+  OfflineRoute: OfflineRoute,
   ProfileRoute: ProfileRouteWithChildren,
+  QrRoute: QrRoute,
   SettingsRoute: SettingsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerifyRoute: VerifyRoute,

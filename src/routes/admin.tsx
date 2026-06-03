@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin Console · Admiralty" }, { name: "robots", content: "noindex,nofollow" }] }),
+  head: () => ({ meta: [{ title: "Admin Console · Boogle" }, { name: "robots", content: "noindex,nofollow" }] }),
   component: AdminGate,
 });
 
@@ -41,7 +41,7 @@ function AdminGate() {
             <Shield className="h-6 w-6 text-primary-foreground" />
           </div>
           <h1 className="mt-4 font-display text-xl font-bold">Admin sign-in required</h1>
-          <p className="mt-2 text-sm text-muted-foreground">The Admiralty admin console is restricted to staff accounts.</p>
+          <p className="mt-2 text-sm text-muted-foreground">The Boogle admin console is restricted to staff accounts.</p>
           <Link to="/auth" className="bg-gradient-primary mt-6 inline-block rounded-full px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
             Sign in
           </Link>
@@ -73,7 +73,7 @@ function AdminGate() {
                 <Crown className="h-6 w-6 text-primary-foreground" />
               </div>
               <h1 className="mt-4 font-display text-xl font-bold">Claim platform ownership</h1>
-              <p className="mt-2 text-sm text-muted-foreground">No admin has been assigned yet. As the first claimant, you'll become the Admiralty owner with full admin access.</p>
+              <p className="mt-2 text-sm text-muted-foreground">No admin has been assigned yet. As the first claimant, you'll become the Boogle owner with full admin access.</p>
               <button onClick={claim} className="bg-gradient-primary mt-6 rounded-full px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
                 Claim ownership
               </button>
@@ -86,7 +86,7 @@ function AdminGate() {
               <h1 className="mt-4 font-display text-xl font-bold">Access denied</h1>
               <p className="mt-2 text-sm text-muted-foreground">Your account doesn't have admin privileges.</p>
               <Link to="/" className="glass mt-6 inline-block rounded-full px-6 py-2.5 text-sm font-semibold">
-                Back to Admiralty
+                Back to Boogle
               </Link>
             </>
           )}

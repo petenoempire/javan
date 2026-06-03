@@ -1,36 +1,22 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Compass, Plus, MessageCircle, User, Sun, Moon } from "lucide-react";
-import { useTheme } from "@/lib/theme";
+import { Home, Compass, Plus, MessageCircle, User, Bell } from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
-import { NotificationBell } from "@/components/NotificationBell";
 
 const nav: { to: string; label: string; icon: typeof Home; primary?: boolean }[] = [
   { to: "/", label: "Home", icon: Home },
   { to: "/discover", label: "Discover", icon: Compass },
   { to: "/create", label: "Create", icon: Plus, primary: true },
   { to: "/inbox", label: "Inbox", icon: MessageCircle },
+  { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
 export function MobileShell({ children, immersive = false }: { children: ReactNode; immersive?: boolean }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { theme, toggle } = useTheme();
 
   return (
     <div className="relative mx-auto min-h-[100dvh] max-w-[480px] overflow-hidden bg-background">
-      {/* Top floating controls */}
-      <div className="absolute right-4 top-4 z-50 flex items-center gap-2">
-        <NotificationBell />
-        <button
-          onClick={toggle}
-          aria-label="Toggle theme"
-          className="glass flex h-10 w-10 items-center justify-center rounded-full text-foreground shadow-elegant transition-transform active:scale-90"
-        >
-          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
-      </div>
-
       <main className={immersive ? "h-[100dvh]" : "min-h-[100dvh] pb-28"}>{children}</main>
 
       {/* Floating glass bottom nav */}

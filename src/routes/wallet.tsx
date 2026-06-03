@@ -3,12 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { MobileShell } from "@/components/MobileShell";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { Coins, ArrowDownToLine, ShieldCheck, Plus, TrendingUp, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Coins, ArrowDownToLine, Plus, TrendingUp, Clock, CheckCircle2, XCircle, Sparkles } from "lucide-react";
 import { TopUpDialog } from "@/components/TopUpDialog";
-import { PayoutRequestDialog } from "@/components/PayoutRequestDialog";
+import { PayoutRequestDialog, coinsToUsd } from "@/components/PayoutRequestDialog";
 
 export const Route = createFileRoute("/wallet")({
-  head: () => ({ meta: [{ title: "Wallet · Admiralty" }] }),
+  head: () => ({ meta: [{ title: "Wallet · Boogle" }] }),
   component: WalletPage,
 });
 
@@ -49,12 +49,12 @@ function WalletPage() {
 
   const coins = profile?.coins ?? 0;
   const earned = profile?.earned_coins ?? 0;
-  const usd = (earned / 100).toFixed(2);
-  const canPayout = !!profile?.is_verified && earned >= MIN_PAYOUT;
+  const usd = coinsToUsd(earned).toFixed(2);
+  const canPayout = earned >= MIN_PAYOUT;
 
   return (
     <MobileShell>
-      <div className="px-5 pt-20">
+      <div className="px-5 pt-6">
         <h1 className="font-display text-3xl font-bold">Wallet</h1>
 
         {/* Balance card */}
@@ -66,7 +66,7 @@ function WalletPage() {
             <Coins className="mb-1 h-8 w-8" />
             <span className="font-display text-5xl font-bold">{coins.toLocaleString()}</span>
           </div>
-          <div className="mt-1 text-xs opacity-70">≈ ${(coins / 100).toFixed(2)} USD value</div>
+          <div className="mt-1 text-xs opacity-70">≈ ${coinsToUsd(coins).toFixed(2)} USD · 100 coins = $0.10</div>
 
           <TopUpDialog>
             <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-bold backdrop-blur transition hover:bg-white/25">
@@ -83,10 +83,13 @@ function WalletPage() {
           </div>
           <div className="mt-1 flex items-end gap-2">
             <span className="font-display text-3xl font-bold text-gradient">${usd}</span>
+            <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+              <Sparkles className="h-3 w-3" /> 2× Rewards
+            </span>
           </div>
           <div className="text-xs text-muted-foreground">{earned.toLocaleString()} coins earned · 70% creator share</div>
 
-          <PayoutRequestDialog earnedCoins={earned} verified={!!profile?.is_verified}>
+          <PayoutRequestDialog earnedCoins={earned}>
             <button
               disabled={!canPayout}
               className="bg-gradient-gold mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold text-background shadow-glow disabled:opacity-50"
@@ -96,22 +99,9 @@ function WalletPage() {
           </PayoutRequestDialog>
 
           <p className="mt-2 text-[11px] text-muted-foreground">
-            {profile?.is_verified
-              ? `Minimum payout ${MIN_PAYOUT.toLocaleString()} coins. Reviewed within 3 business days.`
-              : "Verify your account to unlock payouts."}
+            Minimum payout {MIN_PAYOUT.toLocaleString()} coins. Reviewed within 3 business days.
           </p>
         </div>
-
-        {!profile?.is_verified && (
-          <Link to="/verify" className="glass mt-5 flex items-center gap-3 rounded-2xl p-4">
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            <div className="flex-1">
-              <div className="text-sm font-semibold">Get verified to enable payouts</div>
-              <div className="text-xs text-muted-foreground">Submit ID or business documents for manual review.</div>
-            </div>
-            <span className="text-xs font-semibold text-primary">Start →</span>
-          </Link>
-        )}
 
         {/* History */}
         <div className="mt-6 space-y-4">

@@ -1,35 +1,40 @@
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
-import { toast } from "sonner";
 import {
   X, Wallet, Activity, DownloadCloud, QrCode,
-  Plus, Music2, Mic2, Settings, ChevronRight,
+  Plus, Music2, Mic2, Settings, ChevronRight, Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-type Item = { to?: string; label: string; icon: LucideIcon; hint?: string; soon?: boolean };
+type Item = { to: string; label: string; icon: LucideIcon; hint?: string };
 type Section = { title: string; items: Item[] };
 
 const sections: Section[] = [
   {
     title: "Assets",
-    items: [{ to: "/wallet", label: "Balance", icon: Wallet, hint: "Coins & top-ups" }],
+    items: [{ to: "/wallet", label: "Balance", icon: Wallet, hint: "Coins, earnings & payouts" }],
   },
   {
     title: "Personal tools",
     items: [
-      { to: "/inbox", label: "Activity Center", icon: Activity },
-      { label: "Offline videos", icon: DownloadCloud, soon: true },
-      { label: "Your QR code", icon: QrCode, soon: true },
+      { to: "/notifications", label: "Activity Center", icon: Activity },
+      { to: "/offline", label: "Offline videos", icon: DownloadCloud },
+      { to: "/qr", label: "Your QR code", icon: QrCode },
     ],
   },
   {
-    title: "Creation & business",
+    title: "Creator tools",
     items: [
-      { to: "/create", label: "Upload a video", icon: Plus },
+      { to: "/create", label: "Upload a video", icon: Plus, hint: "Post to your feed" },
       { to: "/artist/studio", label: "Music Studio", icon: Music2, hint: "Manage your tracks" },
-      { to: "/artist/onboarding", label: "Artist Account", icon: Mic2, hint: "Verify as a music creator" },
+      { to: "/artist/onboarding", label: "Artist Account", icon: Mic2, hint: "Claim your official music profile" },
+    ],
+  },
+  {
+    title: "Business",
+    items: [
+      { to: "/wallet", label: "Creator Rewards 2×", icon: Sparkles, hint: "100 coins = $0.10 payout" },
     ],
   },
   {
@@ -48,43 +53,22 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
 
   const renderItem = (item: Item, i: number) => {
     const Icon = item.icon;
-    const inner = (
-      <>
+    return (
+      <Link
+        key={item.label}
+        to={item.to}
+        onClick={onClose}
+        className={`flex items-center gap-3 px-4 py-3.5 transition active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`}
+      >
         <div className="bg-primary/10 ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl">
           <Icon className="h-5 w-5 text-primary" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <div className="truncate text-sm font-semibold">{item.label}</div>
-            {item.soon && (
-              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                Soon
-              </span>
-            )}
-          </div>
+          <div className="truncate text-sm font-semibold">{item.label}</div>
           {item.hint && <div className="truncate text-[11px] text-muted-foreground">{item.hint}</div>}
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </>
-    );
-    const cls = `flex items-center gap-3 px-4 py-3.5 transition active:bg-primary/5 ${
-      i > 0 ? "border-t border-border/40" : ""
-    }`;
-    if (item.to) {
-      return (
-        <Link key={item.label} to={item.to} onClick={onClose} className={cls}>
-          {inner}
-        </Link>
-      );
-    }
-    return (
-      <button
-        key={item.label}
-        onClick={() => toast.info(`${item.label} is coming soon`)}
-        className={`${cls} text-left`}
-      >
-        {inner}
-      </button>
+      </Link>
     );
   };
 
@@ -94,18 +78,14 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
         <>
           <motion.div
             key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
             className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm"
           />
           <motion.aside
             key="drawer"
-            initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
+            initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 280 }}
             className="fixed left-0 top-0 z-[81] h-[100dvh] w-[86vw] max-w-[360px] overflow-y-auto bg-background"
           >
@@ -121,7 +101,7 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
               </button>
               <div className="absolute bottom-3 left-5">
                 <div className="font-display text-2xl font-bold tracking-tight">Menu</div>
-                <div className="text-xs text-muted-foreground">Your Admiralty workspace</div>
+                <div className="text-xs text-muted-foreground">Your Boogle workspace</div>
               </div>
             </div>
 

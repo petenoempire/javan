@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Sign in · Admiralty" }] }),
+  head: () => ({ meta: [{ title: "Sign in · Boogle" }] }),
   component: Auth,
 });
 
@@ -38,7 +38,7 @@ function Auth() {
           },
         });
         if (error) throw error;
-        toast.success("Welcome to Admiralty!");
+        toast.success("Welcome to Boogle!");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -58,7 +58,7 @@ function Auth() {
 
   return (
     <div className="mx-auto flex min-h-[100dvh] max-w-[480px] flex-col justify-center bg-background px-6">
-      <Link to="/" className="mb-8 text-center font-display text-4xl font-bold text-gradient">Admiralty</Link>
+      <Link to="/" className="mb-8 text-center font-display text-4xl font-bold text-gradient">Boogle</Link>
       <div className="glass rounded-3xl p-6 shadow-elegant">
         <div className="mb-5 flex rounded-full bg-muted p-1">
           {(["signup", "signin"] as const).map((m) => (
