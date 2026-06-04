@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, Lock, Mail, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,9 +10,12 @@ export const Route = createFileRoute("/settings/security")({
 });
 
 function SecurityPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [busy, setBusy] = useState(false);
+
+  if (pathname !== "/settings/security") return <Outlet />;
 
   const submit = async () => {
     if (pw.length < 8) return toast.error("Password must be at least 8 characters.");
@@ -65,6 +68,14 @@ function SecurityPage() {
             <div className="text-[11px] text-muted-foreground">We'll email you a secure reset link.</div>
           </div>
         </button>
+
+        <Link to="/settings/security/recovery" className="glass flex w-full items-center gap-3 rounded-2xl p-4 text-left">
+          <Mail className="h-5 w-5 text-primary" />
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Account Recovery</div>
+            <div className="text-[11px] text-muted-foreground">Open the dedicated recovery setup page.</div>
+          </div>
+        </Link>
 
         <div className="glass flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/5 p-4">
           <ShieldAlert className="mt-0.5 h-5 w-5 text-destructive" />
