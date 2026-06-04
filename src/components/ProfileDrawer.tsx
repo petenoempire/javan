@@ -35,7 +35,7 @@ const sections: Section[] = [
   {
     title: "Business",
     items: [
-      { to: "/wallet", label: "Creator Rewards 2×", icon: Sparkles, hint: "100 coins = $0.10 payout" },
+      { to: "/studio", label: "Creator Rewards 2×", icon: Sparkles, hint: "100 coins = $0.10 payout" },
     ],
   },
   {

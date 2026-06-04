@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, ShieldCheck, KeyRound, ChevronRight, MessageCircle, Search } from "lucide-react";
 
@@ -26,9 +26,12 @@ const faq: Record<string, string[]> = {
 };
 
 function HelpCenter() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [active, setActive] = useState(categories[0]);
   const [open, setOpen] = useState<string | null>(null);
   const [q, setQ] = useState("");
+
+  if (pathname !== "/help") return <Outlet />;
 
   const items = faq[active].filter((r) => r.toLowerCase().includes(q.toLowerCase()));
 
@@ -51,7 +54,7 @@ function HelpCenter() {
 
         {/* Top shortcut cards */}
         <div className="mt-4 flex gap-3 overflow-x-auto no-scrollbar">
-          <button className="glass flex min-w-[180px] flex-col gap-2 rounded-2xl p-4 text-left">
+          <Link to="/settings/security/recovery" className="glass flex min-w-[180px] flex-col gap-2 rounded-2xl p-4 text-left">
             <div className="bg-gradient-primary flex h-10 w-10 items-center justify-center rounded-xl shadow-glow">
               <KeyRound className="h-5 w-5 text-primary-foreground" />
             </div>
@@ -59,8 +62,8 @@ function HelpCenter() {
               <div className="font-display text-sm font-bold">Account recovery</div>
               <div className="text-[11px] text-muted-foreground">Get back into your account</div>
             </div>
-          </button>
-          <button className="glass flex min-w-[180px] flex-col gap-2 rounded-2xl p-4 text-left">
+          </Link>
+          <Link to="/help/safety" className="glass flex min-w-[180px] flex-col gap-2 rounded-2xl p-4 text-left">
             <div className="bg-gradient-gold flex h-10 w-10 items-center justify-center rounded-xl shadow-elegant">
               <ShieldCheck className="h-5 w-5 text-black" />
             </div>
@@ -68,7 +71,7 @@ function HelpCenter() {
               <div className="font-display text-sm font-bold">Safety Center</div>
               <div className="text-[11px] text-muted-foreground">Tools, tips, and resources</div>
             </div>
-          </button>
+          </Link>
         </div>
 
         {/* Category tabs */}
