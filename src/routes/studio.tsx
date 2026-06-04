@@ -85,16 +85,16 @@ function PostsView({ stats }: { stats: any }) {
 
       {/* Monetization */}
       <div className="grid grid-cols-2 gap-3">
-        <BigTile to="/wallet" tone="primary" icon={Crown} title="Service+" desc="Boost your reach" />
-        <BigTile to="/wallet" tone="gold" icon={Gift} title="LIVE rewards" desc="Track gifts received" />
+        <BigTile to="/studio" tone="primary" icon={Crown} title="Service+" desc="Boost your reach" />
+        <BigTile to="/studio" tone="gold" icon={Gift} title="LIVE rewards" desc="Track gifts received" />
       </div>
 
       <div className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3">
         {[
-          { icon: Sparkles, label: "Subscription", to: "/wallet" },
+          { icon: Sparkles, label: "Subscription", to: "/studio" },
           { icon: Music2, label: "Work with Artists", to: "/artist/onboarding" },
-          { icon: Gift, label: "Video Gifts", to: "/wallet" },
-          { icon: Gamepad2, label: "Gaming Incentive", to: "/wallet" },
+          { icon: Gift, label: "Video Gifts", to: "/studio" },
+          { icon: Gamepad2, label: "Gaming Incentive", to: "/studio" },
         ].map((c) => (
           <Link key={c.label} to={c.to}
             className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">
@@ -106,7 +106,7 @@ function PostsView({ stats }: { stats: any }) {
         ))}
       </div>
 
-      <Link to="/wallet" className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-bold active:scale-[0.98]">
+      <Link to="/studio" className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-bold active:scale-[0.98]">
         <span>More ways to get paid</span><ChevronRight className="h-4 w-4 text-muted-foreground" />
       </Link>
 
@@ -114,8 +114,8 @@ function PostsView({ stats }: { stats: any }) {
       <SectionTitle>More tools</SectionTitle>
       <div className="grid grid-cols-3 gap-3">
         <ToolTile to="/settings/account/verification" icon={ShieldCheck} label="Account check" />
-        <ToolTile to="/wallet" icon={Megaphone} label="Promote" />
-        <ToolTile to="/wallet" icon={Award} label="Benefits" />
+        <ToolTile to="/studio" icon={Megaphone} label="Promote" />
+        <ToolTile to="/studio" icon={Award} label="Benefits" />
       </div>
 
       {/* Creator Academy */}
