@@ -12,7 +12,7 @@ const items: Item[] = [
   { to: "/settings/account/verification", label: "Verification", icon: ShieldCheck, hint: "Reserved for public figures, brands & celebrities" },
   { to: "/artist/onboarding", label: "Artist Account", icon: Mic2, hint: "Claim your official music profile" },
   { to: "/profile/edit", label: "Username & identity", icon: AtSign },
-  { label: "Password & security", icon: KeyRound, soon: true },
+  { to: "/settings/security", label: "Password & security", icon: KeyRound, hint: "Password, recovery, and login protection" },
 ];
 
 function AccountSettings() {

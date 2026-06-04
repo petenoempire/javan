@@ -164,4 +164,30 @@
     100% { transform: translateY(-160px) scale(1.4); opacity: 0; }
   }
   .float-up { animation: float-up 1.6s ease-out forwards; }
+  .creation-camera-bg {
+    background:
+      radial-gradient(circle at 52% 72%, oklch(0.02 0 0 / 0.88) 0 14%, transparent 27%),
+      radial-gradient(circle at 50% 80%, oklch(0.05 0.02 20 / 0.9) 0 18%, transparent 34%),
+      linear-gradient(180deg, oklch(0.36 0.025 70), oklch(0.14 0.015 250));
+  }
+  .creation-live-bg {
+    background:
+      radial-gradient(circle at 50% 54%, oklch(0.04 0 0 / 0.82) 0 15%, transparent 30%),
+      linear-gradient(180deg, oklch(0.39 0.035 72), oklch(0.12 0.03 245));
+  }
+  .creation-live-studio {
+    background: linear-gradient(180deg, oklch(0.38 0.04 70), oklch(0.13 0.03 245));
+  }
+  .creation-thumb-face { background: radial-gradient(circle at 50% 30%, oklch(0.78 0.06 70), oklch(0.18 0.02 255)); }
+  .creation-thumb-clip { background: linear-gradient(135deg, oklch(0.45 0.2 25), oklch(0.18 0.03 255)); }
+  .creation-template-world { background: linear-gradient(160deg, oklch(0.68 0.11 250), oklch(0.63 0.22 20)); }
+  .creation-template-couple { background: linear-gradient(145deg, oklch(0.82 0.02 100), oklch(0.2 0.01 250)); }
+  .creation-template-clock { background: radial-gradient(circle at 50% 45%, oklch(0.24 0.01 250), oklch(0.08 0.005 250)); }
+  .creation-template-neon { background: linear-gradient(135deg, oklch(0.18 0.06 260), oklch(0.68 0.24 330)); }
+  .creation-studio-illustration {
+    background:
+      linear-gradient(90deg, transparent 0 7%, oklch(0.08 0 0) 7% 58%, transparent 58%),
+      linear-gradient(180deg, oklch(0.2 0 0), oklch(0.1 0 0));
+    border: 1px solid oklch(1 0 0 / 0.18);
+  }
 }
