@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -17,9 +17,12 @@ export const Route = createFileRoute("/studio")({
 function CreatorStudio() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [tab, setTab] = useState<"posts" | "live">("posts");
 
   useEffect(() => { if (!loading && !user) navigate({ to: "/auth" }); }, [loading, user, navigate]);
+
+  if (pathname !== "/studio") return <Outlet />;
 
   const { data: stats } = useQuery({
     queryKey: ["studio-stats", user?.id],
@@ -46,10 +49,10 @@ function CreatorStudio() {
         <Link to="/settings" className="p-2" aria-label="Settings"><Settings className="h-5 w-5" /></Link>
       </header>
 
-      <div className="mx-3 mt-3 grid grid-cols-2 rounded-2xl bg-muted/60 p-1">
+      <div className="mx-3 mt-3 grid grid-cols-2 rounded-full bg-muted/60 p-1">
         {(["posts", "live"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`rounded-xl py-2 text-sm font-bold transition ${tab === t ? "bg-background text-foreground shadow-elegant" : "text-muted-foreground"}`}>
+            className={`rounded-full py-2 text-sm font-bold transition ${tab === t ? "bg-background text-foreground shadow-elegant" : "text-muted-foreground"}`}>
             {t === "posts" ? "Posts" : "LIVE"}
           </button>
         ))}
@@ -74,29 +77,29 @@ function PostsView({ stats }: { stats: any }) {
       <Card>
         <div className="flex items-center justify-between px-4 pt-4">
           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Last 7 days</span>
-          <Link to="/notifications" className="text-xs font-semibold text-sky-500">View all</Link>
+          <Link to="/studio/$section" params={{ section: "analytics" }} className="text-xs font-semibold text-sky-500">View all</Link>
         </div>
         <div className="grid grid-cols-3 gap-2 p-4">
-          <Metric icon={Eye} label="Post views" value={stats?.views ?? 0} up />
-          <Metric icon={UserPlus} label="Net followers" value={stats?.recentFollowers ?? 0} up={(stats?.recentFollowers ?? 0) >= 0} />
-          <Metric icon={Heart} label="Likes" value={stats?.recentLikes ?? 0} up />
+          <Metric icon={Eye} label="Post views" value={stats?.views ?? 0} section="analytics" up />
+          <Metric icon={UserPlus} label="Net followers" value={stats?.recentFollowers ?? 0} section="analytics" up={(stats?.recentFollowers ?? 0) >= 0} />
+          <Metric icon={Heart} label="Likes" value={stats?.recentLikes ?? 0} section="analytics" up />
         </div>
       </Card>
 
       {/* Monetization */}
       <div className="grid grid-cols-2 gap-3">
-        <BigTile to="/studio" tone="primary" icon={Crown} title="Service+" desc="Boost your reach" />
-        <BigTile to="/studio" tone="gold" icon={Gift} title="LIVE rewards" desc="Track gifts received" />
+        <BigTile section="service" tone="primary" icon={Crown} title="Service+" desc="Boost your reach" />
+        <BigTile section="live-rewards" tone="gold" icon={Gift} title="LIVE rewards" desc="Track gifts received" />
       </div>
 
       <div className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3">
         {[
-          { icon: Sparkles, label: "Subscription", to: "/studio" },
-          { icon: Music2, label: "Work with Artists", to: "/artist/onboarding" },
-          { icon: Gift, label: "Video Gifts", to: "/studio" },
-          { icon: Gamepad2, label: "Gaming Incentive", to: "/studio" },
+          { icon: Sparkles, label: "Subscription", section: "subscriptions" },
+          { icon: Music2, label: "Work with Artists", to: "/artist/onboarding" as const },
+          { icon: Gift, label: "Video Gifts", section: "video-gifts" },
+          { icon: Gamepad2, label: "Gaming Incentive", section: "gaming" },
         ].map((c) => (
-          <Link key={c.label} to={c.to}
+          <Link key={c.label} to={c.to ?? "/studio/$section"} params={c.section ? { section: c.section } : undefined}
             className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">
             <div className="bg-gradient-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-glow">
               <c.icon className="h-4 w-4 text-primary-foreground" />
@@ -106,7 +109,7 @@ function PostsView({ stats }: { stats: any }) {
         ))}
       </div>
 
-      <Link to="/studio" className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-bold active:scale-[0.98]">
+      <Link to="/studio/$section" params={{ section: "monetization" }} className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-bold active:scale-[0.98]">
         <span>More ways to get paid</span><ChevronRight className="h-4 w-4 text-muted-foreground" />
       </Link>
 
@@ -114,8 +117,8 @@ function PostsView({ stats }: { stats: any }) {
       <SectionTitle>More tools</SectionTitle>
       <div className="grid grid-cols-3 gap-3">
         <ToolTile to="/settings/account/verification" icon={ShieldCheck} label="Account check" />
-        <ToolTile to="/studio" icon={Megaphone} label="Promote" />
-        <ToolTile to="/studio" icon={Award} label="Benefits" />
+        <ToolTile section="promote" icon={Megaphone} label="Promote" />
+        <ToolTile section="benefits" icon={Award} label="Benefits" />
       </div>
 
       {/* Creator Academy */}
