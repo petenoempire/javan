@@ -244,7 +244,7 @@ function RevenueTile({ icon: Icon, label, section, to }: { icon: any; label: str
   return <Link to={to!} className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">{body}</Link>;
 }
 
-function ToolTile({ to, section, icon: Icon, label }: { to?: string; section?: string; icon: any; label: string }) {
+function ToolTile({ to, section, icon: Icon, label }: { to?: "/settings/account/verification"; section?: string; icon: any; label: string }) {
   const body = (
     <>
       <div className="bg-primary/10 ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl">
