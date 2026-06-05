@@ -99,13 +99,7 @@ function PostsView({ stats }: { stats: any }) {
           { icon: Gift, label: "Video Gifts", section: "video-gifts" },
           { icon: Gamepad2, label: "Gaming Incentive", section: "gaming" },
         ].map((c) => (
-          <Link key={c.label} to={c.to ?? "/studio/$section"} params={c.section ? { section: c.section } : undefined}
-            className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">
-            <div className="bg-gradient-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-glow">
-              <c.icon className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <div className="text-[11px] font-bold leading-tight">{c.label}</div>
-          </Link>
+          <RevenueTile key={c.label} {...c} />
         ))}
       </div>
 
@@ -235,14 +229,35 @@ function BigTile({ section, tone, icon: Icon, title, desc }: { section: string; 
   );
 }
 
+function RevenueTile({ icon: Icon, label, section, to }: { icon: any; label: string; section?: string; to?: "/artist/onboarding" }) {
+  const body = (
+    <>
+      <div className="bg-gradient-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-glow">
+        <Icon className="h-4 w-4 text-primary-foreground" />
+      </div>
+      <div className="text-[11px] font-bold leading-tight">{label}</div>
+    </>
+  );
+  if (section) {
+    return <Link to="/studio/$section" params={{ section }} className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">{body}</Link>;
+  }
+  return <Link to={to!} className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">{body}</Link>;
+}
+
 function ToolTile({ to, section, icon: Icon, label }: { to?: string; section?: string; icon: any; label: string }) {
-  return (
-    <Link to={to ?? "/studio/$section"} params={section ? { section } : undefined} className="glass flex flex-col items-center gap-2 rounded-2xl p-3 text-center active:scale-95">
+  const body = (
+    <>
       <div className="bg-primary/10 ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl">
         <Icon className="h-5 w-5 text-primary" />
       </div>
       <div className="text-[11px] font-bold leading-tight">{label}</div>
-    </Link>
+    </>
+  );
+  if (section) {
+    return <Link to="/studio/$section" params={{ section }} className="glass flex flex-col items-center gap-2 rounded-2xl p-3 text-center active:scale-95">{body}</Link>;
+  }
+  return (
+    <Link to={to!} className="glass flex flex-col items-center gap-2 rounded-2xl p-3 text-center active:scale-95">{body}</Link>
   );
 }
 
