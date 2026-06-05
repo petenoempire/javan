@@ -56,14 +56,8 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
 
   const renderItem = (item: SectionItem, i: number) => {
     const Icon = item.icon;
-    return (
-      <Link
-        key={item.label}
-        to={item.to}
-        params={item.params}
-        onClick={onClose}
-        className={`flex items-center gap-3 px-4 py-3.5 transition active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`}
-      >
+    const body = (
+      <>
         <div className="bg-primary/10 ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl">
           <Icon className="h-5 w-5 text-primary" />
         </div>
@@ -72,6 +66,24 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
           {item.hint && <div className="truncate text-[11px] text-muted-foreground">{item.hint}</div>}
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </>
+    );
+    const className = `flex items-center gap-3 px-4 py-3.5 transition active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`;
+    if (item.params) {
+      return (
+        <Link key={item.label} to="/studio/$section" params={item.params} onClick={onClose} className={className}>
+          {body}
+        </Link>
+      );
+    }
+    return (
+      <Link
+        key={item.label}
+        to={item.to}
+        onClick={onClose}
+        className={className}
+      >
+        {body}
       </Link>
     );
   };
