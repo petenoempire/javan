@@ -31,6 +31,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
+import { Route as StudioSectionRouteImport } from './routes/studio.$section'
 import { Route as SettingsSecurityRouteImport } from './routes/settings.security'
 import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
@@ -40,6 +41,7 @@ import { Route as ProfileViewersRouteImport } from './routes/profile.viewers'
 import { Route as ProfileEditRouteImport } from './routes/profile.edit'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
+import { Route as HelpSafetyRouteImport } from './routes/help.safety'
 import { Route as HelpChatRouteImport } from './routes/help.chat'
 import { Route as ArtistStudioRouteImport } from './routes/artist.studio'
 import { Route as ArtistOnboardingRouteImport } from './routes/artist.onboarding'
@@ -50,6 +52,7 @@ import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminPayoutsRouteImport } from './routes/admin/payouts'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
+import { Route as SettingsSecurityRecoveryRouteImport } from './routes/settings.security.recovery'
 import { Route as SettingsAccountVerificationRouteImport } from './routes/settings.account.verification'
 
 const WalletRoute = WalletRouteImport.update({
@@ -162,6 +165,11 @@ const UHandleRoute = UHandleRouteImport.update({
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioSectionRoute = StudioSectionRouteImport.update({
+  id: '/$section',
+  path: '/$section',
+  getParentRoute: () => StudioRoute,
+} as any)
 const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -206,6 +214,11 @@ const InboxIdRoute = InboxIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => InboxRoute,
+} as any)
+const HelpSafetyRoute = HelpSafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => HelpRoute,
 } as any)
 const HelpChatRoute = HelpChatRouteImport.update({
   id: '/chat',
@@ -257,6 +270,12 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/content',
   getParentRoute: () => AdminRoute,
 } as any)
+const SettingsSecurityRecoveryRoute =
+  SettingsSecurityRecoveryRouteImport.update({
+    id: '/recovery',
+    path: '/recovery',
+    getParentRoute: () => SettingsSecurityRoute,
+  } as any)
 const SettingsAccountVerificationRoute =
   SettingsAccountVerificationRouteImport.update({
     id: '/verification',
@@ -281,7 +300,7 @@ export interface FileRoutesByFullPath {
   '/qr': typeof QrRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/studio': typeof StudioRoute
+  '/studio': typeof StudioRouteWithChildren
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -294,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
   '/help/chat': typeof HelpChatRoute
+  '/help/safety': typeof HelpSafetyRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -302,11 +322,13 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
-  '/settings/security': typeof SettingsSecurityRoute
+  '/settings/security': typeof SettingsSecurityRouteWithChildren
+  '/studio/$section': typeof StudioSectionRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/settings/account/verification': typeof SettingsAccountVerificationRoute
+  '/settings/security/recovery': typeof SettingsSecurityRecoveryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -323,7 +345,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRouteWithChildren
   '/qr': typeof QrRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/studio': typeof StudioRoute
+  '/studio': typeof StudioRouteWithChildren
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -336,6 +358,7 @@ export interface FileRoutesByTo {
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
   '/help/chat': typeof HelpChatRoute
+  '/help/safety': typeof HelpSafetyRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -344,11 +367,13 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
-  '/settings/security': typeof SettingsSecurityRoute
+  '/settings/security': typeof SettingsSecurityRouteWithChildren
+  '/studio/$section': typeof StudioSectionRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/settings/account/verification': typeof SettingsAccountVerificationRoute
+  '/settings/security/recovery': typeof SettingsSecurityRecoveryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -368,7 +393,7 @@ export interface FileRoutesById {
   '/qr': typeof QrRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/studio': typeof StudioRoute
+  '/studio': typeof StudioRouteWithChildren
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
   '/admin/content': typeof AdminContentRoute
@@ -381,6 +406,7 @@ export interface FileRoutesById {
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
   '/help/chat': typeof HelpChatRoute
+  '/help/safety': typeof HelpSafetyRoute
   '/inbox/$id': typeof InboxIdRoute
   '/live/$id': typeof LiveIdRoute
   '/profile/edit': typeof ProfileEditRoute
@@ -389,11 +415,13 @@ export interface FileRoutesById {
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
-  '/settings/security': typeof SettingsSecurityRoute
+  '/settings/security': typeof SettingsSecurityRouteWithChildren
+  '/studio/$section': typeof StudioSectionRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/settings/account/verification': typeof SettingsAccountVerificationRoute
+  '/settings/security/recovery': typeof SettingsSecurityRecoveryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -427,6 +455,7 @@ export interface FileRouteTypes {
     | '/artist/onboarding'
     | '/artist/studio'
     | '/help/chat'
+    | '/help/safety'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -436,10 +465,12 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
+    | '/studio/$section'
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
     | '/settings/account/verification'
+    | '/settings/security/recovery'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -469,6 +500,7 @@ export interface FileRouteTypes {
     | '/artist/onboarding'
     | '/artist/studio'
     | '/help/chat'
+    | '/help/safety'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -478,10 +510,12 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
+    | '/studio/$section'
     | '/u/$handle'
     | '/admin'
     | '/settings'
     | '/settings/account/verification'
+    | '/settings/security/recovery'
   id:
     | '__root__'
     | '/'
@@ -513,6 +547,7 @@ export interface FileRouteTypes {
     | '/artist/onboarding'
     | '/artist/studio'
     | '/help/chat'
+    | '/help/safety'
     | '/inbox/$id'
     | '/live/$id'
     | '/profile/edit'
@@ -522,10 +557,12 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
+    | '/studio/$section'
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
     | '/settings/account/verification'
+    | '/settings/security/recovery'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -545,7 +582,7 @@ export interface RootRouteChildren {
   QrRoute: typeof QrRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  StudioRoute: typeof StudioRoute
+  StudioRoute: typeof StudioRouteWithChildren
   VerifyRoute: typeof VerifyRoute
   WalletRoute: typeof WalletRoute
   ArtistOnboardingRoute: typeof ArtistOnboardingRoute
@@ -710,6 +747,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/$section': {
+      id: '/studio/$section'
+      path: '/$section'
+      fullPath: '/studio/$section'
+      preLoaderRoute: typeof StudioSectionRouteImport
+      parentRoute: typeof StudioRoute
+    }
     '/settings/security': {
       id: '/settings/security'
       path: '/security'
@@ -772,6 +816,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/inbox/$id'
       preLoaderRoute: typeof InboxIdRouteImport
       parentRoute: typeof InboxRoute
+    }
+    '/help/safety': {
+      id: '/help/safety'
+      path: '/safety'
+      fullPath: '/help/safety'
+      preLoaderRoute: typeof HelpSafetyRouteImport
+      parentRoute: typeof HelpRoute
     }
     '/help/chat': {
       id: '/help/chat'
@@ -843,6 +894,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/settings/security/recovery': {
+      id: '/settings/security/recovery'
+      path: '/recovery'
+      fullPath: '/settings/security/recovery'
+      preLoaderRoute: typeof SettingsSecurityRecoveryRouteImport
+      parentRoute: typeof SettingsSecurityRoute
+    }
     '/settings/account/verification': {
       id: '/settings/account/verification'
       path: '/verification'
@@ -879,10 +937,12 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface HelpRouteChildren {
   HelpChatRoute: typeof HelpChatRoute
+  HelpSafetyRoute: typeof HelpSafetyRoute
 }
 
 const HelpRouteChildren: HelpRouteChildren = {
   HelpChatRoute: HelpChatRoute,
+  HelpSafetyRoute: HelpSafetyRoute,
 }
 
 const HelpRouteWithChildren = HelpRoute._addFileChildren(HelpRouteChildren)
@@ -922,12 +982,23 @@ const SettingsAccountRouteWithChildren = SettingsAccountRoute._addFileChildren(
   SettingsAccountRouteChildren,
 )
 
+interface SettingsSecurityRouteChildren {
+  SettingsSecurityRecoveryRoute: typeof SettingsSecurityRecoveryRoute
+}
+
+const SettingsSecurityRouteChildren: SettingsSecurityRouteChildren = {
+  SettingsSecurityRecoveryRoute: SettingsSecurityRecoveryRoute,
+}
+
+const SettingsSecurityRouteWithChildren =
+  SettingsSecurityRoute._addFileChildren(SettingsSecurityRouteChildren)
+
 interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRouteWithChildren
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   SettingsPrivacyRoute: typeof SettingsPrivacyRoute
-  SettingsSecurityRoute: typeof SettingsSecurityRoute
+  SettingsSecurityRoute: typeof SettingsSecurityRouteWithChildren
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
@@ -936,13 +1007,24 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,
   SettingsPrivacyRoute: SettingsPrivacyRoute,
-  SettingsSecurityRoute: SettingsSecurityRoute,
+  SettingsSecurityRoute: SettingsSecurityRouteWithChildren,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 
 const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
   SettingsRouteChildren,
 )
+
+interface StudioRouteChildren {
+  StudioSectionRoute: typeof StudioSectionRoute
+}
+
+const StudioRouteChildren: StudioRouteChildren = {
+  StudioSectionRoute: StudioSectionRoute,
+}
+
+const StudioRouteWithChildren =
+  StudioRoute._addFileChildren(StudioRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -961,7 +1043,7 @@ const rootRouteChildren: RootRouteChildren = {
   QrRoute: QrRoute,
   SettingsRoute: SettingsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  StudioRoute: StudioRoute,
+  StudioRoute: StudioRouteWithChildren,
   VerifyRoute: VerifyRoute,
   WalletRoute: WalletRoute,
   ArtistOnboardingRoute: ArtistOnboardingRoute,

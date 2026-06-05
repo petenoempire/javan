@@ -122,106 +122,156 @@ function CreateStudio() {
 
 function StepSelector({ mode, setMode, onPickFile }: { mode: Mode; setMode: (m: Mode) => void; onPickFile: (v?: boolean) => void }) {
   return (
-    <div className="relative h-full">
-      <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-950/40 via-black to-black" />
-      <div className="relative flex h-full flex-col">
-        <div className="flex-1 overflow-y-auto px-5 pb-40 pt-20">
-          {mode === "LIVE" && <LivePanel />}
-          {mode === "POST" && <PostPanel onPickFile={() => onPickFile(true)} />}
-          {mode === "CREATE" && <CreatePanel onPickFile={() => onPickFile(true)} />}
-        </div>
+    <div className="relative h-full overflow-hidden">
+      {mode === "LIVE" && <LivePanel />}
+      {mode === "POST" && <PostPanel onPickFile={() => onPickFile(true)} />}
+      {mode === "CREATE" && <CreatePanel onPickFile={() => onPickFile(true)} />}
 
-        {/* Bottom mode selector */}
-        <div className="absolute inset-x-0 bottom-0 pb-6 pt-4">
-          <div className="mx-auto flex w-fit gap-6 px-4">
-            {(["LIVE", "POST", "CREATE"] as Mode[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`text-sm font-bold tracking-widest transition ${mode === m ? "text-white" : "text-white/40"}`}
-              >
-                {m}
-                {mode === m && <div className="mx-auto mt-1 h-0.5 w-6 rounded-full bg-white" />}
-              </button>
-            ))}
-          </div>
+      <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black via-black/80 to-transparent pb-6 pt-10">
+        <div className="mx-auto flex w-fit gap-7 rounded-full bg-white/10 px-6 py-3 backdrop-blur">
+          {(["LIVE", "POST", "CREATE"] as Mode[]).map((m) => (
+            <button key={m} onClick={() => setMode(m)} className={`text-sm font-bold tracking-widest transition ${mode === m ? "text-white" : "text-white/40"}`}>
+              {m}
+              {mode === m && <div className="mx-auto mt-1 h-0.5 w-6 rounded-full bg-white" />}
+            </button>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-const liveSubs = [
-  { label: "Voice chat", icon: Mic2 },
+const liveSwitches = [
   { label: "Device camera", icon: Camera },
   { label: "Mobile gaming", icon: Gamepad2 },
   { label: "LIVE Studio", icon: VideoIcon },
 ];
 
 function LivePanel() {
-  const [sub, setSub] = useState(1);
+  const [sub, setSub] = useState("Device camera");
+  const setupRows = ["Add a title", "Add topic", "Add a LIVE goal", "Scaled LIVE Rewards"];
+  const utilities = [
+    "Tips", "Share", "Play Together", "Poll", "Fan Club", "Landscape", "Promote", "LIVE Center",
+    "Settings", "Add camera", "Cast", "Share camera", "Flip", "Beautify", "Effects", "Service+",
+  ];
   return (
-    <div className="space-y-8">
-      <div className="flex justify-center gap-5 overflow-x-auto no-scrollbar">
-        {liveSubs.map((s, i) => (
-          <button key={s.label} onClick={() => setSub(i)} className="flex flex-col items-center gap-1.5">
-            <s.icon className={`h-7 w-7 ${sub === i ? "text-white" : "text-white/40"}`} />
-            <span className={`whitespace-nowrap text-[11px] ${sub === i ? "text-white" : "text-white/50"}`}>{s.label}</span>
+    <div className="creation-live-bg h-full overflow-y-auto px-5 pb-44 pt-20">
+      <div className="space-y-2">
+        {setupRows.map((row) => (
+          <button key={row} className="flex w-full items-center justify-between rounded-2xl bg-black/35 px-4 py-3 text-left backdrop-blur active:scale-[0.99]">
+            <span className="text-sm font-semibold">{row}</span>
+            <Plus className="h-4 w-4 text-white/60" />
           </button>
         ))}
       </div>
 
-      <div className="mt-32 flex flex-col items-center gap-4">
-        <button className="flex h-20 w-20 items-center justify-center rounded-full bg-rose-500 shadow-[0_0_60px_-8px_rgba(244,63,94,0.8)] live-pulse">
-          <span className="font-display text-sm font-bold">Go LIVE</span>
-        </button>
-        <div className="mt-3 flex flex-wrap justify-center gap-3 text-[10px] text-white/60">
-          {["Flip", "Beautify", "Effects", "Settings", "Service+", "Fan Club", "Share"].map((t) => (
-            <div key={t} className="glass flex flex-col items-center gap-1 rounded-2xl px-3 py-2">
-              <Wand2 className="h-4 w-4" />
-              <span>{t}</span>
+      <div className="mt-5 grid grid-cols-4 gap-3 text-center text-[10px] text-white/75">
+        {utilities.map((u, i) => {
+          const Icon = [Sparkles, Share2, Gamepad2, SlidersHorizontal, Heart, Crop, Wand2, VideoIcon, Settings, Camera, VideoIcon, UserPlus2, RotateCcw, Wand2, Sticker, CrownIcon][i] ?? Sparkles;
+          return (
+            <button key={u} className="flex flex-col items-center gap-1 rounded-2xl bg-black/30 px-1 py-3 backdrop-blur active:scale-95">
+              <Icon className="h-5 w-5" />
+              <span className="leading-tight">{u}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 grid grid-cols-3 gap-2 rounded-full bg-black/35 p-1 backdrop-blur">
+        {liveSwitches.map(({ label, icon: Icon }) => (
+          <button key={label} onClick={() => setSub(label)} className={`flex items-center justify-center gap-1 rounded-full px-2 py-2 text-[10px] font-bold ${sub === label ? "bg-white text-black" : "text-white/60"}`}>
+            <Icon className="h-3.5 w-3.5" /> {label}
+          </button>
+        ))}
+      </div>
+
+      {sub === "LIVE Studio" && (
+        <section className="creation-studio-illustration mt-5 rounded-3xl p-4">
+          <div className="flex h-40 gap-3">
+            <div className="flex-1 rounded-2xl bg-black/80 p-3">
+              <div className="h-20 rounded-xl bg-white/10" />
+              <div className="mt-3 h-2 w-24 rounded-full bg-white/20" />
+              <div className="mt-2 h-2 w-16 rounded-full bg-white/10" />
             </div>
+            <div className="w-24 rounded-2xl bg-white/10 p-2">
+              <div className="h-8 rounded-lg bg-primary/70" />
+              <div className="mt-2 h-8 rounded-lg bg-white/15" />
+              <div className="mt-2 h-8 rounded-lg bg-white/15" />
+            </div>
+          </div>
+          <button className="mt-4 w-full rounded-full bg-rose-500 py-3 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.8)]">Get download link</button>
+        </section>
+      )}
+
+      <button className="fixed inset-x-5 bottom-24 z-20 mx-auto max-w-[440px] rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-4 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.9)] live-pulse">
+        Go LIVE
+      </button>
+    </div>
+  );
+}
+
+const CrownIcon = Sparkles;
+const postTimers = ["10m", "60s", "15s", "PHOTO", "TEXT"];
+
+function PostPanel({ onPickFile }: { onPickFile: () => void }) {
+  const [timer, setTimer] = useState("15s");
+  const tools = [
+    [RotateCcw, "Flip"], [Wand2, "Beautify"], [Settings, "Timer"], [LayoutMiniIcon, "Grid"], [UserPlus2, "Add friends"], [SlidersHorizontal, "Filters"],
+  ] as const;
+  const isText = timer === "TEXT";
+  const isPhoto = timer === "PHOTO";
+  return (
+    <div className={`relative h-full ${isText ? "bg-neutral-100 text-black" : "creation-camera-bg"}`}>
+      <button className="absolute left-1/2 top-16 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/35 px-4 py-2 text-xs font-bold text-white backdrop-blur">
+        <Music2 className="h-4 w-4" /> Add sound
+      </button>
+
+      {!isText && (
+        <div className="absolute right-3 top-24 z-10 flex flex-col gap-4 text-white">
+          {tools.map(([Icon, label]) => (
+            <button key={label} aria-label={label} className="flex flex-col items-center gap-1 text-[10px] font-semibold active:scale-90">
+              <Icon className="h-6 w-6" />
+              <span>{label}</span>
+            </button>
           ))}
         </div>
+      )}
+
+      {isText ? (
+        <div className="flex h-full flex-col justify-end pb-32">
+          <div className="mx-5 mb-8 rounded-3xl bg-white px-5 py-20 text-center shadow-elegant">
+            <textarea autoFocus placeholder="Share your thoughts or questions to spark discussions" className="min-h-32 w-full resize-none bg-transparent text-center text-2xl font-semibold leading-snug text-black outline-none placeholder:text-neutral-400" />
+          </div>
+          <button className="mx-auto mb-4 rounded-full bg-rose-500 px-10 py-3 text-sm font-bold text-white shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)]">Next</button>
+          <div className="h-44 rounded-t-3xl bg-neutral-300/90" />
+        </div>
+      ) : (
+        <div className="absolute inset-x-0 bottom-28 flex flex-col items-center gap-5">
+          <div className="flex items-end gap-7">
+            <button onClick={onPickFile} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
+              <ImageIcon className="h-6 w-6" />
+            </button>
+            <button onClick={onPickFile} aria-label="Capture" className="relative h-24 w-24 rounded-full border-4 border-white active:scale-95">
+              <div className={`absolute inset-2 rounded-full ${isPhoto ? "bg-white" : "bg-rose-500"}`} />
+            </button>
+            <button className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
+              <RotateCcw className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="absolute inset-x-0 bottom-52 z-10 flex justify-center gap-5 text-xs text-white">
+        {postTimers.map((t) => (
+          <button key={t} onClick={() => setTimer(t)} className={`font-bold ${timer === t ? "text-rose-400" : isText ? "text-black/50" : "text-white/55"}`}>{t}</button>
+        ))}
       </div>
     </div>
   );
 }
 
-const postTimers = ["10m", "60s", "15s", "PHOTO", "TEXT"];
-
-function PostPanel({ onPickFile }: { onPickFile: () => void }) {
-  const [timer, setTimer] = useState("15s");
-  return (
-    <div className="flex flex-col items-center gap-8">
-      <div className="mt-4 flex w-full items-center justify-between rounded-full bg-white/10 px-4 py-2 backdrop-blur">
-        <Music2 className="h-4 w-4" />
-        <span className="text-xs font-semibold">Add sound</span>
-        <ChevronRight className="h-4 w-4" />
-      </div>
-
-      <div className="mt-24 flex flex-col items-center gap-6">
-        <div className="flex items-end gap-6">
-          <button onClick={onPickFile} className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/10">
-            <ImageIcon className="h-6 w-6" />
-          </button>
-          <button onClick={onPickFile} aria-label="Capture" className="relative">
-            <div className="h-24 w-24 rounded-full border-4 border-white" />
-            <div className="absolute inset-2 rounded-full bg-white" />
-          </button>
-          <button className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/10">
-            <RotateCcw className="h-6 w-6" />
-          </button>
-        </div>
-
-        <div className="flex gap-5 text-xs">
-          {postTimers.map((t) => (
-            <button key={t} onClick={() => setTimer(t)} className={`font-bold ${timer === t ? "text-rose-400" : "text-white/50"}`}>{t}</button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+function LayoutMiniIcon({ className }: { className?: string }) {
+  return <SlidersHorizontal className={className} />;
 }
 
 const createTiles = [
@@ -231,51 +281,58 @@ const createTiles = [
   { label: "AI Self", icon: Sparkles },
   { label: "Cutout", icon: Crop },
 ];
-const templates = ["For You", "Viral Song", "Sports", "Trendy"];
+const templates = ["For You", "Viral Song", "Sports ⚽", "Trendy"];
 
 function CreatePanel({ onPickFile }: { onPickFile: () => void }) {
   const [tab, setTab] = useState("For You");
   return (
-    <div className="space-y-5">
+    <div className="h-full overflow-y-auto bg-black px-5 pb-36 pt-20 text-white">
       <div className="grid grid-cols-5 gap-2">
         {createTiles.map((t) => (
-          <button key={t.label} className="glass flex flex-col items-center gap-1.5 rounded-2xl px-1 py-3">
-            <t.icon className="h-5 w-5 text-fuchsia-300" />
-            <span className="text-[9px] font-semibold leading-tight text-center">{t.label}</span>
+          <button key={t.label} className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 px-1 py-3 active:scale-95">
+            <t.icon className="h-6 w-6" />
+            <span className="text-center text-[9px] font-semibold leading-tight">{t.label}</span>
           </button>
         ))}
       </div>
 
-      <button onClick={onPickFile} className="bg-gradient-primary flex w-full items-center justify-between rounded-3xl px-5 py-5 shadow-glow">
-        <div className="text-left">
-          <div className="font-display text-lg font-bold">New video</div>
-          <div className="text-xs opacity-80">Pick from gallery or record</div>
-        </div>
-        <Plus className="h-7 w-7" />
-      </button>
+      <div className="mt-5 grid grid-cols-[1fr_110px] gap-3">
+        <button onClick={onPickFile} className="flex items-center justify-between rounded-3xl bg-white px-5 py-6 text-black shadow-elegant active:scale-[0.98]">
+          <div className="text-left">
+            <div className="font-display text-xl font-bold">New video</div>
+            <div className="text-xs text-black/55">Record or upload</div>
+          </div>
+          <Plus className="h-8 w-8" />
+        </button>
+        <button className="rounded-3xl bg-white/10 px-4 py-5 text-left active:scale-[0.98]">
+          <FileText className="h-7 w-7" />
+          <div className="mt-5 font-display text-lg font-bold">1</div>
+          <div className="text-xs text-white/60">Drafts</div>
+        </button>
+      </div>
 
-      <button className="glass flex w-full items-center justify-between rounded-2xl px-5 py-4">
-        <div className="flex items-center gap-3">
-          <FileText className="h-5 w-5" />
-          <span className="text-sm font-semibold">Drafts</span>
-        </div>
-        <ChevronRight className="h-4 w-4 text-white/50" />
-      </button>
-
-      <div>
-        <div className="mb-2 flex gap-4 overflow-x-auto no-scrollbar text-xs">
+      <section className="mt-7">
+        <h2 className="font-display text-xl font-bold">Templates</h2>
+        <div className="no-scrollbar mt-3 flex gap-5 overflow-x-auto text-sm">
           {templates.map((t) => (
             <button key={t} onClick={() => setTab(t)} className={`whitespace-nowrap font-bold ${tab === t ? "text-white" : "text-white/40"}`}>
               {t}
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-[9/16] rounded-xl bg-gradient-to-br from-fuchsia-900/40 to-cyan-900/30" />
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          {["World tour", "Birthday flash", "Glow reveal", "Street edit"].map((name, i) => (
+            <button key={name} className={`relative aspect-[9/14] overflow-hidden rounded-3xl p-3 text-left shadow-elegant active:scale-[0.98] ${["creation-template-world", "creation-template-couple", "creation-template-clock", "creation-template-neon"][i]}`}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-white/10" />
+              <div className="relative mt-auto flex h-full flex-col justify-end">
+                <div className="rounded-full bg-black/40 px-3 py-1 text-[10px] font-bold backdrop-blur">{tab}</div>
+                <div className="mt-2 font-display text-sm font-bold">{name}</div>
+                <div className="text-[10px] text-white/65">Tap to remix</div>
+              </div>
+            </button>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

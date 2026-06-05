@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/studio")({
 function CreatorStudio() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [tab, setTab] = useState<"posts" | "live">("posts");
 
   useEffect(() => { if (!loading && !user) navigate({ to: "/auth" }); }, [loading, user, navigate]);
@@ -38,6 +39,8 @@ function CreatorStudio() {
     },
   });
 
+  if (pathname !== "/studio") return <Outlet />;
+
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-muted/40 pb-24 dark:bg-background">
       <header className="sticky top-0 z-10 flex items-center border-b border-border/40 bg-background/95 px-2 py-3 backdrop-blur">
@@ -46,10 +49,10 @@ function CreatorStudio() {
         <Link to="/settings" className="p-2" aria-label="Settings"><Settings className="h-5 w-5" /></Link>
       </header>
 
-      <div className="mx-3 mt-3 grid grid-cols-2 rounded-2xl bg-muted/60 p-1">
+      <div className="mx-3 mt-3 grid grid-cols-2 rounded-full bg-muted/60 p-1">
         {(["posts", "live"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`rounded-xl py-2 text-sm font-bold transition ${tab === t ? "bg-background text-foreground shadow-elegant" : "text-muted-foreground"}`}>
+            className={`rounded-full py-2 text-sm font-bold transition ${tab === t ? "bg-background text-foreground shadow-elegant" : "text-muted-foreground"}`}>
             {t === "posts" ? "Posts" : "LIVE"}
           </button>
         ))}
@@ -74,39 +77,33 @@ function PostsView({ stats }: { stats: any }) {
       <Card>
         <div className="flex items-center justify-between px-4 pt-4">
           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Last 7 days</span>
-          <Link to="/notifications" className="text-xs font-semibold text-sky-500">View all</Link>
+          <Link to="/studio/$section" params={{ section: "analytics" }} className="text-xs font-semibold text-sky-500">View all</Link>
         </div>
         <div className="grid grid-cols-3 gap-2 p-4">
-          <Metric icon={Eye} label="Post views" value={stats?.views ?? 0} up />
-          <Metric icon={UserPlus} label="Net followers" value={stats?.recentFollowers ?? 0} up={(stats?.recentFollowers ?? 0) >= 0} />
-          <Metric icon={Heart} label="Likes" value={stats?.recentLikes ?? 0} up />
+          <Metric icon={Eye} label="Post views" value={stats?.views ?? 0} section="analytics" up />
+          <Metric icon={UserPlus} label="Net followers" value={stats?.recentFollowers ?? 0} section="analytics" up={(stats?.recentFollowers ?? 0) >= 0} />
+          <Metric icon={Heart} label="Likes" value={stats?.recentLikes ?? 0} section="analytics" up />
         </div>
       </Card>
 
       {/* Monetization */}
       <div className="grid grid-cols-2 gap-3">
-        <BigTile to="/studio" tone="primary" icon={Crown} title="Service+" desc="Boost your reach" />
-        <BigTile to="/studio" tone="gold" icon={Gift} title="LIVE rewards" desc="Track gifts received" />
+        <BigTile section="service" tone="primary" icon={Crown} title="Service+" desc="Boost your reach" />
+        <BigTile section="live-rewards" tone="gold" icon={Gift} title="LIVE rewards" desc="Track gifts received" />
       </div>
 
       <div className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3">
         {[
-          { icon: Sparkles, label: "Subscription", to: "/studio" },
-          { icon: Music2, label: "Work with Artists", to: "/artist/onboarding" },
-          { icon: Gift, label: "Video Gifts", to: "/studio" },
-          { icon: Gamepad2, label: "Gaming Incentive", to: "/studio" },
+          { icon: Sparkles, label: "Subscription", section: "subscriptions" },
+          { icon: Music2, label: "Work with Artists", to: "/artist/onboarding" as const },
+          { icon: Gift, label: "Video Gifts", section: "video-gifts" },
+          { icon: Gamepad2, label: "Gaming Incentive", section: "gaming" },
         ].map((c) => (
-          <Link key={c.label} to={c.to}
-            className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">
-            <div className="bg-gradient-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-glow">
-              <c.icon className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <div className="text-[11px] font-bold leading-tight">{c.label}</div>
-          </Link>
+          <RevenueTile key={c.label} {...c} />
         ))}
       </div>
 
-      <Link to="/studio" className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-bold active:scale-[0.98]">
+      <Link to="/studio/$section" params={{ section: "monetization" }} className="glass flex items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-bold active:scale-[0.98]">
         <span>More ways to get paid</span><ChevronRight className="h-4 w-4 text-muted-foreground" />
       </Link>
 
@@ -114,8 +111,8 @@ function PostsView({ stats }: { stats: any }) {
       <SectionTitle>More tools</SectionTitle>
       <div className="grid grid-cols-3 gap-3">
         <ToolTile to="/settings/account/verification" icon={ShieldCheck} label="Account check" />
-        <ToolTile to="/studio" icon={Megaphone} label="Promote" />
-        <ToolTile to="/studio" icon={Award} label="Benefits" />
+        <ToolTile section="promote" icon={Megaphone} label="Promote" />
+        <ToolTile section="benefits" icon={Award} label="Benefits" />
       </div>
 
       {/* Creator Academy */}
@@ -207,9 +204,9 @@ function LiveView() {
   );
 }
 
-function Metric({ icon: Icon, label, value, up }: { icon: any; label: string; value: number; up?: boolean }) {
+function Metric({ icon: Icon, label, value, section, up }: { icon: any; label: string; value: number; section: string; up?: boolean }) {
   return (
-    <div className="rounded-2xl bg-muted/40 p-3">
+    <Link to="/studio/$section" params={{ section }} className="rounded-2xl bg-muted/40 p-3 text-left active:scale-95">
       <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         <Icon className="h-3 w-3" /> {label}
       </div>
@@ -217,13 +214,13 @@ function Metric({ icon: Icon, label, value, up }: { icon: any; label: string; va
         <span className="font-display text-xl font-bold">{value.toLocaleString()}</span>
         {up ? <TrendingUp className="h-3 w-3 text-emerald-500" /> : <TrendingDown className="h-3 w-3 text-destructive" />}
       </div>
-    </div>
+    </Link>
   );
 }
 
-function BigTile({ to, tone, icon: Icon, title, desc }: { to: string; tone: "primary" | "gold"; icon: any; title: string; desc: string }) {
+function BigTile({ section, tone, icon: Icon, title, desc }: { section: string; tone: "primary" | "gold"; icon: any; title: string; desc: string }) {
   return (
-    <Link to={to} className={`relative overflow-hidden rounded-2xl p-4 shadow-elegant ${tone === "primary" ? "bg-gradient-primary text-primary-foreground" : "bg-gradient-gold text-black"}`}>
+    <Link to="/studio/$section" params={{ section }} className={`relative overflow-hidden rounded-2xl p-4 shadow-elegant ${tone === "primary" ? "bg-gradient-primary text-primary-foreground" : "bg-gradient-gold text-black"}`}>
       <Icon className="mb-3 h-6 w-6 opacity-90" />
       <div className="font-display text-base font-bold">{title}</div>
       <div className="text-[11px] opacity-80">{desc}</div>
@@ -232,14 +229,35 @@ function BigTile({ to, tone, icon: Icon, title, desc }: { to: string; tone: "pri
   );
 }
 
-function ToolTile({ to, icon: Icon, label }: { to: string; icon: any; label: string }) {
-  return (
-    <Link to={to} className="glass flex flex-col items-center gap-2 rounded-2xl p-3 text-center active:scale-95">
+function RevenueTile({ icon: Icon, label, section, to }: { icon: any; label: string; section?: string; to?: "/artist/onboarding" }) {
+  const body = (
+    <>
+      <div className="bg-gradient-primary flex h-9 w-9 items-center justify-center rounded-xl shadow-glow">
+        <Icon className="h-4 w-4 text-primary-foreground" />
+      </div>
+      <div className="text-[11px] font-bold leading-tight">{label}</div>
+    </>
+  );
+  if (section) {
+    return <Link to="/studio/$section" params={{ section }} className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">{body}</Link>;
+  }
+  return <Link to={to!} className="glass flex min-w-[130px] shrink-0 flex-col gap-2 rounded-2xl p-3">{body}</Link>;
+}
+
+function ToolTile({ to, section, icon: Icon, label }: { to?: "/settings/account/verification"; section?: string; icon: any; label: string }) {
+  const body = (
+    <>
       <div className="bg-primary/10 ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl">
         <Icon className="h-5 w-5 text-primary" />
       </div>
       <div className="text-[11px] font-bold leading-tight">{label}</div>
-    </Link>
+    </>
+  );
+  if (section) {
+    return <Link to="/studio/$section" params={{ section }} className="glass flex flex-col items-center gap-2 rounded-2xl p-3 text-center active:scale-95">{body}</Link>;
+  }
+  return (
+    <Link to={to!} className="glass flex flex-col items-center gap-2 rounded-2xl p-3 text-center active:scale-95">{body}</Link>
   );
 }
 
