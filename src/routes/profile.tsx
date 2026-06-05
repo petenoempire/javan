@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Share2, Wallet, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin, Film, Menu,
   AudioLines, Eye, Plus, ChevronDown, Lock, Repeat2, Bookmark, Heart, LayoutGrid,
+  X, Type, Folder, Calendar, Sparkles, Camera,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -24,6 +25,7 @@ function Profile() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isProfileIndex = pathname === "/profile";
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(false);
   const [hub, setHub] = useState<"videos" | "music">("videos");
   const [feedTab, setFeedTab] = useState<FeedTab>("posts");
 
@@ -112,6 +114,7 @@ function Profile() {
   return (
     <MobileShell>
       <ProfileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <StoryComposer open={storyOpen} onClose={() => setStoryOpen(false)} />
 
       <div className="relative">
         {profile?.cover_url
@@ -130,12 +133,12 @@ function Profile() {
         <div className="px-5 pb-6">
           <div className="-mt-12 flex items-end justify-between">
             {/* Avatar + story-creation badge */}
-            <div className="relative">
+            <div className="relative rounded-full bg-gradient-primary p-0.5 shadow-glow">
               {profile?.avatar_url
                 ? <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-background object-cover shadow-elegant" alt="" />
                 : <div className="bg-gradient-primary h-24 w-24 rounded-full border-4 border-background shadow-elegant" />}
               <button
-                onClick={() => navigate({ to: "/create" })}
+                onClick={() => setStoryOpen(true)}
                 aria-label="Create a story"
                 className="bg-gradient-primary absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-[3px] border-background shadow-glow active:scale-90"
               >
@@ -151,10 +154,10 @@ function Profile() {
             </div>
           </div>
           <div className="mt-3 flex items-center gap-2">
-            <h1 className="font-display text-2xl font-bold">@{profile?.handle}</h1>
+            <h1 className="font-display text-3xl font-bold leading-tight">{profile?.display_name || `@${profile?.handle}`}</h1>
             {profile?.is_verified && <BadgeCheck className="h-5 w-5 fill-accent text-background" />}
           </div>
-          <div className="text-sm text-foreground">{profile?.display_name}</div>
+          <div className="text-base font-semibold text-muted-foreground">@{profile?.handle}</div>
           {profile?.bio && <p className="mt-2 text-sm text-muted-foreground">{profile.bio}</p>}
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
             {profile?.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{profile.location}</span>}
@@ -248,6 +251,67 @@ function Grid({ items }: { items: any[] }) {
             : <video src={v.video_url} className="h-full w-full object-cover" muted />}
         </a>
       ))}
+    </div>
+  );
+}
+
+function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const chips = [
+    { label: "Text", Icon: Type },
+    { label: "Drafts", Icon: Folder },
+    { label: "Archive", Icon: Calendar },
+    { label: "Flip Story", Icon: Sparkles },
+  ];
+  const tabs = ["All", "Favorites", "Photos", "Videos"];
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[90] mx-auto max-w-[480px] bg-black text-white animate-in slide-in-from-bottom-6 duration-200">
+      <header className="flex items-center justify-center px-4 pb-4 pt-16">
+        <button onClick={onClose} aria-label="Close story composer" className="absolute left-4 top-14 p-2 active:scale-90">
+          <X className="h-8 w-8" />
+        </button>
+        <h2 className="font-display text-2xl font-bold">Add to Story</h2>
+      </header>
+
+      <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 py-3">
+        {chips.map(({ label, Icon }) => (
+          <button key={label} className="flex h-28 min-w-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/10 shadow-inner active:scale-95">
+            {label === "Text" ? <span className="font-display text-4xl font-bold">Aa</span> : <Icon className="h-9 w-9" />}
+            <span className="text-base font-semibold">{label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 flex items-center justify-between px-5">
+        <button className="flex items-center gap-1 font-display text-2xl font-bold">Recents <ChevronDown className="h-5 w-5" /></button>
+        <button className="flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-base font-semibold">
+          <span className="h-5 w-5 rounded-full border-2 border-white" /> Select multiple
+        </button>
+      </div>
+
+      <div className="mt-4 grid grid-cols-4 border-b border-white/10 px-5 text-center text-base font-bold text-white/50">
+        {tabs.map((tab, index) => (
+          <button key={tab} className={`relative pb-3 ${index === 0 ? "text-white" : ""}`}>
+            {tab}
+            {index === 0 && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-white" />}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-3 gap-0 overflow-hidden">
+        <button className="flex aspect-[3/4] items-center justify-center bg-zinc-900 active:opacity-80" aria-label="Open camera">
+          <Camera className="h-12 w-12" />
+        </button>
+        {Array.from({ length: 11 }).map((_, i) => (
+          <button key={i} className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-fuchsia-600 via-cyan-400 to-black active:opacity-80">
+            <div className="absolute inset-0 bg-black/35" />
+            <div className="absolute bottom-2 left-2 h-10 w-10 rounded-full bg-black/50" />
+            <div className="absolute right-2 top-2 h-5 w-5 rounded-full bg-primary/80" />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
