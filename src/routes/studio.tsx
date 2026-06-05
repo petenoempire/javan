@@ -22,8 +22,6 @@ function CreatorStudio() {
 
   useEffect(() => { if (!loading && !user) navigate({ to: "/auth" }); }, [loading, user, navigate]);
 
-  if (pathname !== "/studio") return <Outlet />;
-
   const { data: stats } = useQuery({
     queryKey: ["studio-stats", user?.id],
     enabled: !!user,
@@ -40,6 +38,8 @@ function CreatorStudio() {
       return { views, followers: followers.data?.length ?? 0, likes: likes.data?.length ?? 0, recentFollowers, recentLikes };
     },
   });
+
+  if (pathname !== "/studio") return <Outlet />;
 
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-muted/40 pb-24 dark:bg-background">
@@ -210,9 +210,9 @@ function LiveView() {
   );
 }
 
-function Metric({ icon: Icon, label, value, up }: { icon: any; label: string; value: number; up?: boolean }) {
+function Metric({ icon: Icon, label, value, section, up }: { icon: any; label: string; value: number; section: string; up?: boolean }) {
   return (
-    <div className="rounded-2xl bg-muted/40 p-3">
+    <Link to="/studio/$section" params={{ section }} className="rounded-2xl bg-muted/40 p-3 text-left active:scale-95">
       <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         <Icon className="h-3 w-3" /> {label}
       </div>
@@ -220,13 +220,13 @@ function Metric({ icon: Icon, label, value, up }: { icon: any; label: string; va
         <span className="font-display text-xl font-bold">{value.toLocaleString()}</span>
         {up ? <TrendingUp className="h-3 w-3 text-emerald-500" /> : <TrendingDown className="h-3 w-3 text-destructive" />}
       </div>
-    </div>
+    </Link>
   );
 }
 
-function BigTile({ to, tone, icon: Icon, title, desc }: { to: string; tone: "primary" | "gold"; icon: any; title: string; desc: string }) {
+function BigTile({ section, tone, icon: Icon, title, desc }: { section: string; tone: "primary" | "gold"; icon: any; title: string; desc: string }) {
   return (
-    <Link to={to} className={`relative overflow-hidden rounded-2xl p-4 shadow-elegant ${tone === "primary" ? "bg-gradient-primary text-primary-foreground" : "bg-gradient-gold text-black"}`}>
+    <Link to="/studio/$section" params={{ section }} className={`relative overflow-hidden rounded-2xl p-4 shadow-elegant ${tone === "primary" ? "bg-gradient-primary text-primary-foreground" : "bg-gradient-gold text-black"}`}>
       <Icon className="mb-3 h-6 w-6 opacity-90" />
       <div className="font-display text-base font-bold">{title}</div>
       <div className="text-[11px] opacity-80">{desc}</div>
@@ -235,9 +235,9 @@ function BigTile({ to, tone, icon: Icon, title, desc }: { to: string; tone: "pri
   );
 }
 
-function ToolTile({ to, icon: Icon, label }: { to: string; icon: any; label: string }) {
+function ToolTile({ to, section, icon: Icon, label }: { to?: string; section?: string; icon: any; label: string }) {
   return (
-    <Link to={to} className="glass flex flex-col items-center gap-2 rounded-2xl p-3 text-center active:scale-95">
+    <Link to={to ?? "/studio/$section"} params={section ? { section } : undefined} className="glass flex flex-col items-center gap-2 rounded-2xl p-3 text-center active:scale-95">
       <div className="bg-primary/10 ring-1 ring-primary/20 flex h-10 w-10 items-center justify-center rounded-xl">
         <Icon className="h-5 w-5 text-primary" />
       </div>
