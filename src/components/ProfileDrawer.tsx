@@ -8,7 +8,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 type Item = { to: string; label: string; icon: LucideIcon; hint?: string };
-type Section = { title: string; items: Item[] };
+type SectionItem = Item & { params?: { section: string } };
+type Section = { title: string; items: SectionItem[] };
 
 const sections: Section[] = [
   {
@@ -35,7 +36,7 @@ const sections: Section[] = [
   {
     title: "Business",
     items: [
-      { to: "/studio/payouts", label: "Creator Rewards 2×", icon: Sparkles, hint: "100 coins = $0.10 payout" },
+      { to: "/studio/$section", params: { section: "payouts" }, label: "Creator Rewards 2×", icon: Sparkles, hint: "100 coins = $0.10 payout" },
     ],
   },
   {
@@ -53,12 +54,13 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  const renderItem = (item: Item, i: number) => {
+  const renderItem = (item: SectionItem, i: number) => {
     const Icon = item.icon;
     return (
       <Link
         key={item.label}
         to={item.to}
+        params={item.params}
         onClick={onClose}
         className={`flex items-center gap-3 px-4 py-3.5 transition active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`}
       >
