@@ -10,7 +10,7 @@ import { fetchFeed } from "@/lib/feed";
 import { Users, UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/friends")({
-  head: () => ({ meta: [{ title: "Friends · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Friends · Javan" }] }),
   component: FriendsFeed,
 });
 
@@ -94,7 +94,7 @@ function FriendsFeed() {
                 video={v}
                 active={i === activeIdx}
                 onComment={() => setCommentsFor(v.id)}
-                onShare={() => navigator.share?.({ title: v.caption || "Boogle", url: location.href }).catch(() => {})}
+                onShare={() => navigator.share?.({ title: v.caption || "Javan", url: location.href }).catch(() => {})}
                 onReport={() => {}}
               />
             </div>

@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { Search, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/inbox")({
-  head: () => ({ meta: [{ title: "Inbox · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Inbox · Javan" }] }),
   component: Inbox,
 });
 

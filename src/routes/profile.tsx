@@ -13,7 +13,7 @@ import {
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "Profile · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Profile · Javan" }] }),
   component: Profile,
 });
 
@@ -75,7 +75,7 @@ function Profile() {
       <MobileShell>
         <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center">
           <div className="bg-gradient-primary mb-4 h-16 w-16 rounded-full shadow-glow" />
-          <h2 className="font-display text-2xl font-bold">Join Boogle</h2>
+          <h2 className="font-display text-2xl font-bold">Join Javan</h2>
           <p className="mt-2 text-sm text-muted-foreground">Sign in to upload videos, send messages, and follow creators.</p>
           <Link to="/auth" className="bg-gradient-primary mt-6 rounded-full px-8 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
             Sign in / Create account
@@ -146,7 +146,7 @@ function Profile() {
               </button>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => navigator.share?.({ url: location.href, title: `@${profile?.handle} on Boogle` }).catch(() => {})}
+              <button onClick={() => navigator.share?.({ url: location.href, title: `@${profile?.handle} on Javan` }).catch(() => {})}
                 className="glass rounded-full p-2"><Share2 className="h-4 w-4" /></button>
               <button onClick={() => signOut().then(() => navigate({ to: "/auth" }))} className="glass rounded-full p-2">
                 <LogOut className="h-4 w-4" />

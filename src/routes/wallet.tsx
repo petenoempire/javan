@@ -8,7 +8,7 @@ import { TopUpDialog } from "@/components/TopUpDialog";
 import { PayoutRequestDialog, coinsToUsd } from "@/components/PayoutRequestDialog";
 
 export const Route = createFileRoute("/wallet")({
-  head: () => ({ meta: [{ title: "Wallet · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Wallet · Javan" }] }),
   component: WalletPage,
 });
 

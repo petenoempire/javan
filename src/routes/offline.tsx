@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/offline")({
-  head: () => ({ meta: [{ title: "Offline videos · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Offline videos · Javan" }] }),
   component: OfflinePage,
 });
 

@@ -6,7 +6,7 @@ import { Search, TrendingUp, Hash, Sparkles } from "lucide-react";
 import { useState, useMemo } from "react";
 
 export const Route = createFileRoute("/discover")({
-  head: () => ({ meta: [{ title: "Discover · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Discover · Javan" }] }),
   component: Discover,
 });
 

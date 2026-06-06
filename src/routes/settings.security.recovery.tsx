@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings/security/recovery")({
-  head: () => ({ meta: [{ title: "Account Recovery · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Account Recovery · Javan" }] }),
   component: AccountRecovery,
 });
 
@@ -43,7 +43,7 @@ function AccountRecovery() {
             <KeyRound className="h-6 w-6 text-primary-foreground" />
           </div>
           <h2 className="mt-5 font-display text-2xl font-bold">Recover access securely</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Send a protected reset link to the email attached to your Boogle account.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Send a protected reset link to the email attached to your Javan account.</p>
         </section>
 
         <label className="block">

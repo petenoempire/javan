@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/help/chat")({
-  head: () => ({ meta: [{ title: "Boogle Support · Chat" }] }),
+  head: () => ({ meta: [{ title: "Javan Support · Chat" }] }),
   component: SupportChat,
 });
 
@@ -41,7 +41,7 @@ function SupportChat() {
     setTicketId(data.id);
     setCategory(cat);
     setMessages([
-      { id: "sys", body: `Thanks for reaching out about ${cat}. A Boogle Support team member will follow up here. You can keep typing in the meantime.`, is_agent: true, created_at: new Date().toISOString() },
+      { id: "sys", body: `Thanks for reaching out about ${cat}. A Javan Support team member will follow up here. You can keep typing in the meantime.`, is_agent: true, created_at: new Date().toISOString() },
     ]);
     return data.id;
   };
@@ -77,7 +77,7 @@ function SupportChat() {
         <div className="flex items-center gap-3">
           <Link to="/help" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
           <div>
-            <h1 className="font-display text-base font-bold">Boogle Support</h1>
+            <h1 className="font-display text-base font-bold">Javan Support</h1>
             <div className="text-[10px] text-muted-foreground">Typically replies in a few minutes</div>
           </div>
         </div>
@@ -122,7 +122,7 @@ function SupportChat() {
                 </div>
                 <div className="mt-2 font-display text-sm font-bold text-foreground">An agent will be with you shortly</div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  Your ticket has been escalated to a Boogle Support team member. Estimated wait: <span className="font-semibold text-foreground">a few minutes</span>. You'll see their reply right in this chat.
+                  Your ticket has been escalated to a Javan Support team member. Estimated wait: <span className="font-semibold text-foreground">a few minutes</span>. You'll see their reply right in this chat.
                 </div>
               </div>
             )}

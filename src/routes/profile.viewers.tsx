@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/profile/viewers")({
-  head: () => ({ meta: [{ title: "Profile viewers · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Profile viewers · Javan" }] }),
   component: ProfileViewers,
 });
 

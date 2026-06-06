@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { ReportDialog } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/u/$handle")({
-  head: ({ params }) => ({ meta: [{ title: `@${params.handle} · Boogle` }] }),
+  head: ({ params }) => ({ meta: [{ title: `@${params.handle} · Javan` }] }),
   component: PublicProfile,
 });
 

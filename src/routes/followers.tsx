@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { ArrowLeft, UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/followers")({
-  head: () => ({ meta: [{ title: "Followers · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Followers · Javan" }] }),
   component: FollowersPage,
 });
 

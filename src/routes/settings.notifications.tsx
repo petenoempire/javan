@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/notifications")({
-  head: () => ({ meta: [{ title: "Notifications · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Notifications · Javan" }] }),
   component: NotifSettings,
 });
 
