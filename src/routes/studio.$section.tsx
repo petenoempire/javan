@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   ArrowLeft, Award, BarChart3, ChevronRight, Crown, Flag, Gamepad2, Gift,
-  Megaphone, Music2, Plus, Settings, Sparkles, Sticker, TrendingUp, WalletCards,
-  X, BadgeCheck, FileText, Sliders, Home, BookmarkPlus, Wand2, Link as LinkIcon,
+  Megaphone, Music2, Plus, Settings, Sparkles, Sticker, TrendingUp,
+  X, FileText, Sliders, Home, BookmarkPlus, Wand2, Link as LinkIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/studio/$section")({
