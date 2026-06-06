@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { ArrowLeft, Bell, Heart, MessageCircle, UserPlus, Gift, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/notifications")({
-  head: () => ({ meta: [{ title: "Notifications · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Notifications · Javan" }] }),
   component: NotificationsPage,
 });
 

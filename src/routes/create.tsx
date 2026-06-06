@@ -14,7 +14,7 @@ type Mode = "LIVE" | "POST" | "CREATE";
 type Step = 1 | 2 | 3;
 
 export const Route = createFileRoute("/create")({
-  head: () => ({ meta: [{ title: "Studio · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Studio · Javan" }] }),
   component: CreateStudio,
 });
 
@@ -74,7 +74,7 @@ function CreateStudio() {
         user_id: user.id, video_url: pub.publicUrl, caption: fullCaption, music: music || null, tags,
       });
       if (insErr) throw insErr;
-      toast.success("Posted to Boogle");
+      toast.success("Posted to Javan");
       navigate({ to: "/profile" });
     } catch (e: any) {
       toast.error(e.message ?? "Upload failed");

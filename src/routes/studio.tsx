@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/studio")({
-  head: () => ({ meta: [{ title: "Creator Studio · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Creator Studio · Javan" }] }),
   component: CreatorStudio,
 });
 

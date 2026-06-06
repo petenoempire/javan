@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/settings/security")({
-  head: () => ({ meta: [{ title: "Password & Security · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Password & Security · Javan" }] }),
   component: SecurityPage,
 });
 
@@ -81,7 +81,7 @@ function SecurityPage() {
           <ShieldAlert className="mt-0.5 h-5 w-5 text-destructive" />
           <div>
             <div className="text-sm font-semibold">Stay safe</div>
-            <div className="mt-1 text-[11px] text-muted-foreground">Use a unique password and never share your login codes. Boogle staff will never ask for your password.</div>
+            <div className="mt-1 text-[11px] text-muted-foreground">Use a unique password and never share your login codes. Javan staff will never ask for your password.</div>
           </div>
         </div>
       </div>

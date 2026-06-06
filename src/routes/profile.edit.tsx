@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile/edit")({
-  head: () => ({ meta: [{ title: "Edit profile · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Edit profile · Javan" }] }),
   component: EditProfile,
 });
 
@@ -23,7 +23,7 @@ function EditProfile() {
   const [copied, setCopied] = useState(false);
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [saving, setSaving] = useState(false);
-  const [order, setOrder] = useState<string[]>(["Boogle Studio", "Balance"]);
+  const [order, setOrder] = useState<string[]>(["Javan Studio", "Balance"]);
   const dragIdx = useRef<number | null>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
 
@@ -116,7 +116,7 @@ function EditProfile() {
   };
 
   const orderRoute = (label: string) =>
-    label === "Boogle Studio" ? "/studio" : "/wallet";
+    label === "Javan Studio" ? "/studio" : "/wallet";
 
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-muted/50 pb-16 dark:bg-background">

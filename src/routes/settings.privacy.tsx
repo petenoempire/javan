@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/privacy")({
-  head: () => ({ meta: [{ title: "Privacy · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Privacy · Javan" }] }),
   component: PrivacyPage,
 });
 

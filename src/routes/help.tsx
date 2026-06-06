@@ -3,19 +3,19 @@ import { useState } from "react";
 import { ArrowLeft, ShieldCheck, KeyRound, ChevronRight, MessageCircle, Search } from "lucide-react";
 
 export const Route = createFileRoute("/help")({
-  head: () => ({ meta: [{ title: "Help Center · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Help Center · Javan" }] }),
   component: HelpCenter,
 });
 
-const categories = ["Account", "Privacy and user safety", "Posts", "LIVE", "Using Boogle", "Monetization", "Other"];
+const categories = ["Account", "Privacy and user safety", "Posts", "LIVE", "Using Javan", "Monetization", "Other"];
 
 const faq: Record<string, string[]> = {
   Account: ["Account growth", "Is my account suspended?", "Account safety", "Profile view history", "Forgot my password"],
   "Privacy and user safety": ["Report a problem", "Your account status", "Report another issue", "Account safety", "Content violations and bans"],
-  Posts: ["Boogle post view history", "Audience controls", "Can't post videos", "Location information on Boogle", "App not responding"],
-  LIVE: ["How to go live", "How to start a Mobile Gaming LIVE?", "Boogle LIVE multi-guest", "How to set up LIVE Poll?", "What is Boogle LIVE?"],
-  "Using Boogle": ["Manage direct messages", "Direct messages", "Following and unfollowing", "Messaging with businesses", "Why am I seeing a '...too fast' error message?"],
-  Monetization: ["How much does Promote cost?", "Can I promote a video more than one time?", "How Boogle Shop recommends content", "How to use Promote to LIVE?", "What is Promote to LIVE?"],
+  Posts: ["Javan post view history", "Audience controls", "Can't post videos", "Location information on Javan", "App not responding"],
+  LIVE: ["How to go live", "How to start a Mobile Gaming LIVE?", "Javan LIVE multi-guest", "How to set up LIVE Poll?", "What is Javan LIVE?"],
+  "Using Javan": ["Manage direct messages", "Direct messages", "Following and unfollowing", "Messaging with businesses", "Why am I seeing a '...too fast' error message?"],
+  Monetization: ["How much does Promote cost?", "Can I promote a video more than one time?", "How Javan Shop recommends content", "How to use Promote to LIVE?", "What is Promote to LIVE?"],
   Other: [
     "Benefits of removing inauthentic followers and likes",
     "Why I received a notification about 'inauthentic accounts'",

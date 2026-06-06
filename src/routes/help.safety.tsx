@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Flag, HeartHandshake, Lock, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/help/safety")({
-  head: () => ({ meta: [{ title: "Safety Center · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Safety Center · Javan" }] }),
   component: SafetyCenter,
 });
 
@@ -24,7 +24,7 @@ function SafetyCenter() {
       <div className="px-4 pt-5">
         <section className="bg-gradient-gold rounded-3xl p-5 text-black shadow-elegant">
           <ShieldCheck className="h-8 w-8" />
-          <h2 className="mt-10 font-display text-3xl font-bold">Stay safe on Boogle</h2>
+          <h2 className="mt-10 font-display text-3xl font-bold">Stay safe on Javan</h2>
           <p className="mt-2 text-sm opacity-75">Policy overview, account protection, and reporting resources in one place.</p>
         </section>
 

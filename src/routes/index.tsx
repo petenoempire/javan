@@ -13,8 +13,8 @@ import { Sparkles, Plus, Tv, Search } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Boogle — For You" },
-      { name: "description", content: "Real creators. Real stories. Boogle is a community-first short-video network." },
+      { title: "Javan — For You" },
+      { name: "description", content: "Real creators. Real stories. Javan is a community-first short-video network." },
     ],
   }),
   component: FeedPage,
@@ -113,7 +113,7 @@ function FeedPage() {
                 video={v}
                 active={i === activeIdx}
                 onComment={() => setCommentsFor(v.id)}
-                onShare={() => navigator.share?.({ title: v.caption || "Boogle", url: location.href }).catch(() => {})}
+                onShare={() => navigator.share?.({ title: v.caption || "Javan", url: location.href }).catch(() => {})}
                 onReport={() => setReportFor({ type: "video", id: v.id })}
               />
             </div>
@@ -146,7 +146,7 @@ function EmptyFeed({ tab }: { tab: Tab }) {
     community: { title: "Community is just getting started", body: "Conversations, micro-vlogs and town-hall style posts will appear here." },
     stem: { title: "STEM channel is empty", body: "Science, tech, engineering and math creators welcome." },
     following: { title: "No posts from people you follow yet", body: "Follow creators you love and their videos will appear here." },
-    foryou: { title: "The feed starts with you", body: "Boogle is brand new. Be the first to share a video and start your community." },
+    foryou: { title: "The feed starts with you", body: "Javan is brand new. Be the first to share a video and start your community." },
   };
   const c = copy[tab];
   return (

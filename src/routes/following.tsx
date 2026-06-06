@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { ArrowLeft, Users } from "lucide-react";
 
 export const Route = createFileRoute("/following")({
-  head: () => ({ meta: [{ title: "Following · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Following · Javan" }] }),
   component: FollowingPage,
 });
 

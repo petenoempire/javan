@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Award, BarChart3, Crown, Gamepad2, Gift, Megaphone, Sparkles, TrendingUp, WalletCards } from "lucide-react";
 
 export const Route = createFileRoute("/studio/$section")({
-  head: () => ({ meta: [{ title: "Creator tools · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Creator tools · Javan" }] }),
   component: StudioSection,
 });
 

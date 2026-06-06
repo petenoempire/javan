@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/qr")({
-  head: () => ({ meta: [{ title: "Your QR · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Your QR · Javan" }] }),
   component: QrPage,
 });
 
@@ -34,7 +34,7 @@ function QrPage() {
 
           <div className="mt-5 grid grid-cols-2 gap-2">
             <button onClick={() => {
-              if (navigator.share) navigator.share({ url, title: `@${profile?.handle} on Boogle` }).catch(() => {});
+              if (navigator.share) navigator.share({ url, title: `@${profile?.handle} on Javan` }).catch(() => {});
               else { navigator.clipboard.writeText(url); toast.success("Profile link copied"); }
             }} className="flex items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-bold backdrop-blur">
               <Share2 className="h-4 w-4" /> Share

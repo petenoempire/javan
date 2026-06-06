@@ -3,7 +3,7 @@ import { ArrowLeft, UserCircle, Bell, Lock, Palette, HelpCircle, ChevronRight, L
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings/")({
-  head: () => ({ meta: [{ title: "Settings and Privacy · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Settings and Privacy · Javan" }] }),
   component: SettingsHome,
 });
 

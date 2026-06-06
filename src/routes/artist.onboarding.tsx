@@ -7,7 +7,7 @@ import { ArrowLeft, Mic2, Upload, Loader2, CheckCircle2, XCircle, Clock, Star } 
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/artist/onboarding")({
-  head: () => ({ meta: [{ title: "Artist Account · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Artist Account · Javan" }] }),
   component: ArtistOnboarding,
 });
 

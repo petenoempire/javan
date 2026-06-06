@@ -3,7 +3,7 @@ import { ArrowLeft, Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 
 export const Route = createFileRoute("/settings/appearance")({
-  head: () => ({ meta: [{ title: "Appearance · Boogle" }] }),
+  head: () => ({ meta: [{ title: "Appearance · Javan" }] }),
   component: AppearancePage,
 });
 
