@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -95,7 +95,7 @@ function CreateStudio() {
         <X className="h-5 w-5" />
       </button>
 
-      {step === 1 && <StepSelector mode={mode} setMode={setMode} onPickFile={pick} />}
+      {step === 1 && <StepSelector mode={mode} setMode={setMode} onPickFile={pick} onCaptured={onPick} />}
       {step === 2 && previewUrl && (
         <StepEditor
           previewUrl={previewUrl} isVideo={isVideo}
@@ -120,11 +120,11 @@ function CreateStudio() {
 
 // ─── STEP 1 ───────────────────────────────────────────────────────────────
 
-function StepSelector({ mode, setMode, onPickFile }: { mode: Mode; setMode: (m: Mode) => void; onPickFile: (v?: boolean) => void }) {
+function StepSelector({ mode, setMode, onPickFile, onCaptured }: { mode: Mode; setMode: (m: Mode) => void; onPickFile: (v?: boolean) => void; onCaptured: (f: File) => void }) {
   return (
     <div className="relative h-full overflow-hidden">
-      {mode === "LIVE" && <LivePanel />}
-      {mode === "POST" && <PostPanel onPickFile={() => onPickFile(true)} />}
+      {mode === "LIVE" && <LivePanel onCaptured={onCaptured} />}
+      {mode === "POST" && <PostPanel onPickFile={() => onPickFile(true)} onCaptured={onCaptured} />}
       {mode === "CREATE" && <CreatePanel onPickFile={() => onPickFile(true)} />}
 
       <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black via-black/80 to-transparent pb-6 pt-10">
