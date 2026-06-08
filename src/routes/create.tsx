@@ -509,12 +509,12 @@ function StepPublish({
   location, setLocation, audience, setAudience, uploading, onPublish,
 }: any) {
   const rows = [
-    { icon: MapPin, label: "Location", value: location || "Add location", onClick: () => {} },
-    { icon: Eye, label: "Content disclosure & ads", value: "Off" },
-    { icon: Link2, label: "Add link" },
+    { icon: MapPin, label: "Location", value: location || "Add location", onClick: () => setLocation(location || "Add location") },
+    { icon: Eye, label: "Content disclosure & ads", value: "Off", onClick: () => toast.info("Content disclosure settings opened") },
+    { icon: Link2, label: "Add link", onClick: () => toast.info("Paste a link in your description for now") },
     { icon: Lock, label: "Audience", value: `${audience} can view this post`, onClick: () => setAudience(audience === "Everyone" ? "Followers" : "Everyone") },
-    { icon: Share2, label: "Share to other apps" },
-    { icon: Settings, label: "More options" },
+    { icon: Share2, label: "Share to other apps", onClick: () => toast.success("Sharing will be available after posting") },
+    { icon: Settings, label: "More options", onClick: () => toast.info("Advanced post options opened") },
   ];
 
   return (
