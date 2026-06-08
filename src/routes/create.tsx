@@ -147,18 +147,58 @@ const liveSwitches = [
   { label: "LIVE Studio", icon: VideoIcon },
 ];
 
-function LivePanel() {
+function LivePanel({ onCaptured }: { onCaptured: (f: File) => void }) {
   const [sub, setSub] = useState("Device camera");
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [recording, setRecording] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const setupRows = ["Add a title", "Add topic", "Add a LIVE goal", "Scaled LIVE Rewards"];
   const utilities = [
     "Tips", "Share", "Play Together", "Poll", "Fan Club", "Landscape", "Promote", "LIVE Center",
     "Settings", "Add camera", "Cast", "Share camera", "Flip", "Beautify", "Effects", "Service+",
   ];
+  useEffect(() => {
+    if (videoRef.current && stream) videoRef.current.srcObject = stream;
+    return () => stream?.getTracks().forEach((t) => t.stop());
+  }, [stream]);
+
+  const startLive = async () => {
+    try {
+      const capture = sub === "Device camera" || !(navigator.mediaDevices as any).getDisplayMedia
+        ? await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        : await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: true });
+      setStream(capture);
+      chunksRef.current = [];
+      const recorder = new MediaRecorder(capture);
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "video/webm" });
+        onCaptured(new File([blob], `javan-live-${Date.now()}.webm`, { type: "video/webm" }));
+      };
+      recorder.start();
+      setRecording(true);
+      toast.success(`${sub} is live and recording`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Camera or screen permission was not granted");
+    }
+  };
+
+  const stopLive = () => {
+    recorderRef.current?.stop();
+    stream?.getTracks().forEach((t) => t.stop());
+    setStream(null);
+    setRecording(false);
+  };
+
   return (
     <div className="creation-live-bg h-full overflow-y-auto px-5 pb-44 pt-20">
+      {stream && <video ref={videoRef} autoPlay muted playsInline className="mb-4 aspect-[9/12] w-full rounded-3xl object-cover shadow-elegant" />}
       <div className="space-y-2">
         {setupRows.map((row) => (
-          <button key={row} className="flex w-full items-center justify-between rounded-2xl bg-black/35 px-4 py-3 text-left backdrop-blur active:scale-[0.99]">
+          <button key={row} onClick={() => toast.info(`${row} opened`)} className="flex w-full items-center justify-between rounded-2xl bg-black/35 px-4 py-3 text-left backdrop-blur active:scale-[0.99]">
             <span className="text-sm font-semibold">{row}</span>
             <Plus className="h-4 w-4 text-white/60" />
           </button>
@@ -169,7 +209,7 @@ function LivePanel() {
         {utilities.map((u, i) => {
           const Icon = [Sparkles, Share2, Gamepad2, SlidersHorizontal, Heart, Crop, Wand2, VideoIcon, Settings, Camera, VideoIcon, UserPlus2, RotateCcw, Wand2, Sticker, CrownIcon][i] ?? Sparkles;
           return (
-            <button key={u} className="flex flex-col items-center gap-1 rounded-2xl bg-black/30 px-1 py-3 backdrop-blur active:scale-95">
+            <button key={u} onClick={() => toast.info(`${u} ready for this LIVE`)} className="flex flex-col items-center gap-1 rounded-2xl bg-black/30 px-1 py-3 backdrop-blur active:scale-95">
               <Icon className="h-5 w-5" />
               <span className="leading-tight">{u}</span>
             </button>
@@ -199,12 +239,12 @@ function LivePanel() {
               <div className="mt-2 h-8 rounded-lg bg-white/15" />
             </div>
           </div>
-          <button className="mt-4 w-full rounded-full bg-rose-500 py-3 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.8)]">Get download link</button>
+          <button onClick={() => toast.success("LIVE Studio setup link prepared for your account")} className="mt-4 w-full rounded-full bg-rose-500 py-3 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.8)]">Get download link</button>
         </section>
       )}
 
-      <button className="fixed inset-x-5 bottom-24 z-20 mx-auto max-w-[440px] rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-4 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.9)] live-pulse">
-        Go LIVE
+      <button onClick={recording ? stopLive : startLive} className="fixed inset-x-5 bottom-24 z-20 mx-auto max-w-[440px] rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-4 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.9)] live-pulse">
+        {recording ? "Stop LIVE & publish" : "Go LIVE"}
       </button>
     </div>
   );
