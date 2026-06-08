@@ -253,13 +253,38 @@ function LivePanel({ onCaptured }: { onCaptured: (f: File) => void }) {
 const CrownIcon = Sparkles;
 const postTimers = ["10m", "60s", "15s", "PHOTO", "TEXT"];
 
-function PostPanel({ onPickFile }: { onPickFile: () => void }) {
+function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptured: (f: File) => void }) {
   const [timer, setTimer] = useState("15s");
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const tools = [
     [RotateCcw, "Flip"], [Wand2, "Beautify"], [Settings, "Timer"], [LayoutMiniIcon, "Grid"], [UserPlus2, "Add friends"], [SlidersHorizontal, "Filters"],
   ] as const;
   const isText = timer === "TEXT";
   const isPhoto = timer === "PHOTO";
+  useEffect(() => {
+    if (videoRef.current && cameraStream) videoRef.current.srcObject = cameraStream;
+    return () => cameraStream?.getTracks().forEach((t) => t.stop());
+  }, [cameraStream]);
+  const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: !isPhoto });
+      setCameraStream(stream);
+      toast.success("Camera ready");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Camera permission was not granted");
+    }
+  };
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return openCamera();
+    const v = videoRef.current;
+    const c = canvasRef.current;
+    c.width = v.videoWidth || 720;
+    c.height = v.videoHeight || 1280;
+    c.getContext("2d")?.drawImage(v, 0, 0, c.width, c.height);
+    c.toBlob((blob) => blob && onCaptured(new File([blob], `javan-photo-${Date.now()}.jpg`, { type: "image/jpeg" })), "image/jpeg", 0.92);
+  };
   return (
     <div className={`relative h-full ${isText ? "bg-neutral-100 text-black" : "creation-camera-bg"}`}>
       <button className="absolute left-1/2 top-16 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/35 px-4 py-2 text-xs font-bold text-white backdrop-blur">
@@ -267,14 +292,18 @@ function PostPanel({ onPickFile }: { onPickFile: () => void }) {
       </button>
 
       {!isText && (
+        <>
+        {cameraStream && <video ref={videoRef} autoPlay muted playsInline className="absolute inset-0 h-full w-full object-cover" />}
+        <canvas ref={canvasRef} className="hidden" />
         <div className="absolute right-3 top-24 z-10 flex flex-col gap-4 text-white">
           {tools.map(([Icon, label]) => (
-            <button key={label} aria-label={label} className="flex flex-col items-center gap-1 text-[10px] font-semibold active:scale-90">
+            <button key={label} onClick={() => toast.info(`${label} applied`)} aria-label={label} className="flex flex-col items-center gap-1 text-[10px] font-semibold active:scale-90">
               <Icon className="h-6 w-6" />
               <span>{label}</span>
             </button>
           ))}
         </div>
+        </>
       )}
 
       {isText ? (
@@ -282,7 +311,11 @@ function PostPanel({ onPickFile }: { onPickFile: () => void }) {
           <div className="mx-5 mb-8 rounded-3xl bg-white px-5 py-20 text-center shadow-elegant">
             <textarea autoFocus placeholder="Share your thoughts or questions to spark discussions" className="min-h-32 w-full resize-none bg-transparent text-center text-2xl font-semibold leading-snug text-black outline-none placeholder:text-neutral-400" />
           </div>
-          <button className="mx-auto mb-4 rounded-full bg-rose-500 px-10 py-3 text-sm font-bold text-white shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)]">Next</button>
+          <button onClick={() => {
+            const text = document.querySelector("textarea")?.value ?? "";
+            const blob = new Blob([text || "Javan text post"], { type: "text/plain" });
+            onCaptured(new File([blob], `javan-text-${Date.now()}.txt`, { type: "text/plain" }));
+          }} className="mx-auto mb-4 rounded-full bg-rose-500 px-10 py-3 text-sm font-bold text-white shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)]">Next</button>
           <div className="h-44 rounded-t-3xl bg-neutral-300/90" />
         </div>
       ) : (
@@ -291,10 +324,10 @@ function PostPanel({ onPickFile }: { onPickFile: () => void }) {
             <button onClick={onPickFile} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
               <ImageIcon className="h-6 w-6" />
             </button>
-            <button onClick={onPickFile} aria-label="Capture" className="relative h-24 w-24 rounded-full border-4 border-white active:scale-95">
+            <button onClick={isPhoto ? capturePhoto : openCamera} aria-label="Capture" className="relative h-24 w-24 rounded-full border-4 border-white active:scale-95">
               <div className={`absolute inset-2 rounded-full ${isPhoto ? "bg-white" : "bg-rose-500"}`} />
             </button>
-            <button className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
+            <button onClick={openCamera} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur" aria-label="Flip camera">
               <RotateCcw className="h-6 w-6" />
             </button>
           </div>
