@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { MusicHub } from "@/components/MusicHub";
@@ -257,7 +257,7 @@ function Grid({ items }: { items: any[] }) {
 
 function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const fileInput = useRef<HTMLInputElement>(null);
-  const [tab, setTab] = useState("All");
+  const [storyTab, setStoryTab] = useState("All");
   const [multi, setMulti] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const chips = [
@@ -297,10 +297,10 @@ function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }
       </div>
 
       <div className="mt-4 grid grid-cols-4 border-b border-white/10 px-5 text-center text-base font-bold text-white/50">
-        {tabs.map((tab, index) => (
-          <button key={tab} onClick={() => setTab(tab)} className={`relative pb-3 ${tab === tab ? "text-white" : ""}`}>
-            {tab}
-            {tab === tab && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-white" />}
+        {tabs.map((t) => (
+          <button key={t} onClick={() => setStoryTab(t)} className={`relative pb-3 ${storyTab === t ? "text-white" : ""}`}>
+            {t}
+            {storyTab === t && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-white" />}
           </button>
         ))}
       </div>
