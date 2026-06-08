@@ -5,6 +5,7 @@ import {
   Megaphone, Music2, Plus, Settings, Sparkles, Sticker, TrendingUp,
   X, FileText, Sliders, Home, BookmarkPlus, Wand2, Link as LinkIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/$section")({
   head: () => ({ meta: [{ title: "Monetization · Javan" }] }),
@@ -21,19 +22,6 @@ function StudioSection() {
 /* =========================================================
    MONETIZATION HUB (Service+ / Monetization)
    ========================================================= */
-
-const TRENDING = [
-  { name: "WHITEMONEY 💵😎(WMG🏦)🏳️🇳🇬", followers: "580K followers", initials: "WM", hue: "from-amber-500 to-orange-700" },
-  { name: "OSE 🎙️ ™️💜", followers: "1M followers", initials: "OS", hue: "from-purple-600 to-indigo-700" },
-  { name: "KikiALilBaddie🧚🏽‍♀️🤏🏽🦠", followers: "92.5K followers", initials: "KI", hue: "from-sky-500 to-blue-700" },
-  { name: "TJ", followers: "33K followers", initials: "TJ", hue: "from-rose-500 to-pink-700" },
-  { name: "SPARKOO_DEHLIAN", followers: "639.1K followers", initials: "SD", hue: "from-emerald-500 to-teal-700" },
-  { name: "✨MIRACLE ™️🦁", followers: "201.2K followers", initials: "MI", hue: "from-yellow-500 to-amber-700" },
-  { name: "P£ŁŁ£R🦂", followers: "15.6M followers", initials: "PE", hue: "from-zinc-700 to-zinc-900" },
-  { name: "Blackchully scorpion", followers: "12.3M followers", initials: "BC", hue: "from-stone-600 to-stone-800" },
-  { name: "Tee💘", followers: "153.5K followers", initials: "TE", hue: "from-teal-500 to-cyan-700" },
-  { name: "eniola afeez", followers: "618.6K followers", initials: "EA", hue: "from-fuchsia-500 to-pink-700" },
-];
 
 const RESOURCES = [
   { title: "Monetizing your content on Javan", body: "Javan has multiple programs designed to reward what you create — and the right fit depends on your style.", views: "10.3M views", hue: "from-yellow-400 to-orange-500" },
@@ -53,19 +41,19 @@ function MonetizationHub() {
         <div className="flex items-center justify-between">
           <Link to="/studio" className="-ml-1 p-2" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
           <div className="flex items-center gap-2">
-            <button className="p-2" aria-label="Report"><Flag className="h-5 w-5" /></button>
+            <button onClick={() => toast.success("Monetization report tools opened")} className="p-2" aria-label="Report"><Flag className="h-5 w-5" /></button>
             <Link to="/settings" className="p-2" aria-label="Settings"><Settings className="h-5 w-5" /></Link>
           </div>
         </div>
         <div className="mt-1 text-sm font-semibold text-white/60">Monetization</div>
-        <button className="mt-2 flex items-end gap-1 active:scale-95">
+        <Link to="/studio/$section" params={{ section: "payouts" }} className="mt-2 flex items-end gap-1 active:scale-95">
           <span className="text-2xl font-bold">$</span>
           <span className="font-display text-5xl font-bold leading-none">0.00</span>
           <ChevronRight className="mb-2 h-5 w-5 text-white/70" />
-        </button>
+        </Link>
         <div className="mt-1 text-xs text-white/70">Estimated rewards in the last 7 days ⓘ</div>
 
-        <Link to="/wallet" className="mt-4 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-3 backdrop-blur">
+        <Link to="/studio/$section" params={{ section: "payouts" }} className="mt-4 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-3 backdrop-blur">
           <span className="text-sm font-semibold">Balance: $0.03</span>
           <span className="flex items-center gap-1 text-sm text-white/80">View <ChevronRight className="h-4 w-4" /></span>
         </Link>
@@ -109,7 +97,7 @@ function MonetizationHub() {
       <section className="bg-background px-4 py-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-bold">Programs for you ⓘ</h2>
-          <button className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
+          <Link to="/studio/$section" params={{ section: "benefits" }} className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></Link>
         </div>
 
         <div className="mt-4 flex items-start gap-3">
@@ -121,7 +109,7 @@ function MonetizationHub() {
             </div>
             <div className="mt-1 text-sm text-muted-foreground">Build connections with potential clients when you're LIVE.</div>
           </div>
-          <button className="bg-gradient-live shrink-0 rounded-full px-5 py-2 text-sm font-bold text-primary-foreground shadow-glow">Join</button>
+          <button onClick={() => toast.success("Service+ request submitted for eligibility review")} className="bg-gradient-live shrink-0 rounded-full px-5 py-2 text-sm font-bold text-primary-foreground shadow-glow">Join</button>
         </div>
 
         <div className="my-4 border-t border-border/40" />
@@ -138,7 +126,7 @@ function MonetizationHub() {
           <ChevronRight className="mt-2 h-4 w-4 text-muted-foreground" />
         </Link>
 
-        <button className="mt-5 w-full rounded-full bg-muted/70 py-3 text-sm font-bold">Get notified when I'm eligible</button>
+        <button onClick={() => toast.success("Eligibility notifications enabled")} className="mt-5 w-full rounded-full bg-muted/70 py-3 text-sm font-bold">Get notified when I'm eligible</button>
       </section>
 
       <div className="h-2 bg-muted/40" />
@@ -155,18 +143,9 @@ function MonetizationHub() {
           ))}
         </div>
 
-        <ol className="mt-4 space-y-4">
-          {TRENDING.map((c, i) => (
-            <li key={c.name} className="flex items-center gap-3">
-              <span className={`w-6 shrink-0 font-display text-lg font-bold ${i < 3 ? "text-rose-500" : "text-muted-foreground"}`}>{i + 1}</span>
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-sm font-bold text-white ${c.hue}`}>{c.initials}</div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-bold">{c.name}</div>
-                <div className="truncate text-xs text-muted-foreground">{c.followers} <span className="mx-1">|</span> LIVE rewards <span className="mx-1">|</span> Top performer</div>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <div className="mt-4 rounded-2xl bg-muted/60 p-5 text-sm text-muted-foreground">
+          Rankings will appear here after real creators join programs and generate eligible activity.
+        </div>
       </section>
 
       <div className="h-2 bg-muted/40" />
@@ -175,7 +154,7 @@ function MonetizationHub() {
       <section className="bg-background px-4 py-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-bold">Learning resources</h2>
-          <button className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
+          <button onClick={() => toast.info("All learning resources are filtered below")} className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
         </div>
         <div className="no-scrollbar mt-3 -mx-4 flex gap-2 overflow-x-auto px-4">
           {resTabs.map((t, i) => (
@@ -243,7 +222,7 @@ function SubscriptionHub() {
           <div className="min-w-0 flex-1">
             <div className="font-display text-base font-bold leading-tight">Get paid regularly with Subscription</div>
             <div className="mt-1 text-sm text-muted-foreground">Turn subscriber support into predictable monthly rewards.</div>
-            <button className="mt-1 text-sm font-bold">Learn how</button>
+            <button onClick={() => setPolicyOpen(true)} className="mt-1 text-sm font-bold">Learn how</button>
           </div>
           <button onClick={() => setBannerOpen(false)} aria-label="Dismiss" className="p-1 text-muted-foreground"><X className="h-4 w-4" /></button>
         </div>
@@ -270,7 +249,7 @@ function SubscriptionHub() {
             <div key={c.title} className="border-border min-w-[78%] shrink-0 rounded-2xl border bg-background p-4">
               <div className="font-bold">{c.title}</div>
               <div className="mt-1 text-sm text-muted-foreground">{c.body}</div>
-              <div className="mt-6 text-right text-sm font-bold">{c.cta}</div>
+              <button onClick={() => toast.success(`${c.title} setup opened`)} className="mt-6 w-full text-right text-sm font-bold">{c.cta}</button>
             </div>
           ))}
         </div>
@@ -287,7 +266,7 @@ function SubscriptionHub() {
             <div className="mt-3 text-center font-display text-lg font-bold">NGN4950.00</div>
             <div className="text-center text-sm text-muted-foreground">per month</div>
           </div>
-          <button className="border-border flex flex-col items-center justify-center gap-2 rounded-2xl border bg-background p-5">
+          <button onClick={() => toast.success("New subscription plan editor opened")} className="border-border flex flex-col items-center justify-center gap-2 rounded-2xl border bg-background p-5">
             <Plus className="h-6 w-6" />
             <span className="text-sm">Add plan</span>
           </button>
@@ -316,7 +295,7 @@ function SubscriptionHub() {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="ml-12 mt-3 flex">
-          <button className="border-border flex h-32 w-24 flex-col items-center justify-center rounded-xl border">
+          <button onClick={() => toast.success("Sub-only post composer opened")} className="border-border flex h-32 w-24 flex-col items-center justify-center rounded-xl border">
             <Plus className="h-6 w-6" />
             <span className="mt-1 text-xs">Add</span>
           </button>
@@ -331,14 +310,14 @@ function SubscriptionHub() {
             { icon: FileText, label: "Subscriber notes" },
             { icon: Sliders, label: "Customizable perks" },
           ].map((r) => (
-            <div key={r.label} className="flex items-center gap-3">
+            <button key={r.label} onClick={() => toast.success(`${r.label} settings opened`)} className="flex w-full items-center gap-3 text-left">
               <div className="bg-muted relative flex h-10 w-10 items-center justify-center rounded-full">
                 <r.icon className="h-5 w-5" />
                 {r.dot && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-rose-500" />}
               </div>
               <div className="flex-1 font-bold">{r.label}</div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
+            </button>
           ))}
         </div>
       </section>
@@ -349,7 +328,7 @@ function SubscriptionHub() {
       <section className="bg-background px-4 py-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold">Subscription Playbook</h2>
-          <button className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
+          <button onClick={() => toast.info("Showing the full playbook section")} className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
         </div>
         <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
           {(["Highlights", "Trending creators", "Best practices"] as const).map((t) => (
@@ -384,11 +363,11 @@ function SubscriptionHub() {
       <section className="bg-background px-4 py-5">
         <h2 className="font-display text-xl font-bold">Widen your reach</h2>
         <div className="mt-4 flex gap-6">
-          <button className="flex flex-col items-center gap-2">
+          <button onClick={() => toast.success("Subscription spotlight setup opened")} className="flex flex-col items-center gap-2">
             <div className="bg-muted flex h-14 w-14 items-center justify-center rounded-full"><Wand2 className="h-5 w-5" /></div>
             <span className="text-xs font-semibold">Subscription spotlight</span>
           </button>
-          <button className="flex flex-col items-center gap-2">
+          <button onClick={() => navigator.clipboard?.writeText(`${location.origin}/profile`).then(() => toast.success("Subscription link copied"))} className="flex flex-col items-center gap-2">
             <div className="bg-muted flex h-14 w-14 items-center justify-center rounded-full"><LinkIcon className="h-5 w-5" /></div>
             <span className="text-xs font-semibold">Subscription link</span>
           </button>
@@ -399,8 +378,8 @@ function SubscriptionHub() {
       <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] border-t border-border/40 bg-background/95 px-4 py-3 backdrop-blur">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1 text-sm text-muted-foreground">Set up your payment method to receive your monthly payouts.</div>
-          <Link to="/wallet" className="bg-gradient-live rounded-full px-4 py-1.5 text-sm font-bold text-primary-foreground">Set up</Link>
-          <button aria-label="Dismiss" className="text-muted-foreground"><X className="h-4 w-4" /></button>
+          <Link to="/studio/$section" params={{ section: "payouts" }} className="bg-gradient-live rounded-full px-4 py-1.5 text-sm font-bold text-primary-foreground">Set up</Link>
+          <button onClick={() => toast.info("Payment reminder dismissed")} aria-label="Dismiss" className="text-muted-foreground"><X className="h-4 w-4" /></button>
         </div>
       </div>
 
@@ -424,7 +403,7 @@ function PolicyModal({ onClose }: { onClose: () => void }) {
             <li>• Community Guidelines violations</li>
             <li>• Security violations</li>
           </ul>
-          <button className="mt-3 text-sm font-bold text-sky-500">Learn more</button>
+          <button onClick={() => toast.info("Subscription policy details shown above")} className="mt-3 text-sm font-bold text-sky-500">Learn more</button>
         </div>
         <button onClick={onClose} className="bg-gradient-live mt-5 w-full rounded-full py-3.5 text-sm font-bold text-primary-foreground shadow-glow">Got it</button>
       </div>
@@ -467,7 +446,7 @@ function GenericSection({ section }: { section: string }) {
 
         <section className="glass divide-y divide-border/40 overflow-hidden rounded-3xl">
           {cfg.rows.map((row) => (
-            <button key={row} className="flex w-full items-center justify-between px-4 py-4 text-left active:bg-primary/5">
+            <button key={row} onClick={() => toast.success(`${row} opened`)} className="flex w-full items-center justify-between px-4 py-4 text-left active:bg-primary/5">
               <span className="text-sm font-semibold">{row}</span>
               <span className="text-xs font-bold text-primary">Open</span>
             </button>

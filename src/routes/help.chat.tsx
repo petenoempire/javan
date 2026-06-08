@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ListOrdered, Plus, Send, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ListOrdered, Plus, Send, Loader2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -10,142 +10,169 @@ export const Route = createFileRoute("/help/chat")({
   component: SupportChat,
 });
 
-const issueTypes = ["Account", "Interaction", "LIVE", "Traffic", "Post", "Monetization", "Feed", "Other"];
+const issueTypes = ["Account", "Posts", "LIVE", "Profile", "Music", "Monetization", "Safety", "Other"];
+const quickFixes: Record<string, string[]> = {
+  Account: ["I can't log in", "Verification status", "Change username", "Connect live support"],
+  Posts: ["Post upload failed", "Video processing", "Sound problem", "Connect live support"],
+  LIVE: ["Camera or microphone", "Mobile gaming LIVE", "LIVE Studio", "Connect live support"],
+  Profile: ["Edit profile", "Profile viewers", "Story upload", "Connect live support"],
+  Music: ["Artist account", "Release distribution", "Sound library", "Connect live support"],
+  Monetization: ["Rewards", "Subscriptions", "Payouts", "Connect live support"],
+  Safety: ["Report abuse", "Account security", "Content policy", "Connect live support"],
+  Other: ["Ask a question", "Report a bug", "Connect live support"],
+};
 
 type Msg = { id: string; body: string; is_agent: boolean; created_at: string };
-
-const AGENT_TRIGGERS = /\b(agent|human|representative|live\s*support|talk to (a|someone)|real person)\b/i;
+const AGENT_TRIGGERS = /\b(agent|human|representative|live\s*support|ticket|talk to (a|someone)|real person)\b/i;
 
 function SupportChat() {
   const { user } = useAuth();
   const [category, setCategory] = useState<string | null>(null);
   const [ticketId, setTicketId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [messages, setMessages] = useState<Msg[]>([
+    bot("Welcome to Javan Support. Pick a topic and I’ll guide you with quick choices. If I can’t resolve it, I’ll create a support ticket for the team."),
+  ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [escalated, setEscalated] = useState(false);
+  const [showTicketForm, setShowTicketForm] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [details, setDetails] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, escalated]);
+  }, [messages, escalated, showTicketForm]);
 
-  const startTicket = async (cat: string) => {
-    if (!user) { toast.error("Sign in to start a chat"); return null; }
+  const chooseCategory = (cat: string) => {
+    setCategory(cat);
+    setMessages((m) => [...m, human(cat), bot(`I can help with ${cat}. Choose the closest option below, or ask to connect to live support.`)]);
+  };
+
+  const chooseQuick = (choice: string) => {
+    setMessages((m) => [...m, human(choice)]);
+    if (/connect live support/i.test(choice)) {
+      setSubject(`${category ?? "Support"} request`);
+      setShowTicketForm(true);
+      setMessages((m) => [...m, bot("No problem — fill out the ticket details below and I’ll place it in the support queue.")]);
+      return;
+    }
+    setMessages((m) => [...m, bot(resolveChoice(choice))]);
+  };
+
+  const submitTicket = async () => {
+    if (!user) { toast.error("Sign in to create a support ticket"); return; }
+    if (!subject.trim() || !details.trim()) { toast.error("Add a subject and describe the issue"); return; }
+    setSending(true);
     const { data, error } = await supabase
       .from("support_tickets")
-      .insert({ user_id: user.id, category: cat, subject: `${cat} support request` })
+      .insert({ user_id: user.id, category: category ?? "Other", subject: subject.trim(), status: "queued" })
       .select("id")
       .single();
-    if (error) { toast.error(error.message); return null; }
-    setTicketId(data.id);
-    setCategory(cat);
-    setMessages([
-      { id: "sys", body: `Thanks for reaching out about ${cat}. A Javan Support team member will follow up here. You can keep typing in the meantime.`, is_agent: true, created_at: new Date().toISOString() },
-    ]);
-    return data.id;
+    if (!error && data) {
+      await supabase.from("support_messages").insert({ ticket_id: data.id, sender_id: user.id, body: details.trim(), is_agent: false });
+      setTicketId(data.id);
+      setEscalated(true);
+      setShowTicketForm(false);
+      setMessages((m) => [...m, human(details.trim()), bot(`Your ticket is created. Ticket ID: ${data.id}. A support teammate will review it and reply here.`)]);
+      setSubject("");
+      setDetails("");
+    }
+    setSending(false);
+    if (error) toast.error(error.message);
   };
 
   const send = async () => {
-    if (!input.trim() || !user) return;
-    let tid = ticketId;
-    if (!tid) {
-      tid = await startTicket(category ?? "Other");
-      if (!tid) return;
-    }
+    if (!input.trim()) return;
     const body = input.trim();
     setInput("");
-    setSending(true);
-    const { data, error } = await supabase
-      .from("support_messages")
-      .insert({ ticket_id: tid, sender_id: user.id, body, is_agent: false })
-      .select("id, body, is_agent, created_at")
-      .single();
-    setSending(false);
-    if (error) { toast.error(error.message); return; }
-    setMessages((m) => [...m, data as Msg]);
-
-    if (AGENT_TRIGGERS.test(body) && !escalated) {
-      setEscalated(true);
-      await supabase.from("support_tickets").update({ status: "active" }).eq("id", tid).select();
+    setMessages((m) => [...m, human(body)]);
+    if (AGENT_TRIGGERS.test(body)) {
+      setSubject(`${category ?? "Support"} request`);
+      setShowTicketForm(true);
+      setMessages((m) => [...m, bot("I’ll connect you to the team. Please complete the ticket form so they have the context they need.")]);
+      return;
     }
+    setMessages((m) => [...m, bot("I found a likely fix: refresh the app, confirm you’re signed in, then retry the exact action. If it still fails, tap ‘Connect live support’ and I’ll create a ticket.")]);
   };
 
   return (
     <div className="mx-auto flex min-h-[100dvh] max-w-[480px] flex-col bg-background">
       <header className="glass-strong sticky top-0 z-20 flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link to="/help" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+          <Link to="/help" className="p-1" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
           <div>
-            <h1 className="font-display text-base font-bold">Javan Support</h1>
-            <div className="text-[10px] text-muted-foreground">Typically replies in a few minutes</div>
+            <h1 className="font-display text-base font-bold">Javan Support Bot</h1>
+            <div className="text-[10px] text-muted-foreground">Automated help first, live team when needed</div>
           </div>
         </div>
-        <button className="p-1" aria-label="Chat history"><ListOrdered className="h-5 w-5" /></button>
+        <button onClick={() => toast.info(ticketId ? `Current ticket: ${ticketId}` : "No support ticket yet")} className="p-1" aria-label="Chat history"><ListOrdered className="h-5 w-5" /></button>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 pb-40">
-        {!category && (
-          <div className="space-y-4">
-            <div className="rounded-2xl bg-card p-4 text-sm">
-              <div className="font-display font-bold">We're here to help!</div>
-              <div className="text-muted-foreground">Select an issue type to get started.</div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 pb-44">
+        <div className="space-y-3">
+          {messages.map((m) => <Bubble key={m.id} msg={m} />)}
+
+          {!category && (
+            <div className="grid grid-cols-2 gap-2 pt-2">
               {issueTypes.map((t) => (
-                <button
-                  key={t} onClick={() => startTicket(t)}
-                  className="glass rounded-2xl px-4 py-3 text-sm font-semibold active:scale-95 transition"
-                >
-                  {t}
+                <button key={t} onClick={() => chooseCategory(t)} className="glass rounded-2xl px-4 py-3 text-sm font-semibold transition active:scale-95">{t}</button>
+              ))}
+            </div>
+          )}
+
+          {category && !showTicketForm && !ticketId && (
+            <div className="space-y-2 pt-2">
+              {(quickFixes[category] ?? quickFixes.Other).map((choice) => (
+                <button key={choice} onClick={() => chooseQuick(choice)} className="flex w-full items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-left text-sm font-semibold active:scale-[0.99]">
+                  <span>{choice}</span><CheckCircle2 className="h-4 w-4 text-primary" />
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {category && (
-          <div className="space-y-3">
-            {messages.map((m) => (
-              <div key={m.id} className={`flex ${m.is_agent ? "justify-start" : "justify-end"}`}>
-                <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${m.is_agent ? "glass" : "bg-gradient-primary text-primary-foreground shadow-glow"}`}>
-                  {m.body}
-                </div>
-              </div>
-            ))}
+          {showTicketForm && (
+            <div className="rounded-3xl border border-rose-500/30 bg-card p-4">
+              <div className="font-display text-sm font-bold">Create support ticket</div>
+              <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Short subject" className="mt-3 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none" />
+              <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={4} placeholder="Explain what happened and what you expected" className="mt-3 w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none" />
+              <button onClick={submitTicket} disabled={sending} className="bg-gradient-primary mt-3 flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-bold text-primary-foreground shadow-glow disabled:opacity-50">
+                {sending && <Loader2 className="h-4 w-4 animate-spin" />} Submit ticket
+              </button>
+            </div>
+          )}
 
-            {escalated && (
-              <div className="my-4 rounded-3xl border border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-fuchsia-500/10 p-4">
-                <div className="flex items-center gap-2 text-rose-400">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">You're in the queue</span>
-                </div>
-                <div className="mt-2 font-display text-sm font-bold text-foreground">An agent will be with you shortly</div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Your ticket has been escalated to a Javan Support team member. Estimated wait: <span className="font-semibold text-foreground">a few minutes</span>. You'll see their reply right in this chat.
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+          {escalated && ticketId && (
+            <div className="my-4 rounded-3xl border border-rose-500/30 bg-gradient-to-br from-rose-500/10 to-fuchsia-500/10 p-4">
+              <div className="flex items-center gap-2 text-rose-400"><Clock className="h-4 w-4" /><span className="text-xs font-bold uppercase tracking-wider">Ticket queued</span></div>
+              <div className="mt-2 font-display text-sm font-bold text-foreground">Ticket ID: {ticketId}</div>
+              <div className="mt-1 text-xs text-muted-foreground">You’re awaiting team feedback. Keep this ID for follow-up.</div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-10 mx-auto max-w-[480px] border-t border-border bg-background/95 px-3 py-3 backdrop-blur">
         <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1.5">
-          <button className="flex h-9 w-9 items-center justify-center rounded-full bg-muted" aria-label="Attach">
-            <Plus className="h-4 w-4" />
-          </button>
-          <input
-            value={input} onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder="Send a message..."
-            className="flex-1 bg-transparent px-2 text-sm outline-none"
-          />
-          <button onClick={send} disabled={sending || !input.trim()} className="bg-gradient-primary flex h-9 w-9 items-center justify-center rounded-full text-primary-foreground disabled:opacity-40">
-            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          </button>
+          <button onClick={() => toast.info("Attachments can be described in the ticket details for now")} className="flex h-9 w-9 items-center justify-center rounded-full bg-muted" aria-label="Attach"><Plus className="h-4 w-4" /></button>
+          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Ask or type ‘live support’..." className="flex-1 bg-transparent px-2 text-sm outline-none" />
+          <button onClick={send} disabled={!input.trim()} className="bg-gradient-primary flex h-9 w-9 items-center justify-center rounded-full text-primary-foreground disabled:opacity-40"><Send className="h-4 w-4" /></button>
         </div>
       </div>
     </div>
   );
+}
+
+function bot(body: string): Msg { return { id: crypto.randomUUID(), body, is_agent: true, created_at: new Date().toISOString() }; }
+function human(body: string): Msg { return { id: crypto.randomUUID(), body, is_agent: false, created_at: new Date().toISOString() }; }
+function Bubble({ msg }: { msg: Msg }) {
+  return <div className={`flex ${msg.is_agent ? "justify-start" : "justify-end"}`}><div className={`max-w-[84%] rounded-2xl px-4 py-2.5 text-sm ${msg.is_agent ? "glass" : "bg-gradient-primary text-primary-foreground shadow-glow"}`}>{msg.body}</div></div>;
+}
+function resolveChoice(choice: string) {
+  if (/camera|microphone/i.test(choice)) return "Open Create, choose LIVE, then Device camera. Your browser will request camera and microphone permission. Allow both, then tap Go LIVE.";
+  if (/mobile gaming/i.test(choice)) return "Open Create → LIVE → Mobile gaming. Start screen sharing from your phone controls, then return to Javan and tap Go LIVE.";
+  if (/studio/i.test(choice)) return "Open Create → LIVE → LIVE Studio. Use the download link option for desktop streaming setup, or continue from your phone for quick LIVE.";
+  if (/verification/i.test(choice)) return "Go to Settings → Account → Verification. Submit legal identity, public role, official links, press proof, and document upload for review.";
+  if (/distribution|sound library/i.test(choice)) return "Artists can upload tracks in Music Studio. Distribution partner onboarding is handled from Artist Account and release submissions.";
+  return "Try the guided step once. If the issue continues, choose ‘Connect live support’ and I’ll create a support ticket for the team.";
 }

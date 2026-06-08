@@ -185,21 +185,11 @@ function LiveView() {
       </Card>
 
       <SectionTitle>Suggested LIVE creators</SectionTitle>
-      <div className="no-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="glass min-w-[140px] overflow-hidden rounded-2xl">
-            <div className="bg-gradient-primary relative aspect-[3/4]">
-              <span className="absolute left-2 top-2 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white">LIVE</span>
-              <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-bold text-white"><Eye className="h-3 w-3" /> 1.2k</span>
-            </div>
-            <div className="flex items-center gap-2 p-2">
-              <div className="bg-muted h-7 w-7 rounded-full" />
-              <div className="min-w-0 text-[11px] font-bold">@creator{i + 1}</div>
-              <BadgeCheck className="h-3 w-3 fill-accent text-background" />
-            </div>
-          </div>
-        ))}
-      </div>
+      <Card>
+        <div className="p-5 text-center text-sm text-muted-foreground">
+          Real LIVE creators will appear here once registered users start streaming.
+        </div>
+      </Card>
     </div>
   );
 }

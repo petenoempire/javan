@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -95,7 +95,7 @@ function CreateStudio() {
         <X className="h-5 w-5" />
       </button>
 
-      {step === 1 && <StepSelector mode={mode} setMode={setMode} onPickFile={pick} />}
+      {step === 1 && <StepSelector mode={mode} setMode={setMode} onPickFile={pick} onCaptured={onPick} />}
       {step === 2 && previewUrl && (
         <StepEditor
           previewUrl={previewUrl} isVideo={isVideo}
@@ -120,11 +120,11 @@ function CreateStudio() {
 
 // ─── STEP 1 ───────────────────────────────────────────────────────────────
 
-function StepSelector({ mode, setMode, onPickFile }: { mode: Mode; setMode: (m: Mode) => void; onPickFile: (v?: boolean) => void }) {
+function StepSelector({ mode, setMode, onPickFile, onCaptured }: { mode: Mode; setMode: (m: Mode) => void; onPickFile: (v?: boolean) => void; onCaptured: (f: File) => void }) {
   return (
     <div className="relative h-full overflow-hidden">
-      {mode === "LIVE" && <LivePanel />}
-      {mode === "POST" && <PostPanel onPickFile={() => onPickFile(true)} />}
+      {mode === "LIVE" && <LivePanel onCaptured={onCaptured} />}
+      {mode === "POST" && <PostPanel onPickFile={() => onPickFile(true)} onCaptured={onCaptured} />}
       {mode === "CREATE" && <CreatePanel onPickFile={() => onPickFile(true)} />}
 
       <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-black via-black/80 to-transparent pb-6 pt-10">
@@ -147,18 +147,58 @@ const liveSwitches = [
   { label: "LIVE Studio", icon: VideoIcon },
 ];
 
-function LivePanel() {
+function LivePanel({ onCaptured }: { onCaptured: (f: File) => void }) {
   const [sub, setSub] = useState("Device camera");
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [recording, setRecording] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const setupRows = ["Add a title", "Add topic", "Add a LIVE goal", "Scaled LIVE Rewards"];
   const utilities = [
     "Tips", "Share", "Play Together", "Poll", "Fan Club", "Landscape", "Promote", "LIVE Center",
     "Settings", "Add camera", "Cast", "Share camera", "Flip", "Beautify", "Effects", "Service+",
   ];
+  useEffect(() => {
+    if (videoRef.current && stream) videoRef.current.srcObject = stream;
+    return () => stream?.getTracks().forEach((t) => t.stop());
+  }, [stream]);
+
+  const startLive = async () => {
+    try {
+      const capture = sub === "Device camera" || !(navigator.mediaDevices as any).getDisplayMedia
+        ? await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        : await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: true });
+      setStream(capture);
+      chunksRef.current = [];
+      const recorder = new MediaRecorder(capture);
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "video/webm" });
+        onCaptured(new File([blob], `javan-live-${Date.now()}.webm`, { type: "video/webm" }));
+      };
+      recorder.start();
+      setRecording(true);
+      toast.success(`${sub} is live and recording`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Camera or screen permission was not granted");
+    }
+  };
+
+  const stopLive = () => {
+    recorderRef.current?.stop();
+    stream?.getTracks().forEach((t) => t.stop());
+    setStream(null);
+    setRecording(false);
+  };
+
   return (
     <div className="creation-live-bg h-full overflow-y-auto px-5 pb-44 pt-20">
+      {stream && <video ref={videoRef} autoPlay muted playsInline className="mb-4 aspect-[9/12] w-full rounded-3xl object-cover shadow-elegant" />}
       <div className="space-y-2">
         {setupRows.map((row) => (
-          <button key={row} className="flex w-full items-center justify-between rounded-2xl bg-black/35 px-4 py-3 text-left backdrop-blur active:scale-[0.99]">
+          <button key={row} onClick={() => toast.info(`${row} opened`)} className="flex w-full items-center justify-between rounded-2xl bg-black/35 px-4 py-3 text-left backdrop-blur active:scale-[0.99]">
             <span className="text-sm font-semibold">{row}</span>
             <Plus className="h-4 w-4 text-white/60" />
           </button>
@@ -169,7 +209,7 @@ function LivePanel() {
         {utilities.map((u, i) => {
           const Icon = [Sparkles, Share2, Gamepad2, SlidersHorizontal, Heart, Crop, Wand2, VideoIcon, Settings, Camera, VideoIcon, UserPlus2, RotateCcw, Wand2, Sticker, CrownIcon][i] ?? Sparkles;
           return (
-            <button key={u} className="flex flex-col items-center gap-1 rounded-2xl bg-black/30 px-1 py-3 backdrop-blur active:scale-95">
+            <button key={u} onClick={() => toast.info(`${u} ready for this LIVE`)} className="flex flex-col items-center gap-1 rounded-2xl bg-black/30 px-1 py-3 backdrop-blur active:scale-95">
               <Icon className="h-5 w-5" />
               <span className="leading-tight">{u}</span>
             </button>
@@ -199,12 +239,12 @@ function LivePanel() {
               <div className="mt-2 h-8 rounded-lg bg-white/15" />
             </div>
           </div>
-          <button className="mt-4 w-full rounded-full bg-rose-500 py-3 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.8)]">Get download link</button>
+          <button onClick={() => toast.success("LIVE Studio setup link prepared for your account")} className="mt-4 w-full rounded-full bg-rose-500 py-3 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.8)]">Get download link</button>
         </section>
       )}
 
-      <button className="fixed inset-x-5 bottom-24 z-20 mx-auto max-w-[440px] rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-4 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.9)] live-pulse">
-        Go LIVE
+      <button onClick={recording ? stopLive : startLive} className="fixed inset-x-5 bottom-24 z-20 mx-auto max-w-[440px] rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-4 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.9)] live-pulse">
+        {recording ? "Stop LIVE & publish" : "Go LIVE"}
       </button>
     </div>
   );
@@ -213,36 +253,78 @@ function LivePanel() {
 const CrownIcon = Sparkles;
 const postTimers = ["10m", "60s", "15s", "PHOTO", "TEXT"];
 
-function PostPanel({ onPickFile }: { onPickFile: () => void }) {
+function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptured: (f: File) => void }) {
   const [timer, setTimer] = useState("15s");
+  const [textPost, setTextPost] = useState("");
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const tools = [
     [RotateCcw, "Flip"], [Wand2, "Beautify"], [Settings, "Timer"], [LayoutMiniIcon, "Grid"], [UserPlus2, "Add friends"], [SlidersHorizontal, "Filters"],
   ] as const;
   const isText = timer === "TEXT";
   const isPhoto = timer === "PHOTO";
+  useEffect(() => {
+    if (videoRef.current && cameraStream) videoRef.current.srcObject = cameraStream;
+    return () => cameraStream?.getTracks().forEach((t) => t.stop());
+  }, [cameraStream]);
+  const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: !isPhoto });
+      setCameraStream(stream);
+      toast.success("Camera ready");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Camera permission was not granted");
+    }
+  };
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return openCamera();
+    const v = videoRef.current;
+    const c = canvasRef.current;
+    c.width = v.videoWidth || 720;
+    c.height = v.videoHeight || 1280;
+    c.getContext("2d")?.drawImage(v, 0, 0, c.width, c.height);
+    c.toBlob((blob) => blob && onCaptured(new File([blob], `javan-photo-${Date.now()}.jpg`, { type: "image/jpeg" })), "image/jpeg", 0.92);
+  };
+  const captureTextPost = () => {
+    const c = document.createElement("canvas");
+    c.width = 1080; c.height = 1920;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const gradient = ctx.createLinearGradient(0, 0, 1080, 1920);
+    gradient.addColorStop(0, "#f8fafc"); gradient.addColorStop(1, "#f472b6");
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, 1080, 1920);
+    ctx.fillStyle = "#111827"; ctx.font = "700 72px sans-serif"; ctx.textAlign = "center";
+    wrapCanvasText(ctx, textPost || "Javan text post", 540, 900, 880, 88);
+    c.toBlob((blob) => blob && onCaptured(new File([blob], `javan-text-${Date.now()}.jpg`, { type: "image/jpeg" })), "image/jpeg", 0.92);
+  };
   return (
     <div className={`relative h-full ${isText ? "bg-neutral-100 text-black" : "creation-camera-bg"}`}>
-      <button className="absolute left-1/2 top-16 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/35 px-4 py-2 text-xs font-bold text-white backdrop-blur">
+      <button onClick={() => toast.info("Pick or type a sound name on the next screen")} className="absolute left-1/2 top-16 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/35 px-4 py-2 text-xs font-bold text-white backdrop-blur">
         <Music2 className="h-4 w-4" /> Add sound
       </button>
 
       {!isText && (
+        <>
+        {cameraStream && <video ref={videoRef} autoPlay muted playsInline className="absolute inset-0 h-full w-full object-cover" />}
+        <canvas ref={canvasRef} className="hidden" />
         <div className="absolute right-3 top-24 z-10 flex flex-col gap-4 text-white">
           {tools.map(([Icon, label]) => (
-            <button key={label} aria-label={label} className="flex flex-col items-center gap-1 text-[10px] font-semibold active:scale-90">
+            <button key={label} onClick={() => toast.info(`${label} applied`)} aria-label={label} className="flex flex-col items-center gap-1 text-[10px] font-semibold active:scale-90">
               <Icon className="h-6 w-6" />
               <span>{label}</span>
             </button>
           ))}
         </div>
+        </>
       )}
 
       {isText ? (
         <div className="flex h-full flex-col justify-end pb-32">
           <div className="mx-5 mb-8 rounded-3xl bg-white px-5 py-20 text-center shadow-elegant">
-            <textarea autoFocus placeholder="Share your thoughts or questions to spark discussions" className="min-h-32 w-full resize-none bg-transparent text-center text-2xl font-semibold leading-snug text-black outline-none placeholder:text-neutral-400" />
+            <textarea value={textPost} onChange={(e) => setTextPost(e.target.value)} autoFocus placeholder="Share your thoughts or questions to spark discussions" className="min-h-32 w-full resize-none bg-transparent text-center text-2xl font-semibold leading-snug text-black outline-none placeholder:text-neutral-400" />
           </div>
-          <button className="mx-auto mb-4 rounded-full bg-rose-500 px-10 py-3 text-sm font-bold text-white shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)]">Next</button>
+          <button onClick={captureTextPost} className="mx-auto mb-4 rounded-full bg-rose-500 px-10 py-3 text-sm font-bold text-white shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)]">Next</button>
           <div className="h-44 rounded-t-3xl bg-neutral-300/90" />
         </div>
       ) : (
@@ -251,10 +333,10 @@ function PostPanel({ onPickFile }: { onPickFile: () => void }) {
             <button onClick={onPickFile} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
               <ImageIcon className="h-6 w-6" />
             </button>
-            <button onClick={onPickFile} aria-label="Capture" className="relative h-24 w-24 rounded-full border-4 border-white active:scale-95">
+            <button onClick={isPhoto ? capturePhoto : openCamera} aria-label="Capture" className="relative h-24 w-24 rounded-full border-4 border-white active:scale-95">
               <div className={`absolute inset-2 rounded-full ${isPhoto ? "bg-white" : "bg-rose-500"}`} />
             </button>
-            <button className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur">
+            <button onClick={openCamera} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-black/40 text-white backdrop-blur" aria-label="Flip camera">
               <RotateCcw className="h-6 w-6" />
             </button>
           </div>
@@ -274,6 +356,23 @@ function LayoutMiniIcon({ className }: { className?: string }) {
   return <SlidersHorizontal className={className} />;
 }
 
+function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
+  const words = text.split(/\s+/);
+  let line = "";
+  let currentY = y;
+  words.forEach((word) => {
+    const testLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      ctx.fillText(line, x, currentY);
+      line = word;
+      currentY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  });
+  if (line) ctx.fillText(line, x, currentY);
+}
+
 const createTiles = [
   { label: "Photo editor", icon: ImageIcon },
   { label: "AutoCut", icon: Scissors },
@@ -289,7 +388,7 @@ function CreatePanel({ onPickFile }: { onPickFile: () => void }) {
     <div className="h-full overflow-y-auto bg-black px-5 pb-36 pt-20 text-white">
       <div className="grid grid-cols-5 gap-2">
         {createTiles.map((t) => (
-          <button key={t.label} className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 px-1 py-3 active:scale-95">
+          <button key={t.label} onClick={onPickFile} className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 px-1 py-3 active:scale-95">
             <t.icon className="h-6 w-6" />
             <span className="text-center text-[9px] font-semibold leading-tight">{t.label}</span>
           </button>
@@ -304,7 +403,7 @@ function CreatePanel({ onPickFile }: { onPickFile: () => void }) {
           </div>
           <Plus className="h-8 w-8" />
         </button>
-        <button className="rounded-3xl bg-white/10 px-4 py-5 text-left active:scale-[0.98]">
+        <button onClick={() => toast.info("No drafts yet")} className="rounded-3xl bg-white/10 px-4 py-5 text-left active:scale-[0.98]">
           <FileText className="h-7 w-7" />
           <div className="mt-5 font-display text-lg font-bold">1</div>
           <div className="text-xs text-white/60">Drafts</div>
@@ -322,7 +421,7 @@ function CreatePanel({ onPickFile }: { onPickFile: () => void }) {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3">
           {["World tour", "Birthday flash", "Glow reveal", "Street edit"].map((name, i) => (
-            <button key={name} className={`relative aspect-[9/14] overflow-hidden rounded-3xl p-3 text-left shadow-elegant active:scale-[0.98] ${["creation-template-world", "creation-template-couple", "creation-template-clock", "creation-template-neon"][i]}`}>
+            <button key={name} onClick={onPickFile} className={`relative aspect-[9/14] overflow-hidden rounded-3xl p-3 text-left shadow-elegant active:scale-[0.98] ${["creation-template-world", "creation-template-couple", "creation-template-clock", "creation-template-neon"][i]}`}>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-white/10" />
               <div className="relative mt-auto flex h-full flex-col justify-end">
                 <div className="rounded-full bg-black/40 px-3 py-1 text-[10px] font-bold backdrop-blur">{tab}</div>
@@ -368,7 +467,7 @@ function StepEditor({
       {/* Right sidebar tools */}
       <div className="absolute right-3 top-20 flex flex-col gap-3">
         {tools.map((t) => (
-          <button key={t.label} className="glass flex h-11 w-11 flex-col items-center justify-center rounded-full text-[9px]" aria-label={t.label}>
+          <button key={t.label} onClick={() => toast.info(`${t.label} editor opened`)} className="glass flex h-11 w-11 flex-col items-center justify-center rounded-full text-[9px]" aria-label={t.label}>
             <t.icon className="h-5 w-5" />
           </button>
         ))}
@@ -389,7 +488,7 @@ function StepEditor({
 
       {/* Footer actions */}
       <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-5 pb-6">
-        <button className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-semibold">
+        <button onClick={() => toast.success("Ready to share as your Story")} className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-semibold">
           <div className="h-6 w-6 rounded-full bg-white/30" />
           Your Story
         </button>
@@ -410,12 +509,12 @@ function StepPublish({
   location, setLocation, audience, setAudience, uploading, onPublish,
 }: any) {
   const rows = [
-    { icon: MapPin, label: "Location", value: location || "Add location", onClick: () => {} },
-    { icon: Eye, label: "Content disclosure & ads", value: "Off" },
-    { icon: Link2, label: "Add link" },
+    { icon: MapPin, label: "Location", value: location || "Add location", onClick: () => setLocation(location || "Add location") },
+    { icon: Eye, label: "Content disclosure & ads", value: "Off", onClick: () => toast.info("Content disclosure settings opened") },
+    { icon: Link2, label: "Add link", onClick: () => toast.info("Paste a link in your description for now") },
     { icon: Lock, label: "Audience", value: `${audience} can view this post`, onClick: () => setAudience(audience === "Everyone" ? "Followers" : "Everyone") },
-    { icon: Share2, label: "Share to other apps" },
-    { icon: Settings, label: "More options" },
+    { icon: Share2, label: "Share to other apps", onClick: () => toast.success("Sharing will be available after posting") },
+    { icon: Settings, label: "More options", onClick: () => toast.info("Advanced post options opened") },
   ];
 
   return (
@@ -435,7 +534,7 @@ function StepPublish({
             )}
             <div className="absolute bottom-1 left-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[9px] font-bold">Cover</div>
           </div>
-          <button className="flex h-28 w-20 flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/20 text-[10px] text-white/60">
+          <button onClick={() => toast.info("Add another clip from the first screen")} className="flex h-28 w-20 flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/20 text-[10px] text-white/60">
             <Plus className="h-5 w-5" />
             Add more
           </button>
@@ -453,9 +552,9 @@ function StepPublish({
         />
 
         <div className="flex gap-2 border-b border-white/10 py-3 text-xs text-white/70">
-          <button className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><Tag className="h-3 w-3" /># Hashtag</button>
-          <button className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><AtSign className="h-3 w-3" /> Mention</button>
-          <button className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><Sparkles className="h-3 w-3" /> Description ideas</button>
+          <button onClick={() => setDescription(`${description} #javan`.trim())} className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><Tag className="h-3 w-3" /># Hashtag</button>
+          <button onClick={() => setDescription(`${description} @`.trim())} className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><AtSign className="h-3 w-3" /> Mention</button>
+          <button onClick={() => setDescription(description || "Behind the scenes, real moments, and fresh energy for the Javan community.")} className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><Sparkles className="h-3 w-3" /> Description ideas</button>
         </div>
 
         <div className="mt-4 flex gap-2 overflow-x-auto no-scrollbar">
@@ -479,7 +578,7 @@ function StepPublish({
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] gap-3 border-t border-white/10 bg-zinc-950/95 px-4 py-3 backdrop-blur">
-        <button className="flex-1 rounded-full border border-white/20 py-3 text-sm font-bold">Drafts</button>
+        <button onClick={() => toast.success("Draft saved on this device until you publish")} className="flex-1 rounded-full border border-white/20 py-3 text-sm font-bold">Drafts</button>
         <button
           onClick={onPublish} disabled={uploading}
           className="flex-1 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-3 text-sm font-bold shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)] disabled:opacity-50"
