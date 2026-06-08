@@ -356,6 +356,23 @@ function LayoutMiniIcon({ className }: { className?: string }) {
   return <SlidersHorizontal className={className} />;
 }
 
+function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
+  const words = text.split(/\s+/);
+  let line = "";
+  let currentY = y;
+  words.forEach((word) => {
+    const testLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      ctx.fillText(line, x, currentY);
+      line = word;
+      currentY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  });
+  if (line) ctx.fillText(line, x, currentY);
+}
+
 const createTiles = [
   { label: "Photo editor", icon: ImageIcon },
   { label: "AutoCut", icon: Scissors },
