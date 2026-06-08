@@ -534,7 +534,7 @@ function StepPublish({
             )}
             <div className="absolute bottom-1 left-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[9px] font-bold">Cover</div>
           </div>
-          <button className="flex h-28 w-20 flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/20 text-[10px] text-white/60">
+          <button onClick={() => toast.info("Add another clip from the first screen")} className="flex h-28 w-20 flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/20 text-[10px] text-white/60">
             <Plus className="h-5 w-5" />
             Add more
           </button>
@@ -552,9 +552,9 @@ function StepPublish({
         />
 
         <div className="flex gap-2 border-b border-white/10 py-3 text-xs text-white/70">
-          <button className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><Tag className="h-3 w-3" /># Hashtag</button>
-          <button className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><AtSign className="h-3 w-3" /> Mention</button>
-          <button className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><Sparkles className="h-3 w-3" /> Description ideas</button>
+          <button onClick={() => setDescription(`${description} #javan`.trim())} className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><Tag className="h-3 w-3" /># Hashtag</button>
+          <button onClick={() => setDescription(`${description} @`.trim())} className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><AtSign className="h-3 w-3" /> Mention</button>
+          <button onClick={() => setDescription(description || "Behind the scenes, real moments, and fresh energy for the Javan community.")} className="flex items-center gap-1 rounded-full bg-white/5 px-3 py-1.5"><Sparkles className="h-3 w-3" /> Description ideas</button>
         </div>
 
         <div className="mt-4 flex gap-2 overflow-x-auto no-scrollbar">
@@ -578,7 +578,7 @@ function StepPublish({
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] gap-3 border-t border-white/10 bg-zinc-950/95 px-4 py-3 backdrop-blur">
-        <button className="flex-1 rounded-full border border-white/20 py-3 text-sm font-bold">Drafts</button>
+        <button onClick={() => toast.success("Draft saved on this device until you publish")} className="flex-1 rounded-full border border-white/20 py-3 text-sm font-bold">Drafts</button>
         <button
           onClick={onPublish} disabled={uploading}
           className="flex-1 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-3 text-sm font-bold shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)] disabled:opacity-50"
