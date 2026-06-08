@@ -46,14 +46,14 @@ function MonetizationHub() {
           </div>
         </div>
         <div className="mt-1 text-sm font-semibold text-white/60">Monetization</div>
-        <button className="mt-2 flex items-end gap-1 active:scale-95">
+        <Link to="/studio/$section" params={{ section: "payouts" }} className="mt-2 flex items-end gap-1 active:scale-95">
           <span className="text-2xl font-bold">$</span>
           <span className="font-display text-5xl font-bold leading-none">0.00</span>
           <ChevronRight className="mb-2 h-5 w-5 text-white/70" />
-        </button>
+        </Link>
         <div className="mt-1 text-xs text-white/70">Estimated rewards in the last 7 days ⓘ</div>
 
-        <Link to="/wallet" className="mt-4 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-3 backdrop-blur">
+        <Link to="/studio/$section" params={{ section: "payouts" }} className="mt-4 flex items-center justify-between rounded-2xl bg-white/10 px-4 py-3 backdrop-blur">
           <span className="text-sm font-semibold">Balance: $0.03</span>
           <span className="flex items-center gap-1 text-sm text-white/80">View <ChevronRight className="h-4 w-4" /></span>
         </Link>
