@@ -388,7 +388,7 @@ function CreatePanel({ onPickFile }: { onPickFile: () => void }) {
     <div className="h-full overflow-y-auto bg-black px-5 pb-36 pt-20 text-white">
       <div className="grid grid-cols-5 gap-2">
         {createTiles.map((t) => (
-          <button key={t.label} className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 px-1 py-3 active:scale-95">
+          <button key={t.label} onClick={onPickFile} className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 px-1 py-3 active:scale-95">
             <t.icon className="h-6 w-6" />
             <span className="text-center text-[9px] font-semibold leading-tight">{t.label}</span>
           </button>
@@ -403,7 +403,7 @@ function CreatePanel({ onPickFile }: { onPickFile: () => void }) {
           </div>
           <Plus className="h-8 w-8" />
         </button>
-        <button className="rounded-3xl bg-white/10 px-4 py-5 text-left active:scale-[0.98]">
+        <button onClick={() => toast.info("No drafts yet")} className="rounded-3xl bg-white/10 px-4 py-5 text-left active:scale-[0.98]">
           <FileText className="h-7 w-7" />
           <div className="mt-5 font-display text-lg font-bold">1</div>
           <div className="text-xs text-white/60">Drafts</div>
@@ -421,7 +421,7 @@ function CreatePanel({ onPickFile }: { onPickFile: () => void }) {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3">
           {["World tour", "Birthday flash", "Glow reveal", "Street edit"].map((name, i) => (
-            <button key={name} className={`relative aspect-[9/14] overflow-hidden rounded-3xl p-3 text-left shadow-elegant active:scale-[0.98] ${["creation-template-world", "creation-template-couple", "creation-template-clock", "creation-template-neon"][i]}`}>
+            <button key={name} onClick={onPickFile} className={`relative aspect-[9/14] overflow-hidden rounded-3xl p-3 text-left shadow-elegant active:scale-[0.98] ${["creation-template-world", "creation-template-couple", "creation-template-clock", "creation-template-neon"][i]}`}>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-white/10" />
               <div className="relative mt-auto flex h-full flex-col justify-end">
                 <div className="rounded-full bg-black/40 px-3 py-1 text-[10px] font-bold backdrop-blur">{tab}</div>
@@ -467,7 +467,7 @@ function StepEditor({
       {/* Right sidebar tools */}
       <div className="absolute right-3 top-20 flex flex-col gap-3">
         {tools.map((t) => (
-          <button key={t.label} className="glass flex h-11 w-11 flex-col items-center justify-center rounded-full text-[9px]" aria-label={t.label}>
+          <button key={t.label} onClick={() => toast.info(`${t.label} editor opened`)} className="glass flex h-11 w-11 flex-col items-center justify-center rounded-full text-[9px]" aria-label={t.label}>
             <t.icon className="h-5 w-5" />
           </button>
         ))}
@@ -488,7 +488,7 @@ function StepEditor({
 
       {/* Footer actions */}
       <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-5 pb-6">
-        <button className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-semibold">
+        <button onClick={() => toast.success("Ready to share as your Story")} className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-semibold">
           <div className="h-6 w-6 rounded-full bg-white/30" />
           Your Story
         </button>
