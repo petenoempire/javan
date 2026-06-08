@@ -255,6 +255,7 @@ const postTimers = ["10m", "60s", "15s", "PHOTO", "TEXT"];
 
 function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptured: (f: File) => void }) {
   const [timer, setTimer] = useState("15s");
+  const [textPost, setTextPost] = useState("");
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -285,9 +286,21 @@ function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptu
     c.getContext("2d")?.drawImage(v, 0, 0, c.width, c.height);
     c.toBlob((blob) => blob && onCaptured(new File([blob], `javan-photo-${Date.now()}.jpg`, { type: "image/jpeg" })), "image/jpeg", 0.92);
   };
+  const captureTextPost = () => {
+    const c = document.createElement("canvas");
+    c.width = 1080; c.height = 1920;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const gradient = ctx.createLinearGradient(0, 0, 1080, 1920);
+    gradient.addColorStop(0, "#f8fafc"); gradient.addColorStop(1, "#f472b6");
+    ctx.fillStyle = gradient; ctx.fillRect(0, 0, 1080, 1920);
+    ctx.fillStyle = "#111827"; ctx.font = "700 72px sans-serif"; ctx.textAlign = "center";
+    wrapCanvasText(ctx, textPost || "Javan text post", 540, 900, 880, 88);
+    c.toBlob((blob) => blob && onCaptured(new File([blob], `javan-text-${Date.now()}.jpg`, { type: "image/jpeg" })), "image/jpeg", 0.92);
+  };
   return (
     <div className={`relative h-full ${isText ? "bg-neutral-100 text-black" : "creation-camera-bg"}`}>
-      <button className="absolute left-1/2 top-16 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/35 px-4 py-2 text-xs font-bold text-white backdrop-blur">
+      <button onClick={() => toast.info("Pick or type a sound name on the next screen")} className="absolute left-1/2 top-16 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/35 px-4 py-2 text-xs font-bold text-white backdrop-blur">
         <Music2 className="h-4 w-4" /> Add sound
       </button>
 
@@ -309,13 +322,9 @@ function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptu
       {isText ? (
         <div className="flex h-full flex-col justify-end pb-32">
           <div className="mx-5 mb-8 rounded-3xl bg-white px-5 py-20 text-center shadow-elegant">
-            <textarea autoFocus placeholder="Share your thoughts or questions to spark discussions" className="min-h-32 w-full resize-none bg-transparent text-center text-2xl font-semibold leading-snug text-black outline-none placeholder:text-neutral-400" />
+            <textarea value={textPost} onChange={(e) => setTextPost(e.target.value)} autoFocus placeholder="Share your thoughts or questions to spark discussions" className="min-h-32 w-full resize-none bg-transparent text-center text-2xl font-semibold leading-snug text-black outline-none placeholder:text-neutral-400" />
           </div>
-          <button onClick={() => {
-            const text = document.querySelector("textarea")?.value ?? "";
-            const blob = new Blob([text || "Javan text post"], { type: "text/plain" });
-            onCaptured(new File([blob], `javan-text-${Date.now()}.txt`, { type: "text/plain" }));
-          }} className="mx-auto mb-4 rounded-full bg-rose-500 px-10 py-3 text-sm font-bold text-white shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)]">Next</button>
+          <button onClick={captureTextPost} className="mx-auto mb-4 rounded-full bg-rose-500 px-10 py-3 text-sm font-bold text-white shadow-[0_0_30px_-8px_rgba(244,63,94,0.8)]">Next</button>
           <div className="h-44 rounded-t-3xl bg-neutral-300/90" />
         </div>
       ) : (
