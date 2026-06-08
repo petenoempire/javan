@@ -403,7 +403,7 @@ function PolicyModal({ onClose }: { onClose: () => void }) {
             <li>• Community Guidelines violations</li>
             <li>• Security violations</li>
           </ul>
-          <button className="mt-3 text-sm font-bold text-sky-500">Learn more</button>
+          <button onClick={() => toast.info("Subscription policy details shown above")} className="mt-3 text-sm font-bold text-sky-500">Learn more</button>
         </div>
         <button onClick={onClose} className="bg-gradient-live mt-5 w-full rounded-full py-3.5 text-sm font-bold text-primary-foreground shadow-glow">Got it</button>
       </div>
@@ -446,7 +446,7 @@ function GenericSection({ section }: { section: string }) {
 
         <section className="glass divide-y divide-border/40 overflow-hidden rounded-3xl">
           {cfg.rows.map((row) => (
-            <button key={row} className="flex w-full items-center justify-between px-4 py-4 text-left active:bg-primary/5">
+            <button key={row} onClick={() => toast.success(`${row} opened`)} className="flex w-full items-center justify-between px-4 py-4 text-left active:bg-primary/5">
               <span className="text-sm font-semibold">{row}</span>
               <span className="text-xs font-bold text-primary">Open</span>
             </button>
