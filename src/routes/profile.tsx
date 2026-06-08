@@ -256,6 +256,10 @@ function Grid({ items }: { items: any[] }) {
 }
 
 function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState("All");
+  const [multi, setMulti] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const chips = [
     { label: "Text", Icon: Type },
     { label: "Drafts", Icon: Folder },
@@ -268,6 +272,7 @@ function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }
 
   return (
     <div className="fixed inset-0 z-[90] mx-auto max-w-[480px] bg-black text-white animate-in slide-in-from-bottom-6 duration-200">
+      <input ref={fileInput} hidden type="file" accept="image/*,video/*" onChange={(e) => e.target.files?.[0] && alert(`Story media selected: ${e.target.files[0].name}`)} />
       <header className="flex items-center justify-center px-4 pb-4 pt-16">
         <button onClick={onClose} aria-label="Close story composer" className="absolute left-4 top-14 p-2 active:scale-90">
           <X className="h-8 w-8" />
@@ -277,7 +282,7 @@ function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }
 
       <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 py-3">
         {chips.map(({ label, Icon }) => (
-          <button key={label} className="flex h-28 min-w-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/10 shadow-inner active:scale-95">
+          <button key={label} onClick={() => label === "Text" ? fileInput.current?.click() : alert(`${label} opened`)} className="flex h-28 min-w-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/10 shadow-inner active:scale-95">
             {label === "Text" ? <span className="font-display text-4xl font-bold">Aa</span> : <Icon className="h-9 w-9" />}
             <span className="text-base font-semibold">{label}</span>
           </button>
@@ -285,28 +290,38 @@ function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }
       </div>
 
       <div className="mt-4 flex items-center justify-between px-5">
-        <button className="flex items-center gap-1 font-display text-2xl font-bold">Recents <ChevronDown className="h-5 w-5" /></button>
-        <button className="flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-base font-semibold">
+        <button onClick={() => fileInput.current?.click()} className="flex items-center gap-1 font-display text-2xl font-bold">Recents <ChevronDown className="h-5 w-5" /></button>
+        <button onClick={() => setMulti((m) => !m)} className="flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-base font-semibold">
           <span className="h-5 w-5 rounded-full border-2 border-white" /> Select multiple
         </button>
       </div>
 
       <div className="mt-4 grid grid-cols-4 border-b border-white/10 px-5 text-center text-base font-bold text-white/50">
         {tabs.map((tab, index) => (
-          <button key={tab} className={`relative pb-3 ${index === 0 ? "text-white" : ""}`}>
+          <button key={tab} onClick={() => setTab(tab)} className={`relative pb-3 ${tab === tab ? "text-white" : ""}`}>
             {tab}
-            {index === 0 && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-white" />}
+            {tab === tab && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-white" />}
           </button>
         ))}
       </div>
 
       <div className="grid grid-cols-3 gap-0 overflow-hidden">
-        <button className="flex aspect-[3/4] items-center justify-center bg-zinc-900 active:opacity-80" aria-label="Open camera">
+        <button onClick={async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            stream.getTracks().forEach((track) => track.stop());
+            setCameraReady(true);
+          } catch {
+            alert("Camera permission was not granted");
+          }
+        }} className="flex aspect-[3/4] flex-col items-center justify-center bg-zinc-900 active:opacity-80" aria-label="Open camera">
           <Camera className="h-12 w-12" />
+          {cameraReady && <span className="mt-2 text-xs">Ready</span>}
         </button>
         {Array.from({ length: 11 }).map((_, i) => (
-          <button key={i} className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-fuchsia-600 via-cyan-400 to-black active:opacity-80">
+          <button key={i} onClick={() => fileInput.current?.click()} className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-fuchsia-600 via-cyan-400 to-black active:opacity-80">
             <div className="absolute inset-0 bg-black/35" />
+            {multi && <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border border-white bg-black/40 text-xs">{i + 1}</div>}
             <div className="absolute bottom-2 left-2 h-10 w-10 rounded-full bg-black/50" />
             <div className="absolute right-2 top-2 h-5 w-5 rounded-full bg-primary/80" />
           </button>
