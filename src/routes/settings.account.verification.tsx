@@ -26,8 +26,14 @@ function VerificationPage() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [kind, setKind] = useState<"individual" | "business">("individual");
+  const [applicantType, setApplicantType] = useState("Public figure / creator");
   const [legalName, setLegalName] = useState("");
+  const [publicRole, setPublicRole] = useState("");
   const [country, setCountry] = useState("");
+  const [officialWebsite, setOfficialWebsite] = useState("");
+  const [socialLinks, setSocialLinks] = useState("");
+  const [pressLinks, setPressLinks] = useState("");
+  const [representativeEmail, setRepresentativeEmail] = useState("");
   const [docType, setDocType] = useState(DOC_TYPES[0]);
   const [docFile, setDocFile] = useState<File | null>(null);
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
@@ -51,8 +57,8 @@ function VerificationPage() {
 
   const submit = async () => {
     if (!user) return;
-    if (!legalName || !country || !docFile || !notes) {
-      toast.error("Please complete every field including proof of notability");
+    if (!legalName || !country || !publicRole || !officialWebsite || !socialLinks || !pressLinks || !docFile || !notes) {
+      toast.error("Please complete identity, public role, official links, press proof, document, and notability details");
       return;
     }
     setSubmitting(true);
@@ -66,10 +72,19 @@ function VerificationPage() {
       };
       const docPath = await upload(docFile, "doc");
       const selfiePath = selfieFile ? await upload(selfieFile, "selfie") : null;
+      const reviewNotes = [
+        `Applicant type: ${applicantType}`,
+        `Public role/category: ${publicRole}`,
+        `Official website: ${officialWebsite}`,
+        `Official social profiles: ${socialLinks}`,
+        `Press / public proof links: ${pressLinks}`,
+        representativeEmail ? `Representative email: ${representativeEmail}` : null,
+        `Statement: ${notes}`,
+      ].filter(Boolean).join("\n\n");
       const { error: insErr } = await supabase.from("verifications").insert({
         user_id: user.id, kind, legal_name: legalName, country,
         document_type: docType, document_url: docPath, selfie_url: selfiePath,
-        notes,
+        notes: reviewNotes,
       });
       if (insErr) throw insErr;
       toast.success("Submitted for review");
@@ -138,7 +153,22 @@ function VerificationPage() {
             </div>
 
             <Field label="Legal full name / brand name" value={legalName} onChange={setLegalName} placeholder="As it appears on the document" />
+            <label className="block">
+              <span className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Applicant category</span>
+              <select value={applicantType} onChange={(e) => setApplicantType(e.target.value)}
+                className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm outline-none">
+                {[
+                  "Public figure / creator", "Celebrity / entertainer", "Politician / government official",
+                  "Journalist / media personality", "Athlete", "Registered brand / company", "Music artist / label",
+                ].map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </label>
+            <Field label="Public role or known name" value={publicRole} onChange={setPublicRole} placeholder="e.g. Senator, actor, musician, official brand" />
             <Field label="Country of residence" value={country} onChange={setCountry} placeholder="e.g. Nigeria, United States" />
+            <Field label="Official website" value={officialWebsite} onChange={setOfficialWebsite} placeholder="https://official-site.com" />
+            <Field label="Official social profiles" value={socialLinks} onChange={setSocialLinks} placeholder="Instagram, X, YouTube, Facebook links" />
+            <Field label="Press / public proof links" value={pressLinks} onChange={setPressLinks} placeholder="News articles, Wikipedia, IMDb, government page, brand registry" />
+            <Field label="Representative email (optional)" value={representativeEmail} onChange={setRepresentativeEmail} placeholder="manager@agency.com" />
 
             <label className="block">
               <span className="mb-1 block text-xs uppercase tracking-wider text-muted-foreground">Proof / document type</span>
