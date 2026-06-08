@@ -11,6 +11,7 @@ import {
   X, Type, Folder, Calendar, Sparkles, Camera,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile · Javan" }] }),
@@ -272,7 +273,7 @@ function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }
 
   return (
     <div className="fixed inset-0 z-[90] mx-auto max-w-[480px] bg-black text-white animate-in slide-in-from-bottom-6 duration-200">
-      <input ref={fileInput} hidden type="file" accept="image/*,video/*" onChange={(e) => e.target.files?.[0] && alert(`Story media selected: ${e.target.files[0].name}`)} />
+      <input ref={fileInput} hidden type="file" accept="image/*,video/*" onChange={(e) => e.target.files?.[0] && toast.success(`Story media selected: ${e.target.files[0].name}`)} />
       <header className="flex items-center justify-center px-4 pb-4 pt-16">
         <button onClick={onClose} aria-label="Close story composer" className="absolute left-4 top-14 p-2 active:scale-90">
           <X className="h-8 w-8" />
@@ -282,7 +283,7 @@ function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }
 
       <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 py-3">
         {chips.map(({ label, Icon }) => (
-          <button key={label} onClick={() => label === "Text" ? fileInput.current?.click() : alert(`${label} opened`)} className="flex h-28 min-w-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/10 shadow-inner active:scale-95">
+          <button key={label} onClick={() => label === "Text" ? fileInput.current?.click() : toast.success(`${label} opened`)} className="flex h-28 min-w-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/10 shadow-inner active:scale-95">
             {label === "Text" ? <span className="font-display text-4xl font-bold">Aa</span> : <Icon className="h-9 w-9" />}
             <span className="text-base font-semibold">{label}</span>
           </button>
@@ -312,7 +313,7 @@ function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }
             stream.getTracks().forEach((track) => track.stop());
             setCameraReady(true);
           } catch {
-            alert("Camera permission was not granted");
+            toast.error("Camera permission was not granted");
           }
         }} className="flex aspect-[3/4] flex-col items-center justify-center bg-zinc-900 active:opacity-80" aria-label="Open camera">
           <Camera className="h-12 w-12" />
