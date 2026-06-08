@@ -5,6 +5,7 @@ import {
   Megaphone, Music2, Plus, Settings, Sparkles, Sticker, TrendingUp,
   X, FileText, Sliders, Home, BookmarkPlus, Wand2, Link as LinkIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/$section")({
   head: () => ({ meta: [{ title: "Monetization · Javan" }] }),
@@ -21,19 +22,6 @@ function StudioSection() {
 /* =========================================================
    MONETIZATION HUB (Service+ / Monetization)
    ========================================================= */
-
-const TRENDING = [
-  { name: "WHITEMONEY 💵😎(WMG🏦)🏳️🇳🇬", followers: "580K followers", initials: "WM", hue: "from-amber-500 to-orange-700" },
-  { name: "OSE 🎙️ ™️💜", followers: "1M followers", initials: "OS", hue: "from-purple-600 to-indigo-700" },
-  { name: "KikiALilBaddie🧚🏽‍♀️🤏🏽🦠", followers: "92.5K followers", initials: "KI", hue: "from-sky-500 to-blue-700" },
-  { name: "TJ", followers: "33K followers", initials: "TJ", hue: "from-rose-500 to-pink-700" },
-  { name: "SPARKOO_DEHLIAN", followers: "639.1K followers", initials: "SD", hue: "from-emerald-500 to-teal-700" },
-  { name: "✨MIRACLE ™️🦁", followers: "201.2K followers", initials: "MI", hue: "from-yellow-500 to-amber-700" },
-  { name: "P£ŁŁ£R🦂", followers: "15.6M followers", initials: "PE", hue: "from-zinc-700 to-zinc-900" },
-  { name: "Blackchully scorpion", followers: "12.3M followers", initials: "BC", hue: "from-stone-600 to-stone-800" },
-  { name: "Tee💘", followers: "153.5K followers", initials: "TE", hue: "from-teal-500 to-cyan-700" },
-  { name: "eniola afeez", followers: "618.6K followers", initials: "EA", hue: "from-fuchsia-500 to-pink-700" },
-];
 
 const RESOURCES = [
   { title: "Monetizing your content on Javan", body: "Javan has multiple programs designed to reward what you create — and the right fit depends on your style.", views: "10.3M views", hue: "from-yellow-400 to-orange-500" },
@@ -53,7 +41,7 @@ function MonetizationHub() {
         <div className="flex items-center justify-between">
           <Link to="/studio" className="-ml-1 p-2" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
           <div className="flex items-center gap-2">
-            <button className="p-2" aria-label="Report"><Flag className="h-5 w-5" /></button>
+            <button onClick={() => toast.success("Monetization report tools opened")} className="p-2" aria-label="Report"><Flag className="h-5 w-5" /></button>
             <Link to="/settings" className="p-2" aria-label="Settings"><Settings className="h-5 w-5" /></Link>
           </div>
         </div>
@@ -109,7 +97,7 @@ function MonetizationHub() {
       <section className="bg-background px-4 py-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-bold">Programs for you ⓘ</h2>
-          <button className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
+          <Link to="/studio/$section" params={{ section: "benefits" }} className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></Link>
         </div>
 
         <div className="mt-4 flex items-start gap-3">
@@ -121,7 +109,7 @@ function MonetizationHub() {
             </div>
             <div className="mt-1 text-sm text-muted-foreground">Build connections with potential clients when you're LIVE.</div>
           </div>
-          <button className="bg-gradient-live shrink-0 rounded-full px-5 py-2 text-sm font-bold text-primary-foreground shadow-glow">Join</button>
+          <button onClick={() => toast.success("Service+ request submitted for eligibility review")} className="bg-gradient-live shrink-0 rounded-full px-5 py-2 text-sm font-bold text-primary-foreground shadow-glow">Join</button>
         </div>
 
         <div className="my-4 border-t border-border/40" />
@@ -138,7 +126,7 @@ function MonetizationHub() {
           <ChevronRight className="mt-2 h-4 w-4 text-muted-foreground" />
         </Link>
 
-        <button className="mt-5 w-full rounded-full bg-muted/70 py-3 text-sm font-bold">Get notified when I'm eligible</button>
+        <button onClick={() => toast.success("Eligibility notifications enabled")} className="mt-5 w-full rounded-full bg-muted/70 py-3 text-sm font-bold">Get notified when I'm eligible</button>
       </section>
 
       <div className="h-2 bg-muted/40" />
@@ -155,18 +143,9 @@ function MonetizationHub() {
           ))}
         </div>
 
-        <ol className="mt-4 space-y-4">
-          {TRENDING.map((c, i) => (
-            <li key={c.name} className="flex items-center gap-3">
-              <span className={`w-6 shrink-0 font-display text-lg font-bold ${i < 3 ? "text-rose-500" : "text-muted-foreground"}`}>{i + 1}</span>
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-sm font-bold text-white ${c.hue}`}>{c.initials}</div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-bold">{c.name}</div>
-                <div className="truncate text-xs text-muted-foreground">{c.followers} <span className="mx-1">|</span> LIVE rewards <span className="mx-1">|</span> Top performer</div>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <div className="mt-4 rounded-2xl bg-muted/60 p-5 text-sm text-muted-foreground">
+          Rankings will appear here after real creators join programs and generate eligible activity.
+        </div>
       </section>
 
       <div className="h-2 bg-muted/40" />
@@ -175,7 +154,7 @@ function MonetizationHub() {
       <section className="bg-background px-4 py-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-bold">Learning resources</h2>
-          <button className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
+          <button onClick={() => toast.info("All learning resources are filtered below")} className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
         </div>
         <div className="no-scrollbar mt-3 -mx-4 flex gap-2 overflow-x-auto px-4">
           {resTabs.map((t, i) => (
