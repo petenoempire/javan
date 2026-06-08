@@ -222,7 +222,7 @@ function SubscriptionHub() {
           <div className="min-w-0 flex-1">
             <div className="font-display text-base font-bold leading-tight">Get paid regularly with Subscription</div>
             <div className="mt-1 text-sm text-muted-foreground">Turn subscriber support into predictable monthly rewards.</div>
-            <button className="mt-1 text-sm font-bold">Learn how</button>
+            <button onClick={() => setPolicyOpen(true)} className="mt-1 text-sm font-bold">Learn how</button>
           </div>
           <button onClick={() => setBannerOpen(false)} aria-label="Dismiss" className="p-1 text-muted-foreground"><X className="h-4 w-4" /></button>
         </div>
@@ -249,7 +249,7 @@ function SubscriptionHub() {
             <div key={c.title} className="border-border min-w-[78%] shrink-0 rounded-2xl border bg-background p-4">
               <div className="font-bold">{c.title}</div>
               <div className="mt-1 text-sm text-muted-foreground">{c.body}</div>
-              <div className="mt-6 text-right text-sm font-bold">{c.cta}</div>
+              <button onClick={() => toast.success(`${c.title} setup opened`)} className="mt-6 w-full text-right text-sm font-bold">{c.cta}</button>
             </div>
           ))}
         </div>
@@ -266,7 +266,7 @@ function SubscriptionHub() {
             <div className="mt-3 text-center font-display text-lg font-bold">NGN4950.00</div>
             <div className="text-center text-sm text-muted-foreground">per month</div>
           </div>
-          <button className="border-border flex flex-col items-center justify-center gap-2 rounded-2xl border bg-background p-5">
+          <button onClick={() => toast.success("New subscription plan editor opened")} className="border-border flex flex-col items-center justify-center gap-2 rounded-2xl border bg-background p-5">
             <Plus className="h-6 w-6" />
             <span className="text-sm">Add plan</span>
           </button>
@@ -295,7 +295,7 @@ function SubscriptionHub() {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="ml-12 mt-3 flex">
-          <button className="border-border flex h-32 w-24 flex-col items-center justify-center rounded-xl border">
+          <button onClick={() => toast.success("Sub-only post composer opened")} className="border-border flex h-32 w-24 flex-col items-center justify-center rounded-xl border">
             <Plus className="h-6 w-6" />
             <span className="mt-1 text-xs">Add</span>
           </button>
@@ -310,14 +310,14 @@ function SubscriptionHub() {
             { icon: FileText, label: "Subscriber notes" },
             { icon: Sliders, label: "Customizable perks" },
           ].map((r) => (
-            <div key={r.label} className="flex items-center gap-3">
+            <button key={r.label} onClick={() => toast.success(`${r.label} settings opened`)} className="flex w-full items-center gap-3 text-left">
               <div className="bg-muted relative flex h-10 w-10 items-center justify-center rounded-full">
                 <r.icon className="h-5 w-5" />
                 {r.dot && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-rose-500" />}
               </div>
               <div className="flex-1 font-bold">{r.label}</div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
+            </button>
           ))}
         </div>
       </section>
@@ -328,7 +328,7 @@ function SubscriptionHub() {
       <section className="bg-background px-4 py-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold">Subscription Playbook</h2>
-          <button className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
+          <button onClick={() => toast.info("Showing the full playbook section")} className="flex items-center gap-1 text-sm text-muted-foreground">View all <ChevronRight className="h-4 w-4" /></button>
         </div>
         <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
           {(["Highlights", "Trending creators", "Best practices"] as const).map((t) => (
@@ -363,11 +363,11 @@ function SubscriptionHub() {
       <section className="bg-background px-4 py-5">
         <h2 className="font-display text-xl font-bold">Widen your reach</h2>
         <div className="mt-4 flex gap-6">
-          <button className="flex flex-col items-center gap-2">
+          <button onClick={() => toast.success("Subscription spotlight setup opened")} className="flex flex-col items-center gap-2">
             <div className="bg-muted flex h-14 w-14 items-center justify-center rounded-full"><Wand2 className="h-5 w-5" /></div>
             <span className="text-xs font-semibold">Subscription spotlight</span>
           </button>
-          <button className="flex flex-col items-center gap-2">
+          <button onClick={() => navigator.clipboard?.writeText(`${location.origin}/profile`).then(() => toast.success("Subscription link copied"))} className="flex flex-col items-center gap-2">
             <div className="bg-muted flex h-14 w-14 items-center justify-center rounded-full"><LinkIcon className="h-5 w-5" /></div>
             <span className="text-xs font-semibold">Subscription link</span>
           </button>
@@ -378,8 +378,8 @@ function SubscriptionHub() {
       <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[480px] border-t border-border/40 bg-background/95 px-4 py-3 backdrop-blur">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1 text-sm text-muted-foreground">Set up your payment method to receive your monthly payouts.</div>
-          <Link to="/wallet" className="bg-gradient-live rounded-full px-4 py-1.5 text-sm font-bold text-primary-foreground">Set up</Link>
-          <button aria-label="Dismiss" className="text-muted-foreground"><X className="h-4 w-4" /></button>
+          <Link to="/studio/$section" params={{ section: "payouts" }} className="bg-gradient-live rounded-full px-4 py-1.5 text-sm font-bold text-primary-foreground">Set up</Link>
+          <button onClick={() => toast.info("Payment reminder dismissed")} aria-label="Dismiss" className="text-muted-foreground"><X className="h-4 w-4" /></button>
         </div>
       </div>
 
