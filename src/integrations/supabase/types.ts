@@ -122,6 +122,36 @@ export type Database = {
         }
         Relationships: []
       }
+      coin_packages: {
+        Row: {
+          active: boolean
+          coins: number
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          usd_cents: number
+        }
+        Insert: {
+          active?: boolean
+          coins: number
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+          usd_cents: number
+        }
+        Update: {
+          active?: boolean
+          coins?: number
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          usd_cents?: number
+        }
+        Relationships: []
+      }
       coin_purchases: {
         Row: {
           coins: number
@@ -268,6 +298,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fraud_flags: {
+        Row: {
+          created_at: string
+          id: string
+          meta: Json
+          reason: string
+          related_user_id: string | null
+          resolved: boolean
+          severity: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meta?: Json
+          reason: string
+          related_user_id?: string | null
+          resolved?: boolean
+          severity?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meta?: Json
+          reason?: string
+          related_user_id?: string | null
+          resolved?: boolean
+          severity?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       gift_catalog: {
         Row: {
@@ -464,6 +527,7 @@ export type Database = {
       payout_requests: {
         Row: {
           admin_notes: string | null
+          available_after: string | null
           coins: number
           created_at: string
           id: string
@@ -475,9 +539,11 @@ export type Database = {
           updated_at: string
           usd_cents: number
           user_id: string
+          verified_at_request: boolean
         }
         Insert: {
           admin_notes?: string | null
+          available_after?: string | null
           coins: number
           created_at?: string
           id?: string
@@ -489,9 +555,11 @@ export type Database = {
           updated_at?: string
           usd_cents: number
           user_id: string
+          verified_at_request?: boolean
         }
         Update: {
           admin_notes?: string | null
+          available_after?: string | null
           coins?: number
           created_at?: string
           id?: string
@@ -503,6 +571,34 @@ export type Database = {
           updated_at?: string
           usd_cents?: number
           user_id?: string
+          verified_at_request?: boolean
+        }
+        Relationships: []
+      }
+      platform_config: {
+        Row: {
+          coin_to_usd_cents: number
+          creator_share_pct: number
+          id: boolean
+          min_payout_usd_cents: number
+          payout_hold_days: number
+          updated_at: string
+        }
+        Insert: {
+          coin_to_usd_cents?: number
+          creator_share_pct?: number
+          id?: boolean
+          min_payout_usd_cents?: number
+          payout_hold_days?: number
+          updated_at?: string
+        }
+        Update: {
+          coin_to_usd_cents?: number
+          creator_share_pct?: number
+          id?: boolean
+          min_payout_usd_cents?: number
+          payout_hold_days?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -697,6 +793,39 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          coins: number
+          created_at: string
+          id: string
+          kind: string
+          meta: Json
+          ref_id: string | null
+          usd_cents: number
+          user_id: string
+        }
+        Insert: {
+          coins?: number
+          created_at?: string
+          id?: string
+          kind: string
+          meta?: Json
+          ref_id?: string | null
+          usd_cents?: number
+          user_id: string
+        }
+        Update: {
+          coins?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          meta?: Json
+          ref_id?: string | null
+          usd_cents?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -866,6 +995,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      request_payout: {
+        Args: { _coins: number; _details: string; _method: string }
+        Returns: string
       }
       send_gift: {
         Args: { _gift_key: string; _recipient: string; _stream_id?: string }

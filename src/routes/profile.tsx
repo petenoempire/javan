@@ -134,18 +134,27 @@ function Profile() {
         <div className="px-5 pb-6">
           <div className="-mt-12 flex items-end justify-between">
             {/* Avatar + story-creation badge */}
-            <div className="relative rounded-full bg-gradient-primary p-0.5 shadow-glow">
-              {profile?.avatar_url
-                ? <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-background object-cover shadow-elegant" alt="" />
-                : <div className="bg-gradient-primary h-24 w-24 rounded-full border-4 border-background shadow-elegant" />}
+            <div className="relative z-20 rounded-full bg-gradient-primary p-0.5 shadow-glow">
               <button
+                type="button"
+                onClick={() => setStoryOpen(true)}
+                aria-label="Open avatar story composer"
+                className="block rounded-full"
+              >
+                {profile?.avatar_url
+                  ? <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-background object-cover shadow-elegant" alt="" />
+                  : <div className="bg-gradient-primary h-24 w-24 rounded-full border-4 border-background shadow-elegant" />}
+              </button>
+              <button
+                type="button"
                 onClick={() => setStoryOpen(true)}
                 aria-label="Create a story"
-                className="bg-gradient-primary absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-[3px] border-background shadow-glow active:scale-90"
+                className="bg-gradient-primary absolute -bottom-1 -right-1 z-30 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-background shadow-glow active:scale-90"
               >
                 <Plus className="h-4 w-4 text-primary-foreground" strokeWidth={3} />
               </button>
             </div>
+
             <div className="flex gap-2">
               <button onClick={() => navigator.share?.({ url: location.href, title: `@${profile?.handle} on Javan` }).catch(() => {})}
                 className="glass rounded-full p-2"><Share2 className="h-4 w-4" /></button>
