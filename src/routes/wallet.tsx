@@ -12,7 +12,7 @@ export const Route = createFileRoute("/wallet")({
   component: WalletPage,
 });
 
-const MIN_PAYOUT = 10000;
+const MIN_PAYOUT = 2000; // $20 at 100 coins = $1
 
 function WalletPage() {
   const { profile, user } = useAuth();
