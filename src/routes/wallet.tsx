@@ -66,7 +66,7 @@ function WalletPage() {
             <Coins className="mb-1 h-8 w-8" />
             <span className="font-display text-5xl font-bold">{coins.toLocaleString()}</span>
           </div>
-          <div className="mt-1 text-xs opacity-70">≈ ${coinsToUsd(coins).toFixed(2)} USD · 100 coins = $0.10</div>
+          <div className="mt-1 text-xs opacity-70">≈ ${coinsToUsd(coins).toFixed(2)} USD · 100 coins = $1.00</div>
 
           <TopUpDialog>
             <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-bold backdrop-blur transition hover:bg-white/25">
@@ -84,10 +84,11 @@ function WalletPage() {
           <div className="mt-1 flex items-end gap-2">
             <span className="font-display text-3xl font-bold text-gradient">${usd}</span>
             <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-              <Sparkles className="h-3 w-3" /> 2× Rewards
+              <Sparkles className="h-3 w-3" /> 80% creator share
             </span>
           </div>
-          <div className="text-xs text-muted-foreground">{earned.toLocaleString()} coins earned · 70% creator share</div>
+          <div className="text-xs text-muted-foreground">{earned.toLocaleString()} coins earned · withdraw from $20</div>
+
 
           <PayoutRequestDialog earnedCoins={earned}>
             <button
