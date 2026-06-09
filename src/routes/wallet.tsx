@@ -100,8 +100,9 @@ function WalletPage() {
           </PayoutRequestDialog>
 
           <p className="mt-2 text-[11px] text-muted-foreground">
-            Minimum payout {MIN_PAYOUT.toLocaleString()} coins. Reviewed within 3 business days.
+            Minimum withdrawal $20 ({MIN_PAYOUT.toLocaleString()} coins). 7-day fraud hold, then admin review.
           </p>
+
         </div>
 
         {/* History */}
