@@ -156,8 +156,8 @@ function Profile() {
             </div>
 
             <div className="flex gap-2">
-              <button onClick={() => navigator.share?.({ url: location.href, title: `@${profile?.handle} on Javan` }).catch(() => {})}
-                className="glass rounded-full p-2"><Share2 className="h-4 w-4" /></button>
+              <button onClick={() => import("@/lib/share").then(({ shareOrCopy }) => shareOrCopy({ url: location.href, title: `@${profile?.handle} on Javan` }))}
+                className="glass rounded-full p-2" aria-label="Share profile"><Share2 className="h-4 w-4" /></button>
               <button onClick={() => signOut().then(() => navigate({ to: "/auth" }))} className="glass rounded-full p-2">
                 <LogOut className="h-4 w-4" />
               </button>

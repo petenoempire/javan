@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle, Share2, Music2, BadgeCheck, Volume2, VolumeX, Flag } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -84,11 +85,18 @@ export function VideoCard({
       </AnimatePresence>
 
       <div className="absolute bottom-32 right-3 z-10 flex flex-col items-center gap-5 text-white">
-        {video.author.avatar_url ? (
-          <img src={video.author.avatar_url} alt="" className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-glow" />
-        ) : (
-          <div className="bg-gradient-primary h-12 w-12 rounded-full border-2 border-white shadow-glow" />
-        )}
+        <Link
+          to="/u/$handle"
+          params={{ handle: video.author.handle }}
+          aria-label={`View @${video.author.handle}`}
+          className="block active:scale-95"
+        >
+          {video.author.avatar_url ? (
+            <img src={video.author.avatar_url} alt="" className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-glow" />
+          ) : (
+            <div className="bg-gradient-primary h-12 w-12 rounded-full border-2 border-white shadow-glow" />
+          )}
+        </Link>
         <button onClick={toggleLike} className="flex flex-col items-center gap-1 active:scale-90" aria-label="Like">
           <div className={`glass flex h-12 w-12 items-center justify-center rounded-full ${liked ? "heart-burst" : ""}`}>
             <Heart className={`h-7 w-7 ${liked ? "fill-rose text-rose" : "text-white"}`} />
@@ -119,16 +127,21 @@ export function VideoCard({
       </div>
 
       <div className="absolute bottom-28 left-4 right-20 z-10 text-white">
-        <div className="mb-2 flex items-center gap-2">
+        <Link to="/u/$handle" params={{ handle: video.author.handle }} className="mb-2 flex items-center gap-2 active:opacity-80">
           <span className="font-display text-lg font-semibold">@{video.author.handle}</span>
           {video.author.is_verified && <BadgeCheck className="h-4 w-4 fill-accent text-background" />}
-        </div>
+        </Link>
         {video.caption && <p className="mb-3 text-sm leading-snug opacity-95">{video.caption}</p>}
         {video.music && (
-          <div className="flex items-center gap-2 text-xs opacity-80">
+          <button
+            type="button"
+            onClick={onShare}
+            className="flex items-center gap-2 text-xs opacity-80 active:opacity-60"
+            aria-label="Share sound"
+          >
             <Music2 className="h-3.5 w-3.5" />
             <span className="truncate">{video.music}</span>
-          </div>
+          </button>
         )}
       </div>
     </div>
