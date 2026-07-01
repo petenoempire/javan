@@ -94,7 +94,7 @@ function FriendsFeed() {
                 video={v}
                 active={i === activeIdx}
                 onComment={() => setCommentsFor(v.id)}
-                onShare={() => navigator.share?.({ title: v.caption || "Javan", url: location.href }).catch(() => {})}
+                onShare={() => import("@/lib/share").then(({ shareOrCopy }) => shareOrCopy({ title: v.caption || "Javan", url: location.href }))}
                 onReport={() => {}}
               />
             </div>

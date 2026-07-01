@@ -33,10 +33,8 @@ function QrPage() {
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-2">
-            <button onClick={() => {
-              if (navigator.share) navigator.share({ url, title: `@${profile?.handle} on Javan` }).catch(() => {});
-              else { navigator.clipboard.writeText(url); toast.success("Profile link copied"); }
-            }} className="flex items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-bold backdrop-blur">
+            <button onClick={() => import("@/lib/share").then(({ shareOrCopy }) => shareOrCopy({ url, title: `@${profile?.handle} on Javan` }))}
+              className="flex items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-bold backdrop-blur">
               <Share2 className="h-4 w-4" /> Share
             </button>
             <a href={qrSrc} download={`boogle-${profile?.handle}.png`}
