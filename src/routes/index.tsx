@@ -5,10 +5,12 @@ import { MobileShell } from "@/components/MobileShell";
 import { VideoCard } from "@/components/VideoCard";
 import { CommentDrawer } from "@/components/CommentDrawer";
 import { ReportDialog } from "@/components/ReportDialog";
+import { StoryTray } from "@/components/StoryTray";
 import { fetchFeed } from "@/lib/feed";
+import { fetchActiveStreams } from "@/lib/live";
 import { useAuth } from "@/lib/auth";
 import { motion } from "motion/react";
-import { Sparkles, Plus, Tv, Search } from "lucide-react";
+import { Sparkles, Plus, Tv, Search, Radio, Users, BadgeCheck } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
