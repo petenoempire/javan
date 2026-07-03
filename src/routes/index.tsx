@@ -102,13 +102,23 @@ function FeedPage() {
       </div>
 
       {tab === "live" ? (
-        <LivePlaceholder />
+        <LiveGrid />
       ) : isLoading ? (
         <div className="flex h-[100dvh] items-center justify-center bg-black text-white/60 text-sm">Loading feed…</div>
       ) : videos.length === 0 ? (
-        <EmptyFeed tab={tab} />
+        <>
+          <div className="pointer-events-auto absolute inset-x-0 top-10 z-30">
+            <StoryTray />
+          </div>
+          <EmptyFeed tab={tab} />
+        </>
       ) : (
         <div ref={containerRef} className="no-scrollbar h-[100dvh] snap-y snap-mandatory overflow-y-scroll">
+          {tab === "foryou" && (
+            <div className="pointer-events-auto absolute inset-x-0 top-10 z-30">
+              <StoryTray />
+            </div>
+          )}
           {videos.map((v, i) => (
             <div key={v.id} data-idx={i}>
               <VideoCard
@@ -129,14 +139,70 @@ function FeedPage() {
   );
 }
 
-function LivePlaceholder() {
-  return (
-    <div className="flex h-[100dvh] flex-col items-center justify-center bg-black px-8 text-center text-white">
-      <div className="bg-gradient-primary mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-glow">
-        <Tv className="h-8 w-8 text-primary-foreground" />
+function LiveGrid() {
+  const { data: streams = [], isLoading } = useQuery({
+    queryKey: ["live-active"],
+    queryFn: () => fetchActiveStreams(),
+    refetchInterval: 20_000,
+  });
+
+  if (isLoading) {
+    return <div className="flex h-[100dvh] items-center justify-center bg-black text-white/60 text-sm">Loading LIVE…</div>;
+  }
+
+  if (streams.length === 0) {
+    return (
+      <div className="flex h-[100dvh] flex-col items-center justify-center bg-black px-8 text-center text-white">
+        <div className="bg-gradient-primary mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-glow">
+          <Tv className="h-8 w-8 text-primary-foreground" />
+        </div>
+        <h2 className="font-display text-2xl font-bold">No live streams right now</h2>
+        <p className="mt-2 max-w-xs text-sm text-white/70">Be the first — start a LIVE from the create studio and your room lights up here.</p>
+        <Link to="/create" className="bg-gradient-primary mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
+          <Radio className="h-4 w-4" /> Go LIVE
+        </Link>
       </div>
-      <h2 className="font-display text-2xl font-bold">Live streams</h2>
-      <p className="mt-2 max-w-xs text-sm text-white/70">No one is streaming right now. Check back soon — this feed lights up the moment creators go live.</p>
+    );
+  }
+
+  return (
+    <div className="h-[100dvh] overflow-y-auto bg-black px-3 pb-28 pt-20">
+      <div className="mb-3 flex items-center gap-2 px-1">
+        <span className="flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white live-pulse">
+          <Radio className="h-3 w-3" /> Live
+        </span>
+        <span className="text-xs text-white/60">{streams.length} rooms open</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {streams.map((s) => (
+          <Link
+            key={s.id}
+            to="/live/$id"
+            params={{ id: s.id }}
+            className="relative aspect-[9/14] overflow-hidden rounded-2xl bg-gradient-to-br from-fuchsia-900/40 via-black to-rose-900/30 shadow-elegant active:scale-[0.98]"
+          >
+            {s.host.avatar_url && (
+              <img src={s.host.avatar_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70" />
+            )}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
+            <div className="absolute inset-x-2 top-2 flex items-center justify-between">
+              <span className="flex items-center gap-1 rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white live-pulse">
+                <Radio className="h-2.5 w-2.5" /> Live
+              </span>
+              <span className="glass flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                <Users className="h-2.5 w-2.5" /> {s.viewer_count || 1}
+              </span>
+            </div>
+            <div className="absolute inset-x-2 bottom-2 text-white">
+              <div className="flex items-center gap-1 text-xs font-semibold">
+                @{s.host.handle}
+                {s.host.is_verified && <BadgeCheck className="h-3 w-3 text-accent" />}
+              </div>
+              {s.title && <div className="truncate text-[10px] text-white/80">{s.title}</div>}
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
