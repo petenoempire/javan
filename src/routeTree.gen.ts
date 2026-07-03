@@ -18,6 +18,7 @@ import { Route as QrRouteImport } from './routes/qr'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as FriendsRouteImport } from './routes/friends'
@@ -52,8 +53,11 @@ import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminPayoutsRouteImport } from './routes/admin/payouts'
 import { Route as AdminContentRouteImport } from './routes/admin/content'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as SettingsSecurityRecoveryRouteImport } from './routes/settings.security.recovery'
 import { Route as SettingsAccountVerificationRouteImport } from './routes/settings.account.verification'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
@@ -98,6 +102,11 @@ const OfflineRoute = OfflineRouteImport.update({
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InboxRoute = InboxRouteImport.update({
@@ -270,6 +279,18 @@ const AdminContentRoute = AdminContentRouteImport.update({
   path: '/content',
   getParentRoute: () => AdminRoute,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SettingsSecurityRecoveryRoute =
   SettingsSecurityRecoveryRouteImport.update({
     id: '/recovery',
@@ -281,6 +302,12 @@ const SettingsAccountVerificationRoute =
     id: '/verification',
     path: '/verification',
     getParentRoute: () => SettingsAccountRoute,
+  } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -294,6 +321,7 @@ export interface FileRoutesByFullPath {
   '/friends': typeof FriendsRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/mcp': typeof McpRoute
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
@@ -303,6 +331,8 @@ export interface FileRoutesByFullPath {
   '/studio': typeof StudioRouteWithChildren
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -327,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/settings/account/verification': typeof SettingsAccountVerificationRoute
   '/settings/security/recovery': typeof SettingsSecurityRecoveryRoute
 }
@@ -340,6 +371,7 @@ export interface FileRoutesByTo {
   '/friends': typeof FriendsRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/mcp': typeof McpRoute
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
@@ -348,6 +380,8 @@ export interface FileRoutesByTo {
   '/studio': typeof StudioRouteWithChildren
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -372,6 +406,7 @@ export interface FileRoutesByTo {
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/settings/account/verification': typeof SettingsAccountVerificationRoute
   '/settings/security/recovery': typeof SettingsSecurityRecoveryRoute
 }
@@ -387,6 +422,7 @@ export interface FileRoutesById {
   '/friends': typeof FriendsRoute
   '/help': typeof HelpRouteWithChildren
   '/inbox': typeof InboxRouteWithChildren
+  '/mcp': typeof McpRoute
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
@@ -396,6 +432,8 @@ export interface FileRoutesById {
   '/studio': typeof StudioRouteWithChildren
   '/verify': typeof VerifyRoute
   '/wallet': typeof WalletRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -420,6 +458,7 @@ export interface FileRoutesById {
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/settings/account/verification': typeof SettingsAccountVerificationRoute
   '/settings/security/recovery': typeof SettingsSecurityRecoveryRoute
 }
@@ -436,6 +475,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/help'
     | '/inbox'
+    | '/mcp'
     | '/notifications'
     | '/offline'
     | '/profile'
@@ -445,6 +485,8 @@ export interface FileRouteTypes {
     | '/studio'
     | '/verify'
     | '/wallet'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/content'
     | '/admin/payouts'
     | '/admin/reports'
@@ -469,6 +511,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
+    | '/.mcp/invoke-tool/$tool'
     | '/settings/account/verification'
     | '/settings/security/recovery'
   fileRoutesByTo: FileRoutesByTo
@@ -482,6 +525,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/help'
     | '/inbox'
+    | '/mcp'
     | '/notifications'
     | '/offline'
     | '/profile'
@@ -490,6 +534,8 @@ export interface FileRouteTypes {
     | '/studio'
     | '/verify'
     | '/wallet'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/content'
     | '/admin/payouts'
     | '/admin/reports'
@@ -514,6 +560,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/admin'
     | '/settings'
+    | '/.mcp/invoke-tool/$tool'
     | '/settings/account/verification'
     | '/settings/security/recovery'
   id:
@@ -528,6 +575,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/help'
     | '/inbox'
+    | '/mcp'
     | '/notifications'
     | '/offline'
     | '/profile'
@@ -537,6 +585,8 @@ export interface FileRouteTypes {
     | '/studio'
     | '/verify'
     | '/wallet'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/content'
     | '/admin/payouts'
     | '/admin/reports'
@@ -561,6 +611,7 @@ export interface FileRouteTypes {
     | '/u/$handle'
     | '/admin/'
     | '/settings/'
+    | '/.mcp/invoke-tool/$tool'
     | '/settings/account/verification'
     | '/settings/security/recovery'
   fileRoutesById: FileRoutesById
@@ -576,6 +627,7 @@ export interface RootRouteChildren {
   FriendsRoute: typeof FriendsRoute
   HelpRoute: typeof HelpRouteWithChildren
   InboxRoute: typeof InboxRouteWithChildren
+  McpRoute: typeof McpRoute
   NotificationsRoute: typeof NotificationsRoute
   OfflineRoute: typeof OfflineRoute
   ProfileRoute: typeof ProfileRouteWithChildren
@@ -585,10 +637,13 @@ export interface RootRouteChildren {
   StudioRoute: typeof StudioRouteWithChildren
   VerifyRoute: typeof VerifyRoute
   WalletRoute: typeof WalletRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ArtistOnboardingRoute: typeof ArtistOnboardingRoute
   ArtistStudioRoute: typeof ArtistStudioRoute
   LiveIdRoute: typeof LiveIdRoute
   UHandleRoute: typeof UHandleRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -654,6 +709,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inbox': {
@@ -894,6 +956,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContentRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/security/recovery': {
       id: '/settings/security/recovery'
       path: '/recovery'
@@ -907,6 +983,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/account/verification'
       preLoaderRoute: typeof SettingsAccountVerificationRouteImport
       parentRoute: typeof SettingsAccountRoute
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -1037,6 +1120,7 @@ const rootRouteChildren: RootRouteChildren = {
   FriendsRoute: FriendsRoute,
   HelpRoute: HelpRouteWithChildren,
   InboxRoute: InboxRouteWithChildren,
+  McpRoute: McpRoute,
   NotificationsRoute: NotificationsRoute,
   OfflineRoute: OfflineRoute,
   ProfileRoute: ProfileRouteWithChildren,
@@ -1046,11 +1130,25 @@ const rootRouteChildren: RootRouteChildren = {
   StudioRoute: StudioRouteWithChildren,
   VerifyRoute: VerifyRoute,
   WalletRoute: WalletRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ArtistOnboardingRoute: ArtistOnboardingRoute,
   ArtistStudioRoute: ArtistStudioRoute,
   LiveIdRoute: LiveIdRoute,
   UHandleRoute: UHandleRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
