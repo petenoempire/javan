@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Share2, Music2, BadgeCheck, Volume2, VolumeX, Flag } from "lucide-react";
+import { Heart, MessageCircle, Share2, Music2, BadgeCheck, Volume2, VolumeX, Flag, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
