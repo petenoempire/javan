@@ -407,6 +407,77 @@ export type Database = {
           },
         ]
       }
+      live_chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          gift_coins: number
+          gift_key: string | null
+          id: string
+          kind: string
+          stream_id: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          gift_coins?: number
+          gift_key?: string | null
+          id?: string
+          kind?: string
+          stream_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          gift_coins?: number
+          gift_key?: string | null
+          id?: string
+          kind?: string
+          stream_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_chat_messages_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "live_streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_streams: {
+        Row: {
+          ended_at: string | null
+          host_id: string
+          id: string
+          started_at: string
+          status: string
+          title: string | null
+          viewer_count: number
+        }
+        Insert: {
+          ended_at?: string | null
+          host_id: string
+          id?: string
+          started_at?: string
+          status?: string
+          title?: string | null
+          viewer_count?: number
+        }
+        Update: {
+          ended_at?: string | null
+          host_id?: string
+          id?: string
+          started_at?: string
+          status?: string
+          title?: string | null
+          viewer_count?: number
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
@@ -727,6 +798,62 @@ export type Database = {
           target_type?: string
         }
         Relationships: []
+      }
+      stories: {
+        Row: {
+          caption: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          media_type: string
+          media_url: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          media_type?: string
+          media_url: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_views: {
+        Row: {
+          story_id: string
+          viewed_at: string
+          viewer_id: string
+        }
+        Insert: {
+          story_id: string
+          viewed_at?: string
+          viewer_id: string
+        }
+        Update: {
+          story_id?: string
+          viewed_at?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_messages: {
         Row: {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Share2, Music2, BadgeCheck, Volume2, VolumeX, Flag } from "lucide-react";
+import { Heart, MessageCircle, Share2, Music2, BadgeCheck, Volume2, VolumeX, Flag, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +31,7 @@ export function VideoCard({
   const [liked, setLiked] = useState(video.liked_by_me);
   const [likeCount, setLikeCount] = useState(video.like_count);
   const [muted, setMuted] = useState(true);
+  const [saved, setSaved] = useState(false);
   const [bursts, setBursts] = useState<number[]>([]);
 
   useEffect(() => {
@@ -112,6 +113,11 @@ export function VideoCard({
         <button onClick={onShare} className="flex flex-col items-center gap-1 active:scale-90" aria-label="Share">
           <div className="glass flex h-12 w-12 items-center justify-center rounded-full">
             <Share2 className="h-7 w-7 text-white" />
+          </div>
+        </button>
+        <button onClick={() => { setSaved((s) => !s); toast.success(saved ? "Removed from saved" : "Saved"); }} className="flex flex-col items-center gap-1 active:scale-90" aria-label="Save">
+          <div className="glass flex h-12 w-12 items-center justify-center rounded-full">
+            <Bookmark className={`h-6 w-6 ${saved ? "fill-amber-300 text-amber-300" : "text-white"}`} />
           </div>
         </button>
         <button onClick={onReport} className="flex flex-col items-center gap-1 active:scale-90" aria-label="Report">

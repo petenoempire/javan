@@ -148,6 +148,8 @@ const liveSwitches = [
 ];
 
 function LivePanel({ onCaptured }: { onCaptured: (f: File) => void }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [sub, setSub] = useState("Device camera");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [recording, setRecording] = useState(false);
@@ -243,7 +245,16 @@ function LivePanel({ onCaptured }: { onCaptured: (f: File) => void }) {
         </section>
       )}
 
-      <button onClick={recording ? stopLive : startLive} className="fixed inset-x-5 bottom-24 z-20 mx-auto max-w-[440px] rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-4 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.9)] live-pulse">
+      <button
+        onClick={async () => {
+          if (recording) return stopLive();
+          if (!user) { toast.error("Sign in to go LIVE"); return; }
+          const { data, error } = await supabase.from("live_streams").insert({ host_id: user.id, title: sub }).select("id").single();
+          if (error || !data) { toast.error(error?.message ?? "Could not start LIVE"); return; }
+          navigate({ to: "/live/$id", params: { id: data.id }, search: { host: "1" } });
+        }}
+        className="fixed inset-x-5 bottom-24 z-20 mx-auto max-w-[440px] rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-4 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.9)] live-pulse"
+      >
         {recording ? "Stop LIVE & publish" : "Go LIVE"}
       </button>
     </div>

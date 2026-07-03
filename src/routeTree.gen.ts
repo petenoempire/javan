@@ -33,6 +33,7 @@ import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as StudioSectionRouteImport } from './routes/studio.$section'
+import { Route as StoryUserIdRouteImport } from './routes/story.$userId'
 import { Route as SettingsSecurityRouteImport } from './routes/settings.security'
 import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
@@ -178,6 +179,11 @@ const StudioSectionRoute = StudioSectionRouteImport.update({
   id: '/$section',
   path: '/$section',
   getParentRoute: () => StudioRoute,
+} as any)
+const StoryUserIdRoute = StoryUserIdRouteImport.update({
+  id: '/story/$userId',
+  path: '/story/$userId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
   id: '/security',
@@ -353,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/settings/security': typeof SettingsSecurityRouteWithChildren
+  '/story/$userId': typeof StoryUserIdRoute
   '/studio/$section': typeof StudioSectionRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
@@ -402,6 +409,7 @@ export interface FileRoutesByTo {
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/settings/security': typeof SettingsSecurityRouteWithChildren
+  '/story/$userId': typeof StoryUserIdRoute
   '/studio/$section': typeof StudioSectionRoute
   '/u/$handle': typeof UHandleRoute
   '/admin': typeof AdminIndexRoute
@@ -454,6 +462,7 @@ export interface FileRoutesById {
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/settings/security': typeof SettingsSecurityRouteWithChildren
+  '/story/$userId': typeof StoryUserIdRoute
   '/studio/$section': typeof StudioSectionRoute
   '/u/$handle': typeof UHandleRoute
   '/admin/': typeof AdminIndexRoute
@@ -507,6 +516,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
+    | '/story/$userId'
     | '/studio/$section'
     | '/u/$handle'
     | '/admin/'
@@ -556,6 +566,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
+    | '/story/$userId'
     | '/studio/$section'
     | '/u/$handle'
     | '/admin'
@@ -607,6 +618,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/security'
+    | '/story/$userId'
     | '/studio/$section'
     | '/u/$handle'
     | '/admin/'
@@ -642,6 +654,7 @@ export interface RootRouteChildren {
   ArtistOnboardingRoute: typeof ArtistOnboardingRoute
   ArtistStudioRoute: typeof ArtistStudioRoute
   LiveIdRoute: typeof LiveIdRoute
+  StoryUserIdRoute: typeof StoryUserIdRoute
   UHandleRoute: typeof UHandleRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
@@ -815,6 +828,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/studio/$section'
       preLoaderRoute: typeof StudioSectionRouteImport
       parentRoute: typeof StudioRoute
+    }
+    '/story/$userId': {
+      id: '/story/$userId'
+      path: '/story/$userId'
+      fullPath: '/story/$userId'
+      preLoaderRoute: typeof StoryUserIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/settings/security': {
       id: '/settings/security'
@@ -1136,6 +1156,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArtistOnboardingRoute: ArtistOnboardingRoute,
   ArtistStudioRoute: ArtistStudioRoute,
   LiveIdRoute: LiveIdRoute,
+  StoryUserIdRoute: StoryUserIdRoute,
   UHandleRoute: UHandleRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
