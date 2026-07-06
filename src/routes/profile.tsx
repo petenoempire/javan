@@ -26,7 +26,7 @@ function Profile() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isProfileIndex = pathname === "/profile";
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [storyOpen, setStoryOpen] = useState(false);
+  
   const [hub, setHub] = useState<"videos" | "music">("videos");
   const [feedTab, setFeedTab] = useState<FeedTab>("posts");
 
