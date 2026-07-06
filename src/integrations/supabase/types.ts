@@ -1111,17 +1111,92 @@ export type Database = {
     }
     Functions: {
       admin_count: { Args: never; Returns: number }
+      admin_profiles_by_ids: {
+        Args: { _ids: string[] }
+        Returns: {
+          avatar_url: string | null
+          banned: boolean
+          bio: string | null
+          coins: number
+          cover_url: string | null
+          created_at: string
+          display_name: string
+          earned_coins: number
+          handle: string
+          id: string
+          is_verified: boolean
+          location: string | null
+          suspended_until: string | null
+          updated_at: string
+          website: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_search_profiles: {
+        Args: { _limit?: number; _q?: string }
+        Returns: {
+          avatar_url: string | null
+          banned: boolean
+          bio: string | null
+          coins: number
+          cover_url: string | null
+          created_at: string
+          display_name: string
+          earned_coins: number
+          handle: string
+          id: string
+          is_verified: boolean
+          location: string | null
+          suspended_until: string | null
+          updated_at: string
+          website: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       claim_first_admin: { Args: never; Returns: boolean }
       get_or_create_conversation: {
         Args: { other_id: string }
         Returns: string
       }
       has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
+      }
+      my_profile: {
+        Args: never
+        Returns: {
+          avatar_url: string | null
+          banned: boolean
+          bio: string | null
+          coins: number
+          cover_url: string | null
+          created_at: string
+          display_name: string
+          earned_coins: number
+          handle: string
+          id: string
+          is_verified: boolean
+          location: string | null
+          suspended_until: string | null
+          updated_at: string
+          website: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       request_payout: {
         Args: { _coins: number; _details: string; _method: string }
