@@ -46,7 +46,8 @@ function AccountSettings() {
             );
             const cls = `flex items-center gap-3 px-4 py-3.5 active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`;
             return item.to ? (
-              <Link key={item.label} to={item.to} onClick={(e) => e.stopPropagation()} className={cls}>{inner}</Link>
+              <Link key={item.label} to={item.to} className={cls}>{inner}</Link>
+
 
             ) : (
               <button key={item.label} onClick={() => toast.info(`${item.label} is coming soon`)} className={`${cls} text-left w-full`}>
