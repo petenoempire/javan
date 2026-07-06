@@ -115,7 +115,7 @@ function Profile() {
   return (
     <MobileShell>
       <ProfileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      <StoryComposer open={storyOpen} onClose={() => setStoryOpen(false)} />
+      
 
       <div className="relative">
         {profile?.cover_url
