@@ -35,10 +35,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProfile = async (uid: string) => {
-    const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
-    setProfile((data as Profile) ?? null);
+  const loadProfile = async (_uid: string) => {
+    // Owner-only RPC returns the full profile row including sensitive fields
+    // (coins, earned_coins) which are hidden from direct SELECT for privacy.
+    const { data } = await (supabase as any).rpc("my_profile");
+    const row = Array.isArray(data) ? data[0] : data;
+    setProfile((row as Profile) ?? null);
   };
+
 
   const refreshProfile = async () => {
     if (session?.user) await loadProfile(session.user.id);
