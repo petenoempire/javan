@@ -26,7 +26,7 @@ function Profile() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isProfileIndex = pathname === "/profile";
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [storyOpen, setStoryOpen] = useState(false);
+  
   const [hub, setHub] = useState<"videos" | "music">("videos");
   const [feedTab, setFeedTab] = useState<FeedTab>("posts");
 
@@ -115,7 +115,7 @@ function Profile() {
   return (
     <MobileShell>
       <ProfileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      <StoryComposer open={storyOpen} onClose={() => setStoryOpen(false)} />
+      
 
       <div className="relative">
         {profile?.cover_url
@@ -133,27 +133,13 @@ function Profile() {
 
         <div className="px-5 pb-6">
           <div className="-mt-12 flex items-end justify-between">
-            {/* Avatar + story-creation badge */}
+            {/* Avatar */}
             <div className="relative z-20 rounded-full bg-gradient-primary p-0.5 shadow-glow">
-              <button
-                type="button"
-                onClick={() => setStoryOpen(true)}
-                aria-label="Open avatar story composer"
-                className="block rounded-full"
-              >
-                {profile?.avatar_url
-                  ? <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-background object-cover shadow-elegant" alt="" />
-                  : <div className="bg-gradient-primary h-24 w-24 rounded-full border-4 border-background shadow-elegant" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setStoryOpen(true)}
-                aria-label="Create a story"
-                className="bg-gradient-primary absolute -bottom-1 -right-1 z-30 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-background shadow-glow active:scale-90"
-              >
-                <Plus className="h-4 w-4 text-primary-foreground" strokeWidth={3} />
-              </button>
+              {profile?.avatar_url
+                ? <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-background object-cover shadow-elegant" alt="" />
+                : <div className="bg-gradient-primary h-24 w-24 rounded-full border-4 border-background shadow-elegant" />}
             </div>
+
 
             <div className="flex gap-2">
               <button onClick={() => import("@/lib/share").then(({ shareOrCopy }) => shareOrCopy({ url: location.href, title: `@${profile?.handle} on Javan` }))}
