@@ -19,14 +19,11 @@ function AdminUsers() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users", q],
     queryFn: async () => {
-      let query = supabase.from("profiles")
-        .select("id,handle,display_name,avatar_url,is_verified,coins,earned_coins,created_at,banned,suspended_until")
-        .order("created_at", { ascending: false }).limit(100);
-      if (q.trim()) query = query.or(`handle.ilike.%${q}%,display_name.ilike.%${q}%`);
-      const { data } = await query;
-      return data ?? [];
+      const { data } = await (supabase as any).rpc("admin_search_profiles", { _q: q.trim() || null, _limit: 100 });
+      return (data ?? []) as any[];
     },
   });
+
 
   const act = async (u: any, action: "suspend" | "unsuspend" | "ban" | "unban" | "verify" | "unverify") => {
     if (!user) return;

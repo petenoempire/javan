@@ -25,7 +25,7 @@ function AdminPayouts() {
       const list = data ?? [];
       const uids = Array.from(new Set(list.map((r: any) => r.user_id)));
       if (uids.length) {
-        const { data: profs } = await supabase.from("profiles").select("id,handle,display_name,avatar_url,is_verified,earned_coins").in("id", uids);
+        const { data: profs } = await (supabase as any).rpc("admin_profiles_by_ids", { _ids: uids });
         const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
         return list.map((r: any) => ({ ...r, profile: map.get(r.user_id) }));
       }
