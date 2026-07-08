@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, ShieldCheck, AtSign, KeyRound, ChevronRight, Mic2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,6 +16,10 @@ const items: Item[] = [
 ];
 
 function AccountSettings() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  if (pathname !== "/settings/account") return <Outlet />;
+
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-24">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
@@ -47,8 +51,6 @@ function AccountSettings() {
             const cls = `flex items-center gap-3 px-4 py-3.5 active:bg-primary/5 ${i > 0 ? "border-t border-border/40" : ""}`;
             return item.to ? (
               <Link key={item.label} to={item.to} className={cls}>{inner}</Link>
-
-
             ) : (
               <button key={item.label} onClick={() => toast.info(`${item.label} is coming soon`)} className={`${cls} text-left w-full`}>
                 {inner}
