@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +24,6 @@ const DOC_TYPES = [
 
 function VerificationPage() {
   const { user, profile, loading } = useAuth();
-  const navigate = useNavigate();
   const [kind, setKind] = useState<"individual" | "business">("individual");
   const [applicantType, setApplicantType] = useState("Public figure / creator");
   const [legalName, setLegalName] = useState("");
@@ -39,10 +38,6 @@ function VerificationPage() {
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
-  }, [loading, user, navigate]);
 
   const { data: latest, refetch } = useQuery({
     queryKey: ["my-verification", user?.id],
@@ -96,7 +91,7 @@ function VerificationPage() {
     }
   };
 
-  if (loading || !user) {
+  if (loading) {
     return <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background px-5 pt-20 text-sm text-muted-foreground">Loading…</div>;
   }
 
@@ -131,6 +126,18 @@ function VerificationPage() {
           </p>
         </div>
 
+        {!user && (
+          <div className="glass mb-5 rounded-2xl p-4">
+            <div className="font-display text-sm font-bold">Sign in to request verification</div>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              You can review the verification requirements here. Sign in when you’re ready to submit documents for review.
+            </p>
+            <Link to="/auth" className="bg-gradient-primary mt-4 inline-flex rounded-full px-5 py-2 text-xs font-bold text-primary-foreground shadow-glow">
+              Sign in
+            </Link>
+          </div>
+        )}
+
         {profile?.is_verified && (
           <div className="glass mb-5 rounded-2xl p-4">
             <div className="flex items-center gap-2"><BadgeCheck className="h-5 w-5 fill-accent text-background" /><span className="font-display font-semibold">You are verified</span></div>
@@ -139,7 +146,7 @@ function VerificationPage() {
 
         {latest && <StatusCard latest={latest} />}
 
-        {(!latest || latest.status === "rejected") && !profile?.is_verified && (
+        {user && (!latest || latest.status === "rejected") && !profile?.is_verified && (
           <div className="space-y-3">
             <div className="glass rounded-2xl p-1">
               <div className="grid grid-cols-2 gap-1">

@@ -30,7 +30,12 @@ function SupportChat() {
   const [category, setCategory] = useState<string | null>(null);
   const [ticketId, setTicketId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([
-    bot("Welcome to Javan Support. Pick a topic and I’ll guide you with quick choices. If I can’t resolve it, I’ll create a support ticket for the team."),
+    {
+      id: "ava-welcome",
+      body: "Welcome to Javan Support. Pick a topic and I’ll guide you with quick choices. If I can’t resolve it, I’ll create a support ticket for the team.",
+      is_agent: true,
+      created_at: "welcome",
+    },
   ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
