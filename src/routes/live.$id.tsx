@@ -115,9 +115,9 @@ function LivePage() {
   }
 
   return (
-    <div className="fixed inset-0 z-40 mx-auto flex max-w-[480px] flex-col overflow-hidden bg-black text-white">
-      {/* Video area */}
-      <div className="absolute inset-0">
+    <div className="fixed inset-0 z-50 flex h-[100dvh] w-screen flex-col overflow-hidden bg-black text-white">
+      {/* Video area — full viewport */}
+      <div className="absolute inset-0 h-full w-full">
         {wantHost && hostStream ? (
           <video ref={hostVideoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
         ) : (
