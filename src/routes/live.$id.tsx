@@ -60,7 +60,7 @@ function LivePage() {
     return () => { supabase.removeChannel(channel); };
   }, [id, user?.id, isHost]);
 
-  // Host camera capture
+  // Live camera capture — enabled for host, and available on request for viewers
   useEffect(() => {
     if (!wantHost) return;
     let localStream: MediaStream | null = null;
@@ -74,6 +74,17 @@ function LivePage() {
     })();
     return () => { localStream?.getTracks().forEach((t) => t.stop()); };
   }, [wantHost]);
+
+  const enableViewerCamera = async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      setHostStream(s);
+      toast.success("Camera enabled");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Camera permission denied");
+    }
+  };
+
 
   useEffect(() => {
     if (hostVideoRef.current && hostStream) hostVideoRef.current.srcObject = hostStream;
@@ -133,9 +144,15 @@ function LivePage() {
                 {stream.host.is_verified && <BadgeCheck className="h-4 w-4 text-accent" />}
               </div>
               <p className="mt-1 text-xs text-white/60">Waiting for host video…</p>
+              {!isHost && (
+                <button onClick={enableViewerCamera} className="glass mt-4 inline-flex items-center gap-1 rounded-full px-4 py-2 text-xs font-semibold active:scale-95">
+                  <VideoIcon className="h-3.5 w-3.5" /> Enable my camera
+                </button>
+              )}
             </div>
           </div>
         )}
+
       </div>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
 
