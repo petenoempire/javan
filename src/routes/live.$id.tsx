@@ -115,9 +115,9 @@ function LivePage() {
   }
 
   return (
-    <div className="fixed inset-0 z-40 mx-auto flex max-w-[480px] flex-col overflow-hidden bg-black text-white">
-      {/* Video area */}
-      <div className="absolute inset-0">
+    <div className="fixed inset-0 z-50 flex h-[100dvh] w-screen flex-col overflow-hidden bg-black text-white">
+      {/* Video area — full viewport */}
+      <div className="absolute inset-0 h-full w-full">
         {wantHost && hostStream ? (
           <video ref={hostVideoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
         ) : (
@@ -181,7 +181,8 @@ function LivePage() {
       </div>
 
       {/* Chat + composer */}
-      <div className="relative z-10 mt-auto flex flex-col gap-3 px-3 pb-6">
+      <div className="relative z-10 mx-auto mt-auto flex w-full max-w-[520px] flex-col gap-3 px-3 pb-6">
+
         <LiveChat streamId={id} />
 
         <div className="flex items-center gap-2">
