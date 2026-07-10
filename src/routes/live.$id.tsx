@@ -60,7 +60,7 @@ function LivePage() {
     return () => { supabase.removeChannel(channel); };
   }, [id, user?.id, isHost]);
 
-  // Host camera capture
+  // Live camera capture — enabled for host, and available on request for viewers
   useEffect(() => {
     if (!wantHost) return;
     let localStream: MediaStream | null = null;
@@ -74,6 +74,17 @@ function LivePage() {
     })();
     return () => { localStream?.getTracks().forEach((t) => t.stop()); };
   }, [wantHost]);
+
+  const enableViewerCamera = async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      setHostStream(s);
+      toast.success("Camera enabled");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Camera permission denied");
+    }
+  };
+
 
   useEffect(() => {
     if (hostVideoRef.current && hostStream) hostVideoRef.current.srcObject = hostStream;
