@@ -181,7 +181,8 @@ function LivePage() {
       </div>
 
       {/* Chat + composer */}
-      <div className="relative z-10 mt-auto flex flex-col gap-3 px-3 pb-6">
+      <div className="relative z-10 mx-auto mt-auto flex w-full max-w-[520px] flex-col gap-3 px-3 pb-6">
+
         <LiveChat streamId={id} />
 
         <div className="flex items-center gap-2">
