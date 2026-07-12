@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   X, Loader2, Music2, Image as ImageIcon, Sparkles, Scissors, Type,
-  Sticker, Crop, SlidersHorizontal, Plus, ChevronRight, MapPin, Lock,
+  Sticker, Crop, SlidersHorizontal, Plus, ChevronRight, ChevronDown, MapPin, Lock,
   Tag, AtSign, Link2, Eye, Share2, ArrowUp, RotateCcw, Wand2, Settings,
   Heart, UserPlus2, FileText, Camera, Video as VideoIcon, Mic2, Gamepad2,
+  Shield, Gift, Timer, Grid3x3, Zap, Users, Megaphone, MessageCircle, Radio, Target,
 } from "lucide-react";
 
 type Mode = "LIVE" | "POST" | "CREATE";
