@@ -5,9 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   X, Loader2, Music2, Image as ImageIcon, Sparkles, Scissors, Type,
-  Sticker, Crop, SlidersHorizontal, Plus, ChevronRight, MapPin, Lock,
+  Sticker, Crop, SlidersHorizontal, Plus, ChevronRight, ChevronDown, MapPin, Lock,
   Tag, AtSign, Link2, Eye, Share2, ArrowUp, RotateCcw, Wand2, Settings,
   Heart, UserPlus2, FileText, Camera, Video as VideoIcon, Mic2, Gamepad2,
+  Shield, Gift, Timer, Grid3x3, Zap, Users, Megaphone, MessageCircle, Radio, Target,
 } from "lucide-react";
 
 type Mode = "LIVE" | "POST" | "CREATE";
@@ -142,126 +143,366 @@ function StepSelector({ mode, setMode, onPickFile, onCaptured }: { mode: Mode; s
 }
 
 const liveSwitches = [
+  { label: "Voice chat", icon: Mic2 },
   { label: "Device camera", icon: Camera },
   { label: "Mobile gaming", icon: Gamepad2 },
-  { label: "LIVE Studio", icon: VideoIcon },
 ];
+
+type SideAction = { key: string; icon: typeof Camera; label: string };
+type TrayAction = { key: string; icon: typeof Camera; label: string };
 
 function LivePanel({ onCaptured }: { onCaptured: (f: File) => void }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [sub, setSub] = useState("Device camera");
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [recording, setRecording] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [title, setTitle] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [activeDrawer, setActiveDrawer] = useState<string | null>(null);
+  const [rewards, setRewards] = useState(true);
+  const [facing, setFacing] = useState<"user" | "environment">("user");
+  const [beauty, setBeauty] = useState(35);
+  const [speed, setSpeed] = useState(1);
+  const [countdown, setCountdown] = useState(0);
+  const [gridOn, setGridOn] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const setupRows = ["Add a title", "Add topic", "Add a LIVE goal", "Scaled LIVE Rewards"];
-  const utilities = [
-    "Tips", "Share", "Play Together", "Poll", "Fan Club", "Landscape", "Promote", "LIVE Center",
-    "Settings", "Add camera", "Cast", "Share camera", "Flip", "Beautify", "Effects", "Service+",
-  ];
-  useEffect(() => {
-    if (videoRef.current && stream) videoRef.current.srcObject = stream;
-    return () => stream?.getTracks().forEach((t) => t.stop());
-  }, [stream]);
+  void onCaptured;
 
-  const startLive = async () => {
+  const startCamera = async (mode: "user" | "environment" = facing) => {
     try {
-      const capture = sub === "Device camera" || !(navigator.mediaDevices as any).getDisplayMedia
-        ? await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        : await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: true });
+      stream?.getTracks().forEach((t) => t.stop());
+      const capture = sub === "Voice chat"
+        ? await navigator.mediaDevices.getUserMedia({ audio: true })
+        : await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode }, audio: true });
       setStream(capture);
-      chunksRef.current = [];
-      const recorder = new MediaRecorder(capture);
-      recorderRef.current = recorder;
-      recorder.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "video/webm" });
-        onCaptured(new File([blob], `javan-live-${Date.now()}.webm`, { type: "video/webm" }));
-      };
-      recorder.start();
-      setRecording(true);
-      toast.success(`${sub} is live and recording`);
     } catch (e: any) {
-      toast.error(e?.message ?? "Camera or screen permission was not granted");
+      toast.error(e?.message ?? "Camera permission was not granted");
     }
   };
 
-  const stopLive = () => {
-    recorderRef.current?.stop();
-    stream?.getTracks().forEach((t) => t.stop());
-    setStream(null);
-    setRecording(false);
+  useEffect(() => {
+    startCamera(facing);
+    return () => stream?.getTracks().forEach((t) => t.stop());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sub]);
+
+  useEffect(() => {
+    if (videoRef.current && stream) videoRef.current.srcObject = stream;
+  }, [stream]);
+
+  const flipCamera = () => {
+    const next = facing === "user" ? "environment" : "user";
+    setFacing(next);
+    startCamera(next);
+    toast.success(`Flipped to ${next === "user" ? "front" : "rear"} camera`);
   };
 
+  const openDrawer = (key: string) => setActiveDrawer((d) => (d === key ? null : key));
+
+  const sideActions: SideAction[] = [
+    { key: "flip", icon: RotateCcw, label: "Flip" },
+    { key: "speed", icon: Zap, label: "Speed" },
+    { key: "timer", icon: Timer, label: "Timer" },
+    { key: "grid", icon: Grid3x3, label: "Grid" },
+    { key: "beautify", icon: Wand2, label: "Beautify" },
+    { key: "effects", icon: Sparkles, label: "Effects" },
+  ];
+
+  const tray: TrayAction[] = [
+    { key: "flip", icon: RotateCcw, label: "Flip" },
+    { key: "beautify", icon: Wand2, label: "Beautify" },
+    { key: "effects", icon: Sparkles, label: "Effects" },
+    { key: "settings", icon: Settings, label: "Settings" },
+    { key: "moderation", icon: Shield, label: "Moderation" },
+    { key: "fanclub", icon: Users, label: "Fan Club" },
+    { key: "interact", icon: MessageCircle, label: "Interact" },
+    { key: "share", icon: Share2, label: "Share" },
+    { key: "promote", icon: Megaphone, label: "Promote" },
+  ];
+
+  const runSide = (key: string) => {
+    if (key === "flip") return flipCamera();
+    if (key === "grid") { setGridOn((g) => !g); toast.info(`Grid ${!gridOn ? "on" : "off"}`); return; }
+    openDrawer(key);
+  };
+
+  const runTray = (key: string) => {
+    if (key === "flip") return flipCamera();
+    if (key === "share") { navigator.clipboard?.writeText("https://javan.app/live").catch(() => {}); toast.success("Invite link copied"); return; }
+    if (key === "settings") { toast.info("LIVE settings opened"); return; }
+    openDrawer(key);
+  };
+
+  const goLive = async () => {
+    if (!user) { toast.error("Sign in to go LIVE"); return; }
+    setStarting(true);
+    try {
+      const { data, error } = await supabase
+        .from("live_streams")
+        .insert({ host_id: user.id, title: title.trim() || sub })
+        .select("id")
+        .single();
+      if (error || !data) throw error ?? new Error("Could not start LIVE");
+      stream?.getTracks().forEach((t) => t.stop());
+      navigate({ to: "/live/$id", params: { id: data.id }, search: { host: "1" } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not start LIVE");
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const isVoice = sub === "Voice chat";
+
   return (
-    <div className="creation-live-bg h-full overflow-y-auto px-5 pb-44 pt-20">
-      {stream && <video ref={videoRef} autoPlay muted playsInline className="mb-4 aspect-[9/12] w-full rounded-3xl object-cover shadow-elegant" />}
-      <div className="space-y-2">
-        {setupRows.map((row) => (
-          <button key={row} onClick={() => toast.info(`${row} opened`)} className="flex w-full items-center justify-between rounded-2xl bg-black/35 px-4 py-3 text-left backdrop-blur active:scale-[0.99]">
-            <span className="text-sm font-semibold">{row}</span>
-            <Plus className="h-4 w-4 text-white/60" />
+    <div className="absolute inset-0 select-none overflow-hidden bg-black text-white">
+      {/* Camera / audio background */}
+      {isVoice ? (
+        <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-900/60 via-black to-rose-900/40" />
+      ) : stream ? (
+        <video ref={videoRef} autoPlay muted playsInline className={`absolute inset-0 h-full w-full object-cover ${facing === "user" ? "scale-x-[-1]" : ""}`} />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center bg-black">
+          <button onClick={() => startCamera(facing)} className="rounded-full bg-white/10 px-5 py-2 text-xs font-semibold backdrop-blur active:scale-95">
+            Tap to enable camera
           </button>
-        ))}
-      </div>
-
-      <div className="mt-5 grid grid-cols-4 gap-3 text-center text-[10px] text-white/75">
-        {utilities.map((u, i) => {
-          const Icon = [Sparkles, Share2, Gamepad2, SlidersHorizontal, Heart, Crop, Wand2, VideoIcon, Settings, Camera, VideoIcon, UserPlus2, RotateCcw, Wand2, Sticker, CrownIcon][i] ?? Sparkles;
-          return (
-            <button key={u} onClick={() => toast.info(`${u} ready for this LIVE`)} className="flex flex-col items-center gap-1 rounded-2xl bg-black/30 px-1 py-3 backdrop-blur active:scale-95">
-              <Icon className="h-5 w-5" />
-              <span className="leading-tight">{u}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-6 grid grid-cols-3 gap-2 rounded-full bg-black/35 p-1 backdrop-blur">
-        {liveSwitches.map(({ label, icon: Icon }) => (
-          <button key={label} onClick={() => setSub(label)} className={`flex items-center justify-center gap-1 rounded-full px-2 py-2 text-[10px] font-bold ${sub === label ? "bg-white text-black" : "text-white/60"}`}>
-            <Icon className="h-3.5 w-3.5" /> {label}
-          </button>
-        ))}
-      </div>
-
-      {sub === "LIVE Studio" && (
-        <section className="creation-studio-illustration mt-5 rounded-3xl p-4">
-          <div className="flex h-40 gap-3">
-            <div className="flex-1 rounded-2xl bg-black/80 p-3">
-              <div className="h-20 rounded-xl bg-white/10" />
-              <div className="mt-3 h-2 w-24 rounded-full bg-white/20" />
-              <div className="mt-2 h-2 w-16 rounded-full bg-white/10" />
-            </div>
-            <div className="w-24 rounded-2xl bg-white/10 p-2">
-              <div className="h-8 rounded-lg bg-primary/70" />
-              <div className="mt-2 h-8 rounded-lg bg-white/15" />
-              <div className="mt-2 h-8 rounded-lg bg-white/15" />
-            </div>
-          </div>
-          <button onClick={() => toast.success("LIVE Studio setup link prepared for your account")} className="mt-4 w-full rounded-full bg-rose-500 py-3 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.8)]">Get download link</button>
-        </section>
+        </div>
       )}
 
-      <button
-        onClick={async () => {
-          if (recording) return stopLive();
-          if (!user) { toast.error("Sign in to go LIVE"); return; }
-          const { data, error } = await supabase.from("live_streams").insert({ host_id: user.id, title: sub }).select("id").single();
-          if (error || !data) { toast.error(error?.message ?? "Could not start LIVE"); return; }
-          navigate({ to: "/live/$id", params: { id: data.id }, search: { host: "1" } });
-        }}
-        className="fixed inset-x-5 bottom-24 z-20 mx-auto max-w-[440px] rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-4 text-sm font-bold shadow-[0_0_35px_-8px_rgba(244,63,94,0.9)] live-pulse"
-      >
-        {recording ? "Stop LIVE & publish" : "Go LIVE"}
-      </button>
+      {/* Grid overlay */}
+      {gridOn && !isVoice && (
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/3 top-0 h-full w-px bg-white/25" />
+          <div className="absolute left-2/3 top-0 h-full w-px bg-white/25" />
+          <div className="absolute left-0 top-1/3 h-px w-full bg-white/25" />
+          <div className="absolute left-0 top-2/3 h-px w-full bg-white/25" />
+        </div>
+      )}
+
+      {/* Vignette for text legibility */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/70" />
+
+      {/* Top header — the parent's X button sits at top-left already */}
+      <div className="absolute inset-x-0 top-4 z-20 flex items-center justify-end gap-2 pl-16 pr-3">
+        <button
+          onClick={() => { setRewards((r) => !r); toast.success(rewards ? "LIVE Rewards paused" : "LIVE Rewards enabled"); }}
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-lg backdrop-blur active:scale-95 ${rewards ? "bg-gradient-to-r from-amber-400 to-rose-500 text-black" : "bg-black/50 text-white/80"}`}
+        >
+          <Gift className="h-3.5 w-3.5" /> Javan LIVE Rewards
+        </button>
+        <button onClick={() => openDrawer("moderation")} aria-label="Moderation" className="flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur active:scale-90">
+          <Shield className="h-4 w-4" />
+        </button>
+        <button onClick={() => openDrawer("hub")} aria-label="LIVE Center" className="flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur active:scale-90">
+          <Target className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Right sidebar */}
+      <div className="absolute right-3 top-20 z-20 flex flex-col items-center gap-4">
+        {sideActions.map(({ key, icon: Icon, label }) => (
+          <button
+            key={key}
+            onClick={() => runSide(key)}
+            aria-label={label}
+            className="flex flex-col items-center gap-0.5 text-[10px] font-semibold text-white drop-shadow active:scale-90"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/45 backdrop-blur">
+              <Icon className="h-5 w-5" />
+            </span>
+            <span>{label}</span>
+          </button>
+        ))}
+        <button onClick={() => setExpanded((v) => !v)} aria-label="Expand" className="flex h-8 w-8 items-center justify-center rounded-full bg-black/45 backdrop-blur active:scale-90">
+          <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        </button>
+        {expanded && (
+          <>
+            <button onClick={() => openDrawer("music")} aria-label="Sound" className="flex flex-col items-center gap-0.5 text-[10px] font-semibold active:scale-90">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/45 backdrop-blur"><Music2 className="h-5 w-5" /></span>
+              <span>Sound</span>
+            </button>
+            <button onClick={() => openDrawer("privacy")} aria-label="Privacy" className="flex flex-col items-center gap-0.5 text-[10px] font-semibold active:scale-90">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/45 backdrop-blur"><Lock className="h-5 w-5" /></span>
+              <span>Privacy</span>
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Lower setup card */}
+      <div className="absolute inset-x-0 bottom-32 z-20 px-3">
+        <div className="mx-auto max-w-[460px] rounded-3xl bg-black/55 p-3 shadow-elegant backdrop-blur-xl">
+          <div className="grid grid-cols-5 gap-2">
+            {tray.map(({ key, icon: Icon, label }) => (
+              <button
+                key={key}
+                onClick={() => runTray(key)}
+                className="flex flex-col items-center gap-1 rounded-2xl bg-white/5 px-1 py-2 text-[10px] font-semibold text-white transition active:scale-90 active:opacity-70"
+              >
+                <Icon className="h-5 w-5" />
+                <span className="leading-tight">{label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-3 flex items-center gap-2 rounded-2xl bg-white/5 px-2 py-2">
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+            ) : (
+              <div className="bg-gradient-primary h-8 w-8 rounded-full" />
+            )}
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Add a title..."
+              maxLength={80}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-white/50"
+            />
+            <button onClick={() => openDrawer("goal")} className="whitespace-nowrap text-[11px] font-bold text-amber-300 active:scale-95">
+              | Set Stream Goal
+            </button>
+          </div>
+
+          <button
+            onClick={goLive}
+            disabled={starting}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 py-3.5 text-sm font-black uppercase tracking-widest text-white shadow-[0_10px_40px_-10px_rgba(244,63,94,0.9)] transition active:scale-[0.98] active:opacity-90 disabled:opacity-60"
+          >
+            {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radio className="h-4 w-4" />}
+            {starting ? "Starting…" : "Go LIVE"}
+          </button>
+        </div>
+      </div>
+
+      {/* Stream mode selector (horizontal scroll) */}
+      <div className="absolute inset-x-0 bottom-24 z-10 flex justify-center px-3">
+        <div className="no-scrollbar flex max-w-full items-center gap-2 overflow-x-auto rounded-full bg-black/45 px-2 py-1.5 backdrop-blur">
+          {liveSwitches.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              onClick={() => setSub(label)}
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-bold transition active:scale-95 ${
+                sub === label ? "bg-white text-black" : "text-white/70"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" /> {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Drawers */}
+      {activeDrawer && (
+        <div className="absolute inset-0 z-30 flex items-end" onClick={() => setActiveDrawer(null)}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative mx-auto w-full max-w-[520px] rounded-t-3xl bg-neutral-950/95 p-5 pb-8 text-white shadow-elegant backdrop-blur-xl"
+          >
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/25" />
+            <DrawerBody
+              which={activeDrawer}
+              beauty={beauty} setBeauty={setBeauty}
+              speed={speed} setSpeed={setSpeed}
+              countdown={countdown} setCountdown={setCountdown}
+            />
+            <button onClick={() => setActiveDrawer(null)} className="mt-5 w-full rounded-full bg-white/10 py-2.5 text-sm font-semibold active:scale-95">Done</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-const CrownIcon = Sparkles;
+function DrawerBody({
+  which, beauty, setBeauty, speed, setSpeed, countdown, setCountdown,
+}: {
+  which: string;
+  beauty: number; setBeauty: (n: number) => void;
+  speed: number; setSpeed: (n: number) => void;
+  countdown: number; setCountdown: (n: number) => void;
+}) {
+  if (which === "beautify") {
+    return (
+      <div>
+        <h3 className="mb-2 text-sm font-bold">Beautify</h3>
+        <p className="mb-3 text-xs text-white/60">Smoothing intensity: {beauty}</p>
+        <input type="range" min={0} max={100} value={beauty} onChange={(e) => setBeauty(Number(e.target.value))} className="w-full accent-rose-500" />
+      </div>
+    );
+  }
+  if (which === "speed") {
+    return (
+      <div>
+        <h3 className="mb-3 text-sm font-bold">Capture speed</h3>
+        <div className="flex gap-2">
+          {[0.5, 1, 1.5, 2, 3].map((s) => (
+            <button key={s} onClick={() => setSpeed(s)} className={`flex-1 rounded-full py-2 text-xs font-bold active:scale-95 ${speed === s ? "bg-white text-black" : "bg-white/10"}`}>{s}x</button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (which === "timer") {
+    return (
+      <div>
+        <h3 className="mb-3 text-sm font-bold">Countdown</h3>
+        <div className="flex gap-2">
+          {[0, 3, 5, 10].map((n) => (
+            <button key={n} onClick={() => setCountdown(n)} className={`flex-1 rounded-full py-2 text-xs font-bold active:scale-95 ${countdown === n ? "bg-white text-black" : "bg-white/10"}`}>{n === 0 ? "Off" : `${n}s`}</button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (which === "effects") {
+    return (
+      <div>
+        <h3 className="mb-3 text-sm font-bold">Effects</h3>
+        <div className="grid grid-cols-4 gap-3">
+          {["Sparkle", "Neon", "Glow", "Retro", "Blur", "Sepia", "B&W", "Warm"].map((e) => (
+            <button key={e} onClick={() => toast.success(`${e} applied`)} className="aspect-square rounded-2xl bg-white/10 text-[10px] font-bold active:scale-95">{e}</button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (which === "moderation") {
+    return (
+      <div>
+        <h3 className="mb-3 text-sm font-bold">Moderation</h3>
+        {["Keyword filter", "Comment approval", "Add moderator", "Block viewer"].map((r) => (
+          <button key={r} onClick={() => toast.info(`${r} opened`)} className="mb-2 flex w-full items-center justify-between rounded-2xl bg-white/5 px-4 py-3 text-sm font-semibold active:scale-[0.99]">
+            <span>{r}</span><ChevronRight className="h-4 w-4 text-white/50" />
+          </button>
+        ))}
+      </div>
+    );
+  }
+  if (which === "goal") {
+    return (
+      <div>
+        <h3 className="mb-2 text-sm font-bold">Stream goal</h3>
+        <p className="mb-3 text-xs text-white/60">Set a coin goal viewers can help you hit.</p>
+        <div className="flex gap-2">
+          {[500, 1000, 5000, 10000].map((v) => (
+            <button key={v} onClick={() => toast.success(`Goal set to ${v.toLocaleString()} coins`)} className="flex-1 rounded-full bg-white/10 py-2 text-xs font-bold active:scale-95">{v.toLocaleString()}</button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <h3 className="mb-2 text-sm font-bold capitalize">{which}</h3>
+      <p className="text-xs text-white/60">This panel is ready. More controls coming soon.</p>
+    </div>
+  );
+}
+
+
 const postTimers = ["10m", "60s", "15s", "PHOTO", "TEXT"];
 
 function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptured: (f: File) => void }) {
