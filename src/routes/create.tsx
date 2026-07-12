@@ -502,7 +502,7 @@ function DrawerBody({
   );
 }
 
-const CrownIcon = Sparkles;
+
 const postTimers = ["10m", "60s", "15s", "PHOTO", "TEXT"];
 
 function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptured: (f: File) => void }) {
