@@ -104,7 +104,7 @@ function ArtistOnboarding() {
                 </label>
                 <button 
                   onClick={() => stageName ? setStep(2) : toast.error("Stage naming designation parameter mandatory.")}
-                  className="bg-gradient-to-r from-fuchsia-500 to-rose-500 w-full rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-glow active:scale-98 transition-transform"
+                  className="bg-gradient-to-r from-fuchsia-500 to-rose-500 w-full rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-glow active:scale-98 transition-transform duration-150"
                 >
                   Proceed to Metadata Registry
                 </button>
@@ -121,8 +121,10 @@ function ArtistOnboarding() {
                 <Field label="SoundCloud Node link" value={soundcloud} onChange={setSoundcloud} placeholder="https://soundcloud.com/..." />
                 <Field label="YouTube Core Channel Address" value={youtube} onChange={setYoutube} placeholder="https://youtube.com/@..." />
                 <div className="flex gap-2 pt-2">
-                  <button onClick={() => setStep(1)} className="bg-neutral-900 border border-white/5 text-neutral-400 text-[10px] font-black uppercase tracking-wider flex-1 rounded-xl py-3 active:scale-98 transition-transform">Back</button>
-                  <button onClick={() => setStep(3)} className="bg-gradient-to-r from-fuchsia-500 to-rose-500 text-[10px] font-black uppercase tracking-widest text-white shadow-glow flex-1 rounded-xl py-3 active:scale-98 transition-transform">
+                  <button onClick={() => setStep(1)} className="bg-neutral-900 border border-white/5 text-neutral-400 text-[10px] font-black uppercase tracking-wider flex-1 rounded-xl py-3 active:scale-95 transition-transform">
+                    Back
+                  </button>
+                  <button onClick={() => setStep(3)} className="bg-gradient-to-r from-fuchsia-500 to-rose-500 text-[10px] font-black uppercase tracking-widest text-white shadow-glow flex-1 rounded-xl py-3 active:scale-95 transition-transform">
                     Continue Execution
                   </button>
                 </div>
@@ -143,9 +145,12 @@ function ArtistOnboarding() {
                 <FileField label="Upload Authentication Token Bundle" file={proofFile} onChange={setProofFile} accept="image/*,application/pdf" />
                 
                 <div className="flex gap-2 pt-2">
-                  <button onClick={() => setStep(2)} className="bg-neutral-900 border border-white/5 text-neutral-400 text-[10px] font-black uppercase tracking-wider flex-1 rounded-xl py-3 active:scale-98 transition-transform">Back</button>
+                  <button onClick={() => setStep(2)} className="bg-neutral-900 border border-white/5 text-neutral-400 text-[10px] font-black uppercase tracking-wider flex-1 rounded-xl py-3 active:scale-95 transition-transform">
+                    Back
+                  </button>
                   <button onClick={submit} disabled={submitting}
-                    className="bg-gradient-to-r from-fuchsia-500 to-rose-500 text-[10px] font-black uppercase tracking-widest text-white shadow-glow flex-1 rounded-xl py-3 active:scale-98 transition-transform disabled:opacity-40">
+                    className="bg-gradient-to-r from-fuchsia-500 to-rose-500 text-[10px] font-black uppercase tracking-widest text-white shadow-glow flex-1 rounded-xl py-3 active:scale-95 transition-transform disabled:opacity-50"
+                  >
                     {submitting ? <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin" /> COMMITTING_PAYLOAD…</span> : "Transmit Ledger Application"}
                   </button>
                 </div>
@@ -160,9 +165,9 @@ function ArtistOnboarding() {
 
 function ExistingStatus({ existing }: { existing: any }) {
   const map = {
-    pending: { Icon: Clock, tone: "text-amber-400 bg-amber-500/5 border-amber-500/10", label: "PENDING_VALIDATION_AUDIT", desc: "Identity payload undergoes routing check parameters. Standard window is 2-5 business cycles." },
-    approved: { Icon: ShieldCheck, tone: "text-emerald-400 bg-emerald-500/5 border-emerald-500/10", label: "VERIFIED_ARTIST_NODE", desc: "Governance clearance granted. Production Music Hub modules are active across client viewports." },
-    rejected: { Icon: XCircle, tone: "text-rose-400 bg-rose-500/5 border-rose-500/10", label: "VALIDATION_REJECTED", desc: existing.review_reason ?? "Re-submit application with tighter dashboard certification strings." },
+    pending: { Icon: Clock, tone: "text-amber-400 bg-amber-500/5 border-amber-500/10", label: "PENDING_VALIDATION_AUDIT", desc: "Identity payload undergoes routing check parameters. Standard windowing: 48-72 hours." },
+    approved: { Icon: ShieldCheck, tone: "text-emerald-400 bg-emerald-500/5 border-emerald-500/10", label: "VERIFIED_ARTIST_NODE", desc: "Governance clearance granted. Production Music Hub module is live." },
+    rejected: { Icon: XCircle, tone: "text-rose-400 bg-rose-500/5 border-rose-500/10", label: "VALIDATION_REJECTED", desc: existing.review_reason ?? "Re-submit application with tighter dashboard snapshots." },
   } as const;
   
   const m = map[existing.status as keyof typeof map] ?? map.pending;
@@ -182,7 +187,7 @@ function ExistingStatus({ existing }: { existing: any }) {
       </div>
       
       {existing.status === "approved" && (
-        <Link to="/artist/studio" className="bg-gradient-to-r from-fuchsia-500 to-rose-500 flex items-center justify-center gap-1 rounded-xl py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-white shadow-glow active:scale-98 transition-transform">
+        <Link to="/artist/studio" className="bg-gradient-to-r from-fuchsia-500 to-rose-500 flex items-center justify-center gap-1 rounded-xl py-2.5 text-center text-[10px] font-black uppercase tracking-widest text-white shadow-glow active:scale-95 transition-transform">
           Enter Production Studio Core <ChevronRight className="h-3 w-3" />
         </Link>
       )}
@@ -195,7 +200,7 @@ function Field({ label, value, onChange, placeholder }: { label: string; value: 
     <label className="block">
       <span className="mb-1.5 block text-[9px] font-mono font-black uppercase tracking-widest text-neutral-500">{label}</span>
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full rounded-xl border border-white/5 bg-neutral-900/50 px-4 py-2.5 text-xs font-medium text-white outline-none focus:ring-1 focus:ring-rose-500 transition-shadow placeholder:text-neutral-700" />
+        className="w-full rounded-xl border border-white/5 bg-neutral-900/50 px-4 py-2.5 text-xs font-medium text-white outline-none focus:ring-1 focus:ring-rose-500 transition-shadow placeholder:text-neutral-600" />
     </label>
   );
 }
