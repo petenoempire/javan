@@ -8,13 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Share2, Wallet, BadgeCheck, LogOut, Pencil, Link as LinkIcon, MapPin, Film, Menu,
   AudioLines, Eye, Plus, ChevronDown, Lock, Repeat2, Bookmark, Heart, LayoutGrid,
-  X, Type, Folder, Calendar, Sparkles, Camera,
+  X, Type, Folder, Calendar, Sparkles, Camera, Disc, HelpCircle, CheckCircle2, History
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "Profile · Javan" }] }),
+  head: () => ({ meta: [{ title: "Studio Core · Javan" }] }),
   component: Profile,
 });
 
@@ -69,17 +69,17 @@ function Profile() {
 
   if (!isProfileIndex) return <Outlet />;
 
-  if (loading) return <MobileShell><div className="px-5 pt-10 text-sm text-muted-foreground">Loading…</div></MobileShell>;
+  if (loading) return <MobileShell><div className="px-5 pt-10 text-xs font-mono text-neutral-500">INITIALIZING_PROFILE_ENGINE…</div></MobileShell>;
 
   if (!user) {
     return (
       <MobileShell>
-        <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center">
-          <div className="bg-gradient-primary mb-4 h-16 w-16 rounded-full shadow-glow" />
-          <h2 className="font-display text-2xl font-bold">Join Javan</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Sign in to upload videos, send messages, and follow creators.</p>
-          <Link to="/auth" className="bg-gradient-primary mt-6 rounded-full px-8 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
-            Sign in / Create account
+        <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center bg-black">
+          <div className="bg-gradient-to-tr from-fuchsia-500 to-rose-500 mb-4 h-14 w-14 rounded-full shadow-glow animate-pulse" />
+          <h2 className="font-display text-xl font-black uppercase tracking-wider text-white">Initialize Javan Node</h2>
+          <p className="mt-2 text-xs text-neutral-500 max-w-xs">Establish user parameters to track sync metadata, deploy media blocks, and audit digital assets.</p>
+          <Link to="/auth" className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-6 rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-glow">
+            Authenticate Node Instance
           </Link>
         </div>
       </MobileShell>
@@ -96,18 +96,18 @@ function Profile() {
 
   const renderGrid = () => {
     if (feedTab === "liked") {
-      return liked.length === 0 ? <EmptyTab label="No liked videos yet" /> : <Grid items={liked} />;
+      return liked.length === 0 ? <EmptyTab label="No liked entries indexed inside target vector" /> : <Grid items={liked} />;
     }
     if (feedTab === "posts") {
       return !stats || stats.videos.length === 0
-        ? <EmptyTab label="No videos yet" cta />
+        ? <EmptyTab label="No published blocks compiled yet" cta />
         : <Grid items={stats.videos} />;
     }
     const map: Record<FeedTab, string> = {
       posts: "", liked: "",
-      private: "No private posts yet — long-press a post to lock it.",
-      reposts: "Reposts you boost will collect here.",
-      bookmarks: "Save posts you love — they'll appear here.",
+      private: "Private array block empty.",
+      reposts: "Boost indexes will assemble here.",
+      bookmarks: "Saved elements will render within this node partition.",
     };
     return <EmptyTab label={map[feedTab]} />;
   };
@@ -115,99 +115,133 @@ function Profile() {
   return (
     <MobileShell>
       <ProfileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      
 
-      <div className="relative">
+      <div className="relative bg-neutral-950 text-white select-none">
         {profile?.cover_url
-          ? <img src={profile.cover_url} className="h-40 w-full object-cover" alt="" />
-          : <div className="bg-gradient-primary h-40 w-full opacity-80" />}
+          ? <img src={profile.cover_url} className="h-36 w-full object-cover border-b border-white/5" alt="" />
+          : <div className="bg-gradient-to-r from-neutral-900 via-neutral-950 to-neutral-900 h-36 w-full border-b border-white/5 opacity-40" />}
 
-        {/* Hamburger menu, top-left of banner */}
         <button
           onClick={() => setDrawerOpen(true)}
-          aria-label="Open menu"
-          className="glass absolute left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-full shadow-elegant active:scale-90"
+          aria-label="Open context core dashboard"
+          className="absolute left-4 top-4 z-40 flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-950/80 border border-white/10 text-white backdrop-blur-md shadow-md active:scale-90 transition-transform"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-4 w-4" />
         </button>
 
-        <div className="px-5 pb-6">
-          <div className="-mt-12 flex items-end justify-between">
-            {/* Avatar */}
-            <div className="relative z-20 rounded-full bg-gradient-primary p-0.5 shadow-glow">
+        <div className="px-4 pb-4">
+          <div className="-mt-10 flex items-end justify-between relative z-20">
+            <div className="rounded-full bg-gradient-to-tr from-fuchsia-500 to-rose-500 p-0.5 shadow-glow">
               {profile?.avatar_url
-                ? <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-background object-cover shadow-elegant" alt="" />
-                : <div className="bg-gradient-primary h-24 w-24 rounded-full border-4 border-background shadow-elegant" />}
+                ? <img src={profile.avatar_url} className="h-20 w-20 rounded-full border-4 border-neutral-950 object-cover shadow-2xl" alt="" />
+                : <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 h-20 w-20 rounded-full border-4 border-neutral-950 shadow-2xl" />}
             </div>
 
-
-            <div className="flex gap-2">
-              <button onClick={() => import("@/lib/share").then(({ shareOrCopy }) => shareOrCopy({ url: location.href, title: `@${profile?.handle} on Javan` }))}
-                className="glass rounded-full p-2" aria-label="Share profile"><Share2 className="h-4 w-4" /></button>
-              <button onClick={() => signOut().then(() => navigate({ to: "/auth" }))} className="glass rounded-full p-2">
-                <LogOut className="h-4 w-4" />
+            <div className="flex gap-1.5">
+              <button 
+                onClick={() => import("@/lib/share").then(({ shareOrCopy }) => shareOrCopy({ url: window.location.href, title: `@${profile?.handle} on Javan` }))}
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-900 border border-white/5 text-neutral-400 hover:text-white" 
+                aria-label="Export profile route metadata"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={() => signOut().then(() => navigate({ to: "/auth" }))} className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-900 border border-white/5 text-neutral-500 hover:text-rose-400">
+                <LogOut className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-2">
-            <h1 className="font-display text-3xl font-bold leading-tight">{profile?.display_name || `@${profile?.handle}`}</h1>
-            {profile?.is_verified && <BadgeCheck className="h-5 w-5 fill-accent text-background" />}
+
+          <div className="mt-2.5 flex items-center gap-1.5">
+            <h1 className="font-display text-2xl font-black tracking-tight leading-tight">{profile?.display_name || `@${profile?.handle}`}</h1>
+            {profile?.is_verified && <BadgeCheck className="h-4 w-4 fill-rose-500 text-neutral-950" />}
           </div>
-          <div className="text-base font-semibold text-muted-foreground">@{profile?.handle}</div>
-          {profile?.bio && <p className="mt-2 text-sm text-muted-foreground">{profile.bio}</p>}
-          <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-            {profile?.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{profile.location}</span>}
-            {profile?.website && <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-accent"><LinkIcon className="h-3 w-3" />{profile.website.replace(/^https?:\/\//, "")}</a>}
+          <div className="text-xs font-mono font-bold text-neutral-500">@{profile?.handle}</div>
+          
+          {profile?.bio && <p className="mt-1.5 text-xs font-medium text-neutral-400 leading-normal max-w-sm">{profile.bio}</p>}
+          
+          <div className="mt-2 flex flex-wrap gap-2.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+            {profile?.location && <span className="flex items-center gap-1 bg-neutral-900 border border-white/5 px-2 py-0.5 rounded-md"><MapPin className="h-2.5 w-2.5 text-rose-500" />{profile.location}</span>}
+            {profile?.website && (
+              <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-rose-400 bg-neutral-900 border border-white/5 px-2 py-0.5 rounded-md transition-colors hover:bg-neutral-800">
+                <LinkIcon className="h-2.5 w-2.5" />
+                {profile.website.replace(/^https?:\/\//, "")}
+              </a>
+            )}
           </div>
 
-          {/* Stats grid — Following / Followers clickable; Viewers replaces Coins */}
-          <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-            <Link to="/following" className="glass rounded-2xl p-3 transition active:scale-95">
-              <div className="font-display text-lg font-bold">{(stats?.following ?? 0).toLocaleString()}</div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Following</div>
+          {/* Core Analytics Pipeline Indexes */}
+          <div className="mt-4 grid grid-cols-3 gap-1.5 text-center">
+            <Link to="/following" className="bg-neutral-900/60 border border-white/5 rounded-xl p-2.5 transition active:scale-95">
+              <div className="font-mono text-sm font-black text-white">{(stats?.following ?? 0).toLocaleString()}</div>
+              <div className="text-[8px] font-black uppercase tracking-widest text-neutral-500 mt-0.5">Following</div>
             </Link>
-            <Link to="/followers" className="glass rounded-2xl p-3 transition active:scale-95">
-              <div className="font-display text-lg font-bold">{(stats?.followers ?? 0).toLocaleString()}</div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Followers</div>
+            <Link to="/followers" className="bg-neutral-900/60 border border-white/5 rounded-xl p-2.5 transition active:scale-95">
+              <div className="font-mono text-sm font-black text-white">{(stats?.followers ?? 0).toLocaleString()}</div>
+              <div className="text-[8px] font-black uppercase tracking-widest text-neutral-500 mt-0.5">Followers</div>
             </Link>
             <button
               type="button"
               onClick={() => navigate({ to: "/profile/viewers" })}
-              className="glass relative overflow-hidden rounded-2xl p-3 text-center transition active:scale-95"
+              className="bg-neutral-900/60 border border-white/5 rounded-xl p-2.5 text-center transition active:scale-95 relative overflow-hidden"
             >
-              <div className="bg-gradient-primary absolute -right-4 -top-4 h-12 w-12 rounded-full opacity-20 blur-md" />
               <div className="relative flex items-center justify-center gap-1">
-                <Eye className="h-4 w-4 text-primary" />
-                <div className="font-display text-lg font-bold">{(stats?.viewers ?? 0).toLocaleString()}</div>
+                <Eye className="h-3 w-3 text-rose-400" />
+                <div className="font-mono text-sm font-black text-white">{(stats?.viewers ?? 0).toLocaleString()}</div>
               </div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Viewers</div>
+              <div className="text-[8px] font-black uppercase tracking-widest text-neutral-500 mt-0.5">Viewers</div>
             </button>
           </div>
 
-          {/* Edit + Wallet */}
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <button type="button" onClick={() => navigate({ to: "/profile/edit" })} className="bg-gradient-primary flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold text-primary-foreground shadow-glow active:scale-[0.98]">
-              <Pencil className="h-3.5 w-3.5" /> Edit Profile
+          {/* Action Anchors */}
+          <div className="mt-2.5 grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => navigate({ to: "/profile/edit" })} className="bg-gradient-to-r from-fuchsia-500 to-rose-500 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-[10px] font-black uppercase tracking-wider text-white shadow-glow active:scale-98 transition-transform">
+              <Pencil className="h-3 w-3" /> Alter Profile Parameters
             </button>
-            <Link to="/wallet" className="glass flex items-center justify-center gap-1 rounded-2xl py-3 text-xs font-semibold">
-              <Wallet className="h-3.5 w-3.5" /> Wallet
+            <Link to="/wallet" className="bg-neutral-900 border border-white/5 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-[10px] font-black uppercase tracking-wider text-neutral-300 transition-colors hover:bg-neutral-800">
+              <Wallet className="h-3.5 w-3.5 text-neutral-400" /> Central Ledger Wallet
             </Link>
           </div>
 
-          {/* Content feed tabs */}
-          <div className="mt-5 flex items-center justify-around border-y border-border/40 py-2">
+          {/* Studio Registry Summary Panel */}
+          <div className="mt-3.5 rounded-xl border border-white/5 bg-neutral-900/30 p-3 space-y-2">
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <div className="flex items-center gap-1.5">
+                <Disc className="h-3.5 w-3.5 text-rose-400 animate-spin-slow" />
+                <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">Distribution Ledger Registry</span>
+              </div>
+              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-neutral-900 text-neutral-500 border border-white/5">ACTIVE</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-neutral-400">
+              <div className="flex flex-col bg-neutral-900/60 p-2 rounded-lg border border-white/5">
+                <span className="text-[8px] uppercase tracking-wider text-neutral-500">Lyric Sync Engines</span>
+                <span className="font-bold text-neutral-300 mt-0.5 flex items-center gap-1">
+                  <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400" /> Confirmed Ready
+                </span>
+              </div>
+              <div className="flex flex-col bg-neutral-900/60 p-2 rounded-lg border border-white/5">
+                <span className="text-[8px] uppercase tracking-wider text-neutral-500">ISRC Validation Block</span>
+                <span className="font-bold text-neutral-300 mt-0.5 flex items-center gap-1">
+                  <History className="h-2.5 w-2.5 text-amber-400" /> Running Sync Checks
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Component Category Arrays */}
+          <div className="mt-4 flex items-center justify-around border-y border-white/5 py-1.5 bg-neutral-900/20">
             {feedTabs.map(({ key, Icon, arrow }) => {
               const active = feedTab === key;
               return (
                 <button
                   key={key}
                   onClick={() => setFeedTab(key)}
-                  aria-label={key}
-                  className={`relative flex items-center gap-0.5 px-3 py-1.5 transition ${active ? "text-primary" : "text-muted-foreground"}`}
+                  aria-label={`Switch viewport focus to ${key}`}
+                  className={`relative flex items-center gap-0.5 p-2 transition-all ${active ? "text-rose-400 scale-110" : "text-neutral-600 hover:text-neutral-400"}`}
                 >
-                  <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 1.8} />
-                  {arrow && <ChevronDown className="h-3 w-3" />}
-                  {active && <span className="bg-gradient-primary absolute -bottom-2 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full" />}
+                  <Icon className="h-4 w-4" strokeWidth={active ? 2.5 : 1.8} />
+                  {arrow && <ChevronDown className="h-2.5 w-2.5 opacity-50" />}
+                  {active && <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-0.5 w-4 rounded-full bg-rose-400" />}
                 </button>
               );
             })}
@@ -215,20 +249,20 @@ function Profile() {
         </div>
       </div>
 
-      {/* Music Hub toggle for artists */}
+      {/* Music Hub Control Core */}
       {isArtist && (
-        <div className="mx-5 mb-3 grid grid-cols-2 gap-1 rounded-2xl bg-muted/40 p-1">
-          <TabBtn active={hub === "videos"} onClick={() => setHub("videos")}><Film className="h-4 w-4" /> Videos</TabBtn>
+        <div className="mx-4 mb-3 grid grid-cols-2 gap-1 rounded-xl bg-neutral-900 p-1 border border-white/5">
+          <TabBtn active={hub === "videos"} onClick={() => setHub("videos")}><Film className="h-3.5 w-3.5" /> Published Videos Feed</TabBtn>
           <TabBtn active={hub === "music"} onClick={() => setHub("music")}>
-            <div className="bg-gradient-primary flex h-4 w-4 items-center justify-center rounded-full">
-              <AudioLines className="h-2.5 w-2.5 text-primary-foreground" />
+            <div className="bg-gradient-to-tr from-fuchsia-500 to-rose-500 flex h-3.5 w-3.5 items-center justify-center rounded-full">
+              <AudioLines className="h-2.5 w-2.5 text-white" />
             </div>
-            Music Hub
+            Production Music Hub
           </TabBtn>
         </div>
       )}
 
-      <div className="px-5">
+      <div className="px-4">
         {hub === "music" && isArtist
           ? <MusicHub artistUserId={user.id} />
           : renderGrid()}
@@ -239,9 +273,9 @@ function Profile() {
 
 function Grid({ items }: { items: any[] }) {
   return (
-    <div className="mb-3 grid grid-cols-3 gap-1">
+    <div className="mb-4 grid grid-cols-3 gap-1">
       {items.map((v) => (
-        <a key={v.id} href={v.video_url} target="_blank" rel="noreferrer" className="relative aspect-[3/4] overflow-hidden rounded-md bg-muted">
+        <a key={v.id} href={v.video_url} target="_blank" rel="noreferrer" className="relative aspect-[3/4] overflow-hidden rounded-lg bg-neutral-900 border border-white/5 transition-opacity hover:opacity-90">
           {v.thumbnail_url
             ? <img src={v.thumbnail_url} alt="" className="h-full w-full object-cover" />
             : <video src={v.video_url} className="h-full w-full object-cover" muted />}
@@ -251,89 +285,15 @@ function Grid({ items }: { items: any[] }) {
   );
 }
 
-function StoryComposer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [storyTab, setStoryTab] = useState("All");
-  const [multi, setMulti] = useState(false);
-  const [cameraReady, setCameraReady] = useState(false);
-  const chips = [
-    { label: "Text", Icon: Type },
-    { label: "Drafts", Icon: Folder },
-    { label: "Archive", Icon: Calendar },
-    { label: "Flip Story", Icon: Sparkles },
-  ];
-  const tabs = ["All", "Favorites", "Photos", "Videos"];
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[90] mx-auto max-w-[480px] bg-black text-white animate-in slide-in-from-bottom-6 duration-200">
-      <input ref={fileInput} hidden type="file" accept="image/*,video/*" onChange={(e) => e.target.files?.[0] && toast.success(`Story media selected: ${e.target.files[0].name}`)} />
-      <header className="flex items-center justify-center px-4 pb-4 pt-16">
-        <button onClick={onClose} aria-label="Close story composer" className="absolute left-4 top-14 p-2 active:scale-90">
-          <X className="h-8 w-8" />
-        </button>
-        <h2 className="font-display text-2xl font-bold">Add to Story</h2>
-      </header>
-
-      <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 py-3">
-        {chips.map(({ label, Icon }) => (
-          <button key={label} onClick={() => label === "Text" ? fileInput.current?.click() : toast.success(`${label} opened`)} className="flex h-28 min-w-[128px] flex-col items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/10 shadow-inner active:scale-95">
-            {label === "Text" ? <span className="font-display text-4xl font-bold">Aa</span> : <Icon className="h-9 w-9" />}
-            <span className="text-base font-semibold">{label}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 flex items-center justify-between px-5">
-        <button onClick={() => fileInput.current?.click()} className="flex items-center gap-1 font-display text-2xl font-bold">Recents <ChevronDown className="h-5 w-5" /></button>
-        <button onClick={() => setMulti((m) => !m)} className="flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-base font-semibold">
-          <span className="h-5 w-5 rounded-full border-2 border-white" /> Select multiple
-        </button>
-      </div>
-
-      <div className="mt-4 grid grid-cols-4 border-b border-white/10 px-5 text-center text-base font-bold text-white/50">
-        {tabs.map((t) => (
-          <button key={t} onClick={() => setStoryTab(t)} className={`relative pb-3 ${storyTab === t ? "text-white" : ""}`}>
-            {t}
-            {storyTab === t && <span className="absolute inset-x-0 bottom-0 h-1 rounded-full bg-white" />}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-3 gap-0 overflow-hidden">
-        <button onClick={async () => {
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            stream.getTracks().forEach((track) => track.stop());
-            setCameraReady(true);
-          } catch {
-            toast.error("Camera permission was not granted");
-          }
-        }} className="flex aspect-[3/4] flex-col items-center justify-center bg-zinc-900 active:opacity-80" aria-label="Open camera">
-          <Camera className="h-12 w-12" />
-          {cameraReady && <span className="mt-2 text-xs">Ready</span>}
-        </button>
-        {Array.from({ length: 11 }).map((_, i) => (
-          <button key={i} onClick={() => fileInput.current?.click()} className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-fuchsia-600 via-cyan-400 to-black active:opacity-80">
-            <div className="absolute inset-0 bg-black/35" />
-            {multi && <div className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border border-white bg-black/40 text-xs">{i + 1}</div>}
-            <div className="absolute bottom-2 left-2 h-10 w-10 rounded-full bg-black/50" />
-            <div className="absolute right-2 top-2 h-5 w-5 rounded-full bg-primary/80" />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function EmptyTab({ label, cta }: { label: string; cta?: boolean }) {
   return (
-    <div className="glass mb-3 flex flex-col items-center gap-3 rounded-3xl p-8 text-center">
-      <Film className="h-7 w-7 text-primary" />
-      <div className="font-display font-semibold">{label}</div>
+    <div className="border border-white/5 bg-neutral-900/30 mb-4 flex flex-col items-center gap-2.5 rounded-2xl p-8 text-center">
+      <Film className="h-5 w-5 text-neutral-600" />
+      <div className="text-xs font-mono font-bold text-neutral-400 tracking-tight">{label}</div>
       {cta && (
-        <Link to="/create" className="bg-gradient-primary mt-1 rounded-full px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow">Upload your first</Link>
+        <Link to="/create" className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-1 rounded-lg px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white shadow-glow">
+          Initiate Creation Channel
+        </Link>
       )}
     </div>
   );
@@ -342,8 +302,8 @@ function EmptyTab({ label, cta }: { label: string; cta?: boolean }) {
 function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick}
-      className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${
-        active ? "bg-background text-foreground shadow-elegant" : "text-muted-foreground"
+      className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-[10px] font-black uppercase tracking-wider transition-all ${
+        active ? "bg-neutral-950 text-white shadow-md border border-white/5" : "text-neutral-500 hover:text-neutral-400"
       }`}>
       {children}
     </button>
