@@ -213,6 +213,40 @@ function FeedPage() {
                   onShare={() => import("@/lib/share").then(({ shareOrCopy }) => shareOrCopy({ title: v.caption || "Javan", url: location.href }))}
                   onReport={() => setReportFor({ type: "video", id: v.id })}
                 />
+
+                {/* ─── INTERACTIVE STREAMING SOUND METADATA OVERLAY LAYER ─── */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-24 z-30 px-4">
+                  <div className="pointer-events-auto border border-white/5 bg-neutral-950/80 backdrop-blur-md rounded-xl p-2.5 flex items-center justify-between max-w-[calc(100%-64px)] shadow-2xl">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-900 border border-white/10 text-rose-400">
+                        <svg className={`h-4 w-4 text-rose-400 ${i === activeIdx ? "animate-spin" : ""}`} style={{ animationDuration: '4s', animationTimingFunction: 'linear' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-emerald-400 border border-black animate-pulse" />
+                      </div>
+                      
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[10px] font-black tracking-tight text-white uppercase">
+                          {v.audio_tracks?.title || v.music || "Original Audio"}
+                        </div>
+                        <div className="truncate text-[8px] font-mono font-bold text-neutral-500 uppercase tracking-widest mt-0.5">
+                          Node: {v.audio_tracks?.artist_name || "Unknown Identity Vector"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {v.audio_track_id && (
+                      <Link
+                        to="/create"
+                        search={{ soundId: v.audio_track_id }}
+                        className="ml-3 shrink-0 flex h-6 px-2.5 items-center justify-center rounded-lg bg-white text-black hover:bg-rose-500 hover:text-white text-[9px] font-black uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-md"
+                      >
+                        Use Sound
+                      </Link>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
