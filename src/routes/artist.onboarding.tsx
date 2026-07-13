@@ -87,7 +87,6 @@ function ArtistOnboarding() {
           <ExistingStatus existing={existing} />
         ) : (
           <>
-            {/* Structural Stepper Elements */}
             <div className="mb-6 flex items-center gap-1.5 px-0.5">
               {[1, 2, 3].map((n) => (
                 <div key={n} className={`h-1 flex-1 rounded-full transition-all duration-300 ${step >= n ? "bg-rose-500" : "bg-neutral-900"}`} />
