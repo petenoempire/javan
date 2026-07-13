@@ -61,7 +61,6 @@ function FeedPage() {
 
   return (
     <MobileShell immersive>
-      {/* Top bar — premium capsule tabs + search */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-black/55 via-black/20 to-transparent pb-4 pt-3">
         <div className="pointer-events-auto flex items-center gap-2 pl-3 pr-3">
           <div className="no-scrollbar -mx-1 flex flex-1 items-center gap-1.5 overflow-x-auto px-1">
