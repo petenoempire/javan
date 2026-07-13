@@ -28,7 +28,6 @@ function ArtistStudio() {
     },
   });
 
-  // Fetching tracks directly from our audio registry backend table
   const { data: tracks } = useQuery({
     queryKey: ["artist-tracks", user?.id],
     enabled: !!user,
@@ -85,7 +84,6 @@ function ArtistStudio() {
       </header>
 
       <div className="px-4 pt-5 space-y-4">
-        {/* Core Profile Card */}
         <div className="border border-white/5 bg-neutral-900/40 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <div className="font-display text-sm font-black uppercase tracking-wider">{artist.stage_name}</div>
@@ -96,7 +94,6 @@ function ArtistStudio() {
           </div>
         </div>
 
-        {/* Dummy Metrics Grid for Dashboard Depth */}
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-neutral-900/20 border border-white/5 rounded-xl p-3">
             <div className="text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-wider">Sound Ingestion Usage</div>
