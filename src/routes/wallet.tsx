@@ -14,16 +14,15 @@ export const Route = createFileRoute("/wallet")({
   component: WalletPage,
 });
 
-const MIN_PAYOUT_COINS = 2000; // 2000 Coins = $20 Minimum Threshold
+const MIN_PAYOUT_COINS = 2000;
 
 type CurrencyTier = "USD" | "GBP" | "NGN";
 
 interface CurrencyRateMap {
   symbol: string;
-  rate: number; // Factor multiplied against base USD value
+  rate: number;
 }
 
-// Module 3: Exchange Matrix Conversion Library
 const FIAT_FX_RATES: Record<CurrencyTier, CurrencyRateMap> = {
   USD: { symbol: "$", rate: 1.0 },
   GBP: { symbol: "£", rate: 0.79 },
@@ -56,11 +55,9 @@ function WalletPage() {
     },
   });
 
-  // Module 5: Simulated Local ACID Financial Commit Verification Engine
   const executeEscrowSettlementMutation = useMutation({
     mutationFn: async (payload: { type: "escrow_freeze" | "payout_init"; coinAmount: number }) => {
       setEscrowIsolationLock(true);
-      // Simulate validation of write-ahead log sequences and multi-table lock isolation pipelines
       await new Promise((resolve) => setTimeout(resolve, 1400));
       return { transaction_hash: `TX_ACID_HEX_${Math.random().toString(16).substring(2, 10).toUpperCase()}`, timestamp: new Date().toISOString() };
     },
@@ -83,7 +80,7 @@ function WalletPage() {
         <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center">
           <Coins className="mb-3 h-10 w-10 text-muted-foreground animate-bounce" />
           <h2 className="font-display text-xl font-bold">Sign in to view secure wallet</h2>
-          <Link to="/auth" className="bg-gradient-primary mt-5 rounded-full px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">Sign in</Link>
+          <Link to="/auth" className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-5 rounded-full px-6 py-2.5 text-sm font-semibold text-white shadow-glow">Sign in</Link>
         </div>
       </MobileShell>
     );
@@ -92,7 +89,6 @@ function WalletPage() {
   const coins = profile?.coins ?? 0;
   const earned = profile?.earned_coins ?? 0;
   
-  // Calculate dynamic regional evaluations across specific fiat metrics
   const baseUsdBalance = coinsToUsd(coins);
   const localizedBalanceText = (baseUsdBalance * currentFx.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   
@@ -104,8 +100,6 @@ function WalletPage() {
   return (
     <MobileShell>
       <div className="px-5 pt-6 pb-24">
-        
-        {/* Dynamic Multi-Currency Selector Tabs */}
         <div className="flex items-center justify-between">
           <h1 className="font-display text-3xl font-black tracking-tight">Ledger</h1>
           <div className="flex bg-neutral-900 border border-white/5 rounded-xl p-0.5 shadow-inner">
@@ -125,8 +119,7 @@ function WalletPage() {
           </div>
         </div>
 
-        {/* Balance card */}
-        <div className="bg-gradient-primary relative mt-5 overflow-hidden rounded-3xl p-6 text-primary-foreground shadow-glow border border-white/10">
+        <div className="bg-gradient-to-br from-fuchsia-600 to-rose-600 relative mt-5 overflow-hidden rounded-3xl p-6 text-white shadow-glow border border-white/10">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
           
@@ -159,15 +152,14 @@ function WalletPage() {
           </TopUpDialog>
         </div>
 
-        {/* Creator Earnings Breakdown */}
-        <div className="glass mt-5 rounded-3xl p-5 border border-white/5 bg-neutral-950/40 backdrop-blur-md relative">
+        <div className="mt-5 rounded-3xl p-5 border border-white/5 bg-neutral-950/40 backdrop-blur-md relative">
           <div className="flex items-center justify-between">
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Creator Clearing Valuation</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Creator Clearing Valuation</div>
             <TrendingUp className="h-4 w-4 text-emerald-400" />
           </div>
           
           <div className="mt-2 flex items-end gap-2">
-            <span className="font-display text-3xl font-black text-gradient">
+            <span className="font-display text-3xl font-black text-rose-400">
               {currentFx.symbol}{localizedEarningsText}
             </span>
             <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-400 border border-emerald-500/20">
@@ -183,7 +175,7 @@ function WalletPage() {
             <button
               disabled={!canPayout || escrowIsolationLock}
               onClick={() => executeEscrowSettlementMutation.mutate({ type: "payout_init", coinAmount: earned })}
-              className="bg-gradient-gold mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black text-background shadow-glow disabled:opacity-30 active:scale-95 transition-transform"
+              className="bg-amber-400 mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black text-black shadow-glow disabled:opacity-30 active:scale-95 transition-transform"
             >
               <ArrowDownToLine className="h-4 w-4" /> Request Ledger Payout Settlement
             </button>
@@ -191,13 +183,12 @@ function WalletPage() {
 
           <div className="mt-3 flex gap-2 items-start border-t border-white/5 pt-3">
             <Landmark className="h-3.5 w-3.5 text-neutral-500 shrink-0 mt-0.5" />
-            <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
+            <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">
               Every payout operation requests an atomic snapshot matching isolation structures. Employs a mandatory **7-day rolling anti-fraud lock queue** prior to admin clearing verification.
             </p>
           </div>
         </div>
 
-        {/* Real-time Ledger Logs History */}
         <div className="mt-6 space-y-4">
           <Section title="Top-up Audit Trails" empty="No transactional logs recorded.">
             {purchases.map((p: any) => (
@@ -214,7 +205,12 @@ function WalletPage() {
             {payouts.map((p: any) => (
               <Row
                 key={p.id}
-                left={<><ArrowDownToLine className="h-3.5 w-3.5 text-amber-400" /> {currentFx.symbol}${( (p.usd_cents / 100) * (currentFx.rate / 1.0) ).toLocaleString(undefined, { maximumFractionDigits: 2 })}`}</>}
+                left={
+                  <>
+                    <ArrowDownToLine className="h-3.5 w-3.5 text-amber-400" /> 
+                    {currentFx.symbol}{( (p.usd_cents / 100) * (currentFx.rate / 1.0) ).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </>
+                }
                 middle={`${p.payout_method.toUpperCase()} POOL · ${new Date(p.created_at).toLocaleDateString()}`}
                 status={p.status}
               />
@@ -231,9 +227,9 @@ function Section({ title, empty, children }: { title: string; empty: string; chi
   const hasItems = items.filter(Boolean).length > 0;
   return (
     <div>
-      <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground pl-1">{title}</div>
-      <div className="glass divide-y divide-border/40 overflow-hidden rounded-2xl border border-white/5 bg-neutral-950/20">
-        {hasItems ? children : <div className="p-4 text-center text-xs text-muted-foreground font-medium">{empty}</div>}
+      <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-neutral-500 pl-1">{title}</div>
+      <div className="divide-y divide-white/5 overflow-hidden rounded-2xl border border-white/5 bg-neutral-950/20">
+        {hasItems ? children : <div className="p-4 text-center text-xs text-neutral-500 font-medium">{empty}</div>}
       </div>
     </div>
   );
