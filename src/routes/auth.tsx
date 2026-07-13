@@ -10,7 +10,6 @@ export const Route = createFileRoute("/auth")({
   component: Auth,
 });
 
-// Full country configuration library mapping phone prefixes, flag emojis, and ISO codes
 interface CountryConfig {
   code: string;
   name: string;
@@ -37,7 +36,6 @@ function Auth() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [stage, setStage] = useState<"credentials" | "verify_signup" | "verify_signin">("credentials");
   
-  // Credentials Inputs
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [handle, setHandle] = useState("");
@@ -45,7 +43,6 @@ function Auth() {
   const [selectedCountry, setSelectedCountry] = useState<CountryConfig>(GLOBAL_COUNTRIES[0]);
   const [phoneNumber, setPhoneNumber] = useState("");
   
-  // 2FA / Dual Verification OTP Inputs
   const [smsOtpInput, setSmsOtpInput] = useState("");
   const [emailOtpInput, setEmailOtpInput] = useState("");
   const [loginOtpInput, setLoginOtpInput] = useState("");
@@ -58,7 +55,6 @@ function Auth() {
     if (session) navigate({ to: "/profile" });
   }, [session, navigate]);
 
-  // Handle auto phone detection wrapper updates based on dropdown adjustment
   const handleCountryChange = (countryCode: string) => {
     const target = GLOBAL_COUNTRIES.find(c => c.code === countryCode);
     if (target) setSelectedCountry(target);
@@ -70,23 +66,14 @@ function Auth() {
     
     try {
       if (mode === "signup") {
-        if (!phoneNumber) {
-          throw new Error("A valid telephone string is required for dual-channel validation verification.");
-        }
+        if (!phoneNumber) throw new Error("A valid telephone string is required for dual-channel validation verification.");
         
         const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
         
-        // POST to edge pipeline to dispatch distinct 6-digit SMS and email tokens simultaneously
         const response = await fetch("/api/v1/auth/dispatch-dual-verification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            phone: fullPhone,
-            handle: handle.toLowerCase(),
-            name,
-            country: selectedCountry.code
-          }),
+          body: JSON.stringify({ email, phone: fullPhone, handle: handle.toLowerCase(), name, country: selectedCountry.code }),
         });
 
         const data = await response.json();
@@ -95,7 +82,6 @@ function Auth() {
         toast.success("Security challenges triggered. Verify SMS and Email codes.");
         setStage("verify_signup");
       } else {
-        // Sign-in: Verify basic credentials matching first
         const response = await fetch("/api/v1/auth/challenge-login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -128,22 +114,12 @@ function Auth() {
       const response = await fetch("/api/v1/auth/confirm-dual-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          phone: fullPhone,
-          handle: handle.toLowerCase(),
-          display_name: name || handle,
-          password,
-          country: selectedCountry.code,
-          sms_code: smsOtpInput,
-          email_code: emailOtpInput
-        })
+        body: JSON.stringify({ email, phone: fullPhone, handle: handle.toLowerCase(), display_name: name || handle, password, country: selectedCountry.code, sms_code: smsOtpInput, email_code: emailOtpInput })
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Verification failed. Tokens could be expired.");
 
-      // Establish Supabase Session dynamically upon clean database profile enrollment
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
       if (sessionError) throw sessionError;
 
@@ -168,13 +144,12 @@ function Auth() {
       const response = await fetch("/api/v1/auth/verify-login-2fa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, 2fa_code: loginOtpInput })
+        body: JSON.stringify({ email, "2fa_code": loginOtpInput })
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Invalid or expired 5-digit 2FA factor token.");
 
-      // Release locked session barrier
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
       if (sessionError) throw sessionError;
 
@@ -195,22 +170,17 @@ function Auth() {
   return (
     <div className="mx-auto flex min-h-[100dvh] max-w-[480px] flex-col justify-center bg-background px-6">
       <Link to="/" className="mb-6 text-center font-display text-4xl font-bold text-gradient">Javan</Link>
-      
       <div className="glass rounded-3xl p-6 shadow-elegant border border-white/5 bg-black/40 backdrop-blur-md">
-        
         {stage === "credentials" && (
           <>
             <div className="mb-5 flex rounded-full bg-muted p-1">
               {(["signup", "signin"] as const).map((m) => (
                 <button key={m} type="button" onClick={() => setMode(m)}
-                  className={`flex-1 rounded-full py-2 text-sm font-bold transition duration-200 transform active:scale-95 ${
-                    mode === m ? "bg-background text-foreground shadow-elegant scale-105" : "text-muted-foreground"
-                  }`}>
+                  className={`flex-1 rounded-full py-2 text-sm font-bold transition duration-200 transform active:scale-95 ${mode === m ? "bg-background text-foreground shadow-elegant scale-105" : "text-muted-foreground"}`}>
                   {m === "signup" ? "Create Account" : "Sign In"}
                 </button>
               ))}
             </div>
-
             <button onClick={google}
               className="mb-4 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card/60 py-3 text-sm font-semibold transition active:scale-[0.97]">
               <svg width="18" height="18" viewBox="0 0 48 48">
@@ -221,63 +191,40 @@ function Auth() {
               </svg>
               Continue with Google
             </button>
-
             <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
               <div className="h-px flex-1 bg-border/50" /> or secure keys <div className="h-px flex-1 bg-border/50" />
             </div>
-
             <form onSubmit={handleInitialSubmit} className="space-y-3">
               {mode === "signup" && (
                 <>
                   <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Display Name" required
                     className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-all duration-200" />
-                  
                   <input value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
                     placeholder="Unique Handle (@username)" required
                     className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-all duration-200" />
-
-                  {/* Mandatory Country Selector dropdown layout module */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Country Registry Selection</label>
-                    <select 
-                      value={selectedCountry.code} 
-                      onChange={(e) => handleCountryChange(e.target.value)}
-                      className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary text-foreground font-semibold"
-                    >
+                    <select value={selectedCountry.code} onChange={(e) => handleCountryChange(e.target.value)}
+                      className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary text-foreground font-semibold">
                       {GLOBAL_COUNTRIES.map((country) => (
-                        <option key={country.code} value={country.code} className="bg-neutral-900 text-white">
-                          {country.flag} {country.name} ({country.prefix})
-                        </option>
+                        <option key={country.code} value={country.code} className="bg-neutral-900 text-white">{country.flag} {country.name} ({country.prefix})</option>
                       ))}
                     </select>
                   </div>
-
-                  {/* Auto-detecting phone numeric layout element wrapper container */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Phone Number Token Endpoint</label>
                     <div className="relative flex items-center">
-                      <span className="absolute left-4 text-sm font-mono font-bold text-muted-foreground select-none">
-                        {selectedCountry.flag} {selectedCountry.prefix}
-                      </span>
-                      <input 
-                        type="tel" 
-                        value={phoneNumber} 
-                        onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))} 
-                        placeholder="Mobile Number" 
-                        required 
-                        className="w-full rounded-2xl border border-border bg-background py-3 pl-20 pr-4 text-sm font-mono outline-none focus:ring-2 focus:ring-primary transition-all duration-200" 
-                      />
+                      <span className="absolute left-4 text-sm font-mono font-bold text-muted-foreground select-none">{selectedCountry.flag} {selectedCountry.prefix}</span>
+                      <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))} placeholder="Mobile Number" required 
+                        className="w-full rounded-2xl border border-border bg-background py-3 pl-20 pr-4 text-sm font-mono outline-none focus:ring-2 focus:ring-primary transition-all duration-200" />
                     </div>
                   </div>
                 </>
               )}
-
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email Registry Address" required
                 className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-all duration-200" />
-              
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Account Password" required minLength={8}
                 className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-all duration-200" />
-              
               <button type="submit" disabled={loading}
                 className="bg-gradient-primary w-full rounded-full py-3 text-sm font-bold text-primary-foreground shadow-glow active:scale-[0.96] disabled:opacity-60 uppercase tracking-widest mt-2 transition-transform">
                 {loading ? "Processing..." : mode === "signup" ? "Trigger Dual Verification" : "Verify Credentials"}
@@ -285,84 +232,51 @@ function Auth() {
             </form>
           </>
         )}
-
-        {/* Signup Stage Verification Gate: Distinct SMS + SMTP validation fields */}
         {stage === "verify_signup" && (
           <form onSubmit={handleVerifySignupChallenge} className="space-y-4">
             <div className="text-center pb-2">
               <h3 className="text-white text-lg font-black uppercase tracking-tight">Dual-Channel Verification</h3>
               <p className="text-xs text-muted-foreground mt-1">Codes have been transmitted across both system protocols to lock identity validation.</p>
             </div>
-
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-amber-400 uppercase tracking-widest pl-1">6-Digit Mobile SMS Code</label>
-              <input 
-                type="text" 
-                maxLength={6} 
-                value={smsOtpInput} 
-                onChange={(e) => setSmsOtpInput(e.target.value.replace(/\D/g, ""))} 
-                placeholder="000000" 
-                required 
-                className="w-full rounded-2xl border border-amber-500/30 bg-background text-center py-3 text-lg font-mono tracking-[0.5em] font-black outline-none focus:ring-2 focus:ring-amber-500 text-amber-300"
-              />
+              <input type="text" maxLength={6} value={smsOtpInput} onChange={(e) => setSmsOtpInput(e.target.value.replace(/\D/g, ""))} placeholder="000000" required 
+                className="w-full rounded-2xl border border-amber-500/30 bg-background text-center py-3 text-lg font-mono tracking-[0.5em] font-black outline-none focus:ring-2 focus:ring-amber-500 text-amber-300" />
             </div>
-
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest pl-1">6-Digit Email SMTP Code</label>
-              <input 
-                type="text" 
-                maxLength={6} 
-                value={emailOtpInput} 
-                onChange={(e) => setEmailOtpInput(e.target.value.replace(/\D/g, ""))} 
-                placeholder="000000" 
-                required 
-                className="w-full rounded-2xl border border-cyan-500/30 bg-background text-center py-3 text-lg font-mono tracking-[0.5em] font-black outline-none focus:ring-2 focus:ring-cyan-500 text-cyan-300"
-              />
+              <input type="text" maxLength={6} value={emailOtpInput} onChange={(e) => setEmailOtpInput(e.target.value.replace(/\D/g, ""))} placeholder="000000" required 
+                className="w-full rounded-2xl border border-cyan-500/30 bg-background text-center py-3 text-lg font-mono tracking-[0.5em] font-black outline-none focus:ring-2 focus:ring-cyan-500 text-cyan-300" />
             </div>
-
             <button type="submit" disabled={loading}
               className="w-full bg-gradient-to-r from-amber-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-black rounded-full py-3 text-sm font-black uppercase tracking-widest transition transform active:scale-95 disabled:opacity-50">
               {loading ? "Validating Ledger..." : "Authorize Creation"}
             </button>
-
             <button type="button" onClick={() => setStage("credentials")} className="w-full text-center text-xs text-neutral-500 hover:text-neutral-300 transition underline pt-2 block">
               Change Credentials Configuration
             </button>
           </form>
         )}
-
-        {/* Login Stage Verification Gate: 5-Digit strict 2FA challenge barrier */}
         {stage === "verify_signin" && (
           <form onSubmit={handleVerifySigninChallenge} className="space-y-4">
             <div className="text-center pb-2">
               <h3 className="text-white text-lg font-black uppercase tracking-tight">2FA Security Lock</h3>
               <p className="text-xs text-muted-foreground mt-1">Every active authentication route session requires validation matching of the 5-digit factor key.</p>
             </div>
-
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest pl-1">5-Digit Authentication Identity Token</label>
-              <input 
-                type="text" 
-                maxLength={5} 
-                value={loginOtpInput} 
-                onChange={(e) => setLoginOtpInput(e.target.value.replace(/\D/g, ""))} 
-                placeholder="00000" 
-                required 
-                className="w-full rounded-2xl border border-emerald-500/40 bg-background text-center py-3 text-xl font-mono tracking-[0.6em] font-black outline-none focus:ring-2 focus:ring-emerald-500 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-              />
+              <input type="text" maxLength={5} value={loginOtpInput} onChange={(e) => setLoginOtpInput(e.target.value.replace(/\D/g, ""))} placeholder="00000" required 
+                className="w-full rounded-2xl border border-emerald-500/40 bg-background text-center py-3 text-xl font-mono tracking-[0.6em] font-black outline-none focus:ring-2 focus:ring-emerald-500 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]" />
             </div>
-
             <button type="submit" disabled={loading}
               className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-black rounded-full py-3 text-sm font-black uppercase tracking-widest transition transform active:scale-95 disabled:opacity-50">
               {loading ? "Releasing Locks..." : "Verify & Unlock Session"}
             </button>
-
             <button type="button" onClick={() => setStage("credentials")} className="w-full text-center text-xs text-neutral-500 hover:text-neutral-300 transition underline pt-2 block">
               Abort Session Access
             </button>
           </form>
         )}
-
         <Link to="/" className="mt-5 block text-center text-xs text-muted-foreground hover:text-foreground transition">← back to feed</Link>
       </div>
     </div>
