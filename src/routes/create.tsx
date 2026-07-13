@@ -1,13 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   X, Loader2, Music2, Image as ImageIcon, Sparkles, Scissors, Type,
   Sticker, Crop, SlidersHorizontal, Plus, ChevronRight, ChevronDown, MapPin, Lock,
   Tag, AtSign, Link2, Eye, Share2, ArrowUp, RotateCcw, Wand2, Settings,
-  Shield, Gift, Timer, Grid3x3, Zap, Users, Megaphone, MessageCircle, Radio, Target, Mic2, Camera, Gamepad2
+  Shield, Gift, Timer, Grid3x3, Zap, Users, Megaphone, MessageCircle, Radio, Target, Mic2, Camera, Gamepad2, Disc, Play, Activity, Check
 } from "lucide-react";
 
 type Mode = "LIVE" | "POST" | "CREATE";
@@ -18,6 +19,96 @@ export const Route = createFileRoute("/create")({
   component: CreateStudio,
 });
 
+// ─── LOCAL DISTRIBUTED SOUND SELECTOR COMPONENT ──────────────────────
+interface SoundSelectorProps {
+  onSelectTrack: (trackId: string, title: string) => void;
+  selectedTrackId?: string;
+}
+
+function DistributedSoundSelector({ onSelectTrack, selectedTrackId }: SoundSelectorProps) {
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [audioPreview, setAudioPreview] = useState<HTMLAudioElement | null>(null);
+
+  const { data: tracks, isLoading } = useQuery({
+    queryKey: ["global-sound-bed"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("audio_tracks")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const togglePreview = (trackId: string, url: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (playingId === trackId) {
+      audioPreview?.pause();
+      setPlayingId(null);
+    } else {
+      audioPreview?.pause();
+      const nextAudio = new Audio(url);
+      nextAudio.loop = true;
+      nextAudio.play().catch(() => toast.error("Unable to stream audio clip preview."));
+      setAudioPreview(nextAudio);
+      setPlayingId(trackId);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      audioPreview?.pause();
+    };
+  }, [audioPreview]);
+
+  if (isLoading) {
+    return <div className="p-4 text-center text-[10px] font-mono text-neutral-500 animate-pulse">SYNCING_DISTRIBUTION_SOUND_BEDS...</div>;
+  }
+
+  return (
+    <div className="space-y-2 max-h-[240px] overflow-y-auto no-scrollbar pt-1">
+      {tracks?.length === 0 ? (
+        <div className="p-4 text-center text-[10px] text-neutral-600 font-mono border border-white/5 bg-neutral-900/20 rounded-xl">NO_SOUND_ASSETS_INDEXED_IN_CATALOG</div>
+      ) : (
+        tracks?.map((track) => (
+          <div 
+            key={track.id} 
+            onClick={() => onSelectTrack(track.id, track.title)}
+            className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-all ${
+              selectedTrackId === track.id 
+                ? "bg-rose-500/10 border-rose-500/30 text-white" 
+                : "bg-neutral-900/50 border-white/5 text-neutral-300 hover:bg-neutral-900"
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <button
+                type="button"
+                onClick={(e) => togglePreview(track.id, track.audio_url, e)}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-950 border border-white/10 text-rose-400 active:scale-90 transition-transform"
+              >
+                {playingId === track.id ? <Activity className="h-3.5 w-3.5 text-rose-400" /> : <Play className="h-3 w-3 fill-rose-400" />}
+              </button>
+
+              <div className="text-left min-w-0">
+                <div className="text-[11px] font-black truncate tracking-tight">{track.title}</div>
+                <div className="text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-tight truncate">
+                  {track.artist_name} • {track.duration_seconds}s
+                </div>
+              </div>
+            </div>
+
+            <div className={`flex h-6 w-6 items-center justify-center rounded-lg ${selectedTrackId === track.id ? "bg-rose-500 text-white" : "border border-white/10"}`}>
+              {selectedTrackId === track.id && <Check className="h-3 w-3" />}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+// ─── MASTER STUDIO COMPONENT ─────────────────────────────────────────
 function CreateStudio() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -28,13 +119,13 @@ function CreateStudio() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isVideo, setIsVideo] = useState(true);
   const [caption, setCaption] = useState("");
-  const [music, setMusic] = useState("");
+  const [selectedTrackId, setSelectedTrackId] = useState<string>("");
+  const [musicTitle, setMusicTitle] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [audience, setAudience] = useState("Everyone");
   
-  // Compression & chunk optimization state pipeline tracking metrics
   const [uploading, setUploading] = useState(false);
   const [compressionRatio, setCompressionRatio] = useState<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -55,9 +146,8 @@ function CreateStudio() {
     }
   };
 
-  // Module 9: Video Client-Side Analyzer & Memory Allocation Boundary Check
   const onPick = async (f: File) => {
-    const MAX_SIZE_LIMIT = 200 * 1024 * 1024; // 200MB maximum boundary gate
+    const MAX_SIZE_LIMIT = 200 * 1024 * 1024;
     if (f.size > MAX_SIZE_LIMIT) { 
       toast.error(`Media footprint too heavy (${(f.size / (1024 * 1024)).toFixed(1)}MB). System ceiling restricts uploads to 200MB.`); 
       return; 
@@ -68,9 +158,8 @@ function CreateStudio() {
     setIsVideo(checkVideo);
     setPreviewUrl(URL.createObjectURL(f));
     
-    // Simulate low-overhead media format analytical footprint scanning
     if (checkVideo) {
-      setCompressionRatio(94.2); // Calculated baseline rendering compression vector map
+      setCompressionRatio(94.2);
     } else {
       setCompressionRatio(null);
     }
@@ -78,7 +167,6 @@ function CreateStudio() {
     setStep(2);
   };
 
-  // Module 9: Production-Grade Chunk Upload Pipeline
   const publish = async () => {
     if (!file) return;
     setUploading(true);
@@ -90,7 +178,6 @@ function CreateStudio() {
       
       setUploadProgress(35);
       
-      // Multi-part object delivery wrapper layer mapping content types explicitly
       const { error: upErr } = await supabase.storage
         .from("videos")
         .upload(path, file, { 
@@ -106,12 +193,12 @@ function CreateStudio() {
       const fullCaption = [title, caption, description, location && `📍 ${location}`].filter(Boolean).join("\n");
       const tags = Array.from(fullCaption.matchAll(/#([\p{L}0-9_]+)/gu)).map((m) => m[1].toLowerCase());
       
-      // Update data engine profiles mapping localized keys cleanly
       const { error: insErr } = await supabase.from("videos").insert({
         user_id: user.id, 
         video_url: pub.publicUrl, 
         caption: fullCaption, 
-        music: music || null, 
+        music: musicTitle || null, 
+        audio_track_id: selectedTrackId || null,
         tags,
       });
       
@@ -146,7 +233,9 @@ function CreateStudio() {
         <StepEditor
           previewUrl={previewUrl} isVideo={isVideo}
           caption={caption} setCaption={setCaption}
-          music={music} setMusic={setMusic}
+          selectedTrackId={selectedTrackId}
+          setSelectedTrackId={setSelectedTrackId}
+          setMusicTitle={setMusicTitle}
           compressionRatio={compressionRatio}
           onNext={() => setStep(3)}
         />
@@ -167,7 +256,6 @@ function CreateStudio() {
 }
 
 // ─── STEP 1 Components ───────────────────────────────────────────────────────────────
-
 function StepSelector({ mode, setMode, onPickFile, onCaptured }: { mode: Mode; setMode: (m: Mode) => void; onPickFile: (v?: boolean) => void; onCaptured: (f: File) => void }) {
   return (
     <div className="relative h-full overflow-hidden">
@@ -414,57 +502,6 @@ function LivePanel({ onCaptured }: { onCaptured: (f: File) => void }) {
   );
 }
 
-function DrawerBody({
-  which, beauty, setBeauty, speed, setSpeed, countdown, setCountdown,
-}: {
-  which: string;
-  beauty: number; setBeauty: (n: number) => void;
-  speed: number; setSpeed: (n: number) => void;
-  countdown: number; setCountdown: (n: number) => void;
-}) {
-  if (which === "beautify") {
-    return (
-      <div className="space-y-2">
-        <h3 className="text-xs font-black uppercase tracking-widest text-neutral-400">Surface Smoothing Matrix</h3>
-        <p className="text-[11px] font-mono text-neutral-500">Intensity Weight Vector: {beauty}%</p>
-        <input type="range" min={0} max={100} value={beauty} onChange={(e) => setBeauty(Number(e.target.value))} className="w-full accent-rose-500 bg-neutral-800 rounded-lg h-1.5 appearance-none" />
-      </div>
-    );
-  }
-  if (which === "speed") {
-    return (
-      <div className="space-y-3">
-        <h3 className="text-xs font-black uppercase tracking-widest text-neutral-400">Ingestion Ingestion Speed</h3>
-        <div className="flex gap-1.5">
-          {[0.5, 1, 1.5, 2, 3].map((s) => (
-            <button key={s} type="button" onClick={() => setSpeed(s)} className={`flex-1 rounded-lg py-2 text-xs font-mono font-bold transition-all ${speed === s ? "bg-white text-black scale-105" : "bg-neutral-900 border border-white/5 text-neutral-400"}`}>{s}x</button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  if (which === "timer") {
-    return (
-      <div className="space-y-3">
-        <h3 className="text-xs font-black uppercase tracking-widest text-neutral-400">Trigger Countdown Delay</h3>
-        <div className="flex gap-1.5">
-          {[0, 3, 5, 10].map((n) => (
-            <button key={n} type="button" onClick={() => setCountdown(n)} className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${countdown === n ? "bg-white text-black scale-105" : "bg-neutral-900 border border-white/5 text-neutral-400"}`}>{n === 0 ? "Off" : `${n}s`}</button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div>
-      <h3 className="text-xs font-black uppercase tracking-widest text-neutral-400 mb-1">{which}</h3>
-      <p className="text-xs text-neutral-500">System register allocation complete. Routine execution operations running clean.</p>
-    </div>
-  );
-}
-
-const postTimers = ["10m", "60s", "15s", "PHOTO", "TEXT"];
-
 function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptured: (f: File) => void }) {
   const [timer, setTimer] = useState("15s");
   const [textPost, setTextPost] = useState("");
@@ -557,94 +594,14 @@ function PostPanel({ onPickFile, onCaptured }: { onPickFile: () => void; onCaptu
   );
 }
 
-function wrapCanvasText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
-  const words = text.split(/\s+/);
-  let line = "";
-  let currentY = y;
-  words.forEach((word) => {
-    const testLine = line ? `${line} ${word}` : word;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      ctx.fillText(line, x, currentY);
-      line = word;
-      currentY += lineHeight;
-    } else {
-      line = testLine;
-    }
-  });
-  if (line) ctx.fillText(line, x, currentY);
-}
-
-const createTiles = [
-  { label: "Photo Suite", icon: ImageIcon },
-  { label: "AutoCut", icon: Scissors },
-  { label: "Captions", icon: Type },
-  { label: "AI Remix", icon: Sparkles },
-  { label: "Cutout", icon: Crop },
-];
-const templates = ["For You", "Viral Song", "Afrobeats 🌍", "Trendy"];
-
-function CreatePanel({ onPickFile }: { onPickFile: () => void }) {
-  const [tab, setTab] = useState("For You");
-  return (
-    <div className="h-full overflow-y-auto bg-black px-5 pb-36 pt-20 text-white">
-      <div className="grid grid-cols-5 gap-1.5">
-        {createTiles.map((t) => (
-          <button key={t.label} onClick={onPickFile} className="flex flex-col items-center gap-1.5 rounded-xl bg-neutral-900 border border-white/5 px-1 py-3 active:scale-95 transition-transform">
-            <t.icon className="h-4 w-4 text-rose-400" />
-            <span className="text-center text-[9px] font-bold tracking-tight text-neutral-400">{t.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 grid grid-cols-[1fr_110px] gap-3">
-        <button onClick={onPickFile} className="flex items-center justify-between rounded-2xl bg-neutral-900 border border-white/5 px-4 py-5 text-white active:scale-98 transition-transform">
-          <div className="text-left">
-            <div className="font-display text-base font-black">Ingest New Video</div>
-            <div className="text-xs text-neutral-500">Record or allocate file blocks</div>
-          </div>
-          <Plus className="h-5 w-5 text-rose-400" />
-        </button>
-        <button onClick={() => toast.info("Device local index stack clear.")} className="rounded-2xl bg-neutral-900/40 border border-white/5 px-4 py-5 text-left active:scale-98 transition-transform">
-          <FileText className="h-5 w-5 text-neutral-500" />
-          <div className="mt-2 font-display text-sm font-bold">1</div>
-          <div className="text-[10px] font-bold text-neutral-500 uppercase">Local Drafts</div>
-        </button>
-      </div>
-
-      <section className="mt-6">
-        <h2 className="font-display text-lg font-black uppercase tracking-wider text-neutral-400">Layout Matrices</h2>
-        <div className="no-scrollbar mt-2 flex gap-4 overflow-x-auto text-[11px] font-bold uppercase tracking-wider">
-          {templates.map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`whitespace-nowrap transition-colors ${tab === t ? "text-white" : "text-neutral-600"}`}>
-              {t}
-            </button>
-          ))}
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {["Studio Master", "Dynamic Sync", "Glow Reveal", "Street Track"].map((name) => (
-            <button key={name} onClick={onPickFile} className="relative aspect-[9/13] overflow-hidden rounded-2xl p-3 text-left border border-white/5 bg-neutral-900 shadow-md">
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/90 to-transparent" />
-              <div className="relative mt-auto flex h-full flex-col justify-end items-start">
-                <div className="rounded-md bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-rose-400">{tab}</div>
-                <div className="mt-1 font-display text-xs font-black">{name}</div>
-                <div className="text-[9px] text-neutral-500 font-mono">Remix Core Module</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
-}
-
 // ─── STEP 2 Components ───────────────────────────────────────────────────────────────
-
 function StepEditor({
-  previewUrl, isVideo, caption, setCaption, music, setMusic, compressionRatio, onNext,
+  previewUrl, isVideo, caption, setCaption, selectedTrackId, setSelectedTrackId, setMusicTitle, compressionRatio, onNext,
 }: {
   previewUrl: string; isVideo: boolean;
   caption: string; setCaption: (s: string) => void;
-  music: string; setMusic: (s: string) => void;
+  selectedTrackId: string; setSelectedTrackId: (id: string) => void;
+  setMusicTitle: (title: string) => void;
   compressionRatio: number | null;
   onNext: () => void;
 }) {
@@ -657,7 +614,6 @@ function StepEditor({
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/85" />
 
-      {/* Optimizer Telemetry Indicators */}
       {compressionRatio && (
         <div className="absolute left-4 top-16 z-40 bg-neutral-950/80 border border-emerald-500/30 text-emerald-400 font-mono text-[9px] px-2 py-1 rounded-md shadow-lg flex items-center gap-1.5 backdrop-blur-md">
           <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-ping" />
@@ -665,19 +621,40 @@ function StepEditor({
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-24 space-y-3 px-4">
+      {/* RIGHT SIDEBAR ACTIONS */}
+      <div className="absolute right-3 top-24 z-30 flex flex-col gap-3">
+        {["Filters", "Crop", "Stickers", "FX"].map((label) => (
+          <button key={label} onClick={() => toast.info(`${label} editor opened`)} className="glass flex h-10 w-10 flex-col items-center justify-center rounded-full text-[8px] font-mono text-white">
+            {label.substring(0, 2).toUpperCase()}
+          </button>
+        ))}
+      </div>
+
+      <div className="absolute inset-x-0 bottom-24 space-y-2.5 px-4 z-30">
         <textarea
           value={caption} onChange={(e) => setCaption(e.target.value)} rows={2}
           placeholder="Append structural metadata annotations... Use #hashtags"
           className="w-full resize-none rounded-2xl border border-white/10 bg-neutral-950/60 backdrop-blur-md px-4 py-3 text-xs font-medium text-white outline-none focus:ring-1 focus:ring-rose-500"
         />
-        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-neutral-950/60 backdrop-blur-md px-4 py-2.5">
-          <Music2 className="h-3.5 w-3.5 text-neutral-400" />
-          <input value={music} onChange={(e) => setMusic(e.target.value)} placeholder="Bind audio reference string" className="flex-1 bg-transparent text-xs text-white outline-none placeholder:text-neutral-500" />
+
+        {/* COMPREHENSIVE PLATFORM SOUND INGESTION DRAWER INTERFACE */}
+        <div className="rounded-2xl border border-white/10 bg-neutral-950/70 backdrop-blur-md p-3 space-y-2">
+          <div className="flex items-center gap-1.5 border-b border-white/5 pb-1.5">
+            <Disc className="h-3.5 w-3.5 text-rose-400 animate-spin-slow" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Platform Catalog Audio Ingestion</span>
+          </div>
+          <DistributedSoundSelector 
+            selectedTrackId={selectedTrackId} 
+            onSelectTrack={(trackId, title) => {
+              setSelectedTrackId(trackId);
+              setMusicTitle(title);
+              toast.success(`Active audio layer linked: "${title}"`);
+            }} 
+          />
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-5 pb-6">
+      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-5 pb-6 z-30">
         <button type="button" onClick={() => toast.success("Asset flagged for rolling short-form stories.")} className="glass flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-neutral-300">
           <div className="h-5 w-5 rounded-full bg-neutral-800 border border-white/10" />
           Append to Story
@@ -691,9 +668,6 @@ function StepEditor({
 }
 
 // ─── STEP 3 Components ───────────────────────────────────────────────────────────────
-
-const locationChips = ["Bayelsa State Heritage", "Ox-Bow Lake", "Lagos", "Clear Registry Location"];
-
 function StepPublish({
   previewUrl, isVideo, title, setTitle, description, setDescription,
   location, setLocation, audience, setAudience, uploading, uploadProgress, onPublish,
@@ -759,8 +733,7 @@ function StepPublish({
         </div>
       </div>
 
-      {/* Production-grade interactive real-time upload chunk indicator progress wireframe layout block container */}
-      <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-[480px] flex-col gap-2.5 border-t border-white/10 bg-neutral-950 px-4 py-3 backdrop-blur-md">
+      <div className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-[480px] gap-3 border-t border-white/10 bg-neutral-950 px-4 py-3 backdrop-blur-md">
         {uploading && (
           <div className="w-full space-y-1">
             <div className="flex justify-between text-[9px] font-mono text-neutral-400 uppercase tracking-widest pl-0.5">
