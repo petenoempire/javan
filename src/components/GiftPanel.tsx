@@ -1,92 +1,94 @@
-import { motion, AnimatePresence } from "motion/react";
-import { X, Coins } from "lucide-react";
-import { gifts, type Gift } from "@/lib/mock";
-import { useWallet } from "@/lib/store";
-import { useState } from "react";
+import React, { useState } from "react";
+import { X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
-import { Link } from "@tanstack/react-router";
 
-export function GiftPanel({ open, onClose, onSend, recipientId }: { open: boolean; onClose: () => void; onSend: (g: Gift) => void; recipientId?: string }) {
-  const { coins, refetch } = useWallet();
-  const [selected, setSelected] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
+interface GiftItem {
+  id: string;
+  name: string;
+  cost: number;
+  emoji: string;
+}
 
-  const send = async (g: Gift) => {
-    if (!recipientId) { toast.error("No recipient"); return; }
-    if (coins < g.cost) { toast.error("Insufficient coins"); return; }
-    setSending(true);
-    const { error } = await supabase.rpc("send_gift", { _recipient: recipientId, _gift_key: g.id });
-    setSending(false);
-    if (error) { toast.error(error.message); return; }
-    setSelected(g.id);
-    onSend(g);
-    refetch();
-    setTimeout(() => setSelected(null), 500);
+interface GiftPanelProps {
+  gifts: Record<string, GiftItem>;
+  onClose: () => void;
+  streamId: string;
+}
+
+export function GiftPanel({ gifts, onClose, streamId }: GiftPanelProps) {
+  const { user, profile } = useAuth();
+  const [selectedGift, setSelectedGift] = useState<GiftItem | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSendGift = async (gift: GiftItem) => {
+    if (!user || !profile) {
+      toast.error("Sign in to send gifts");
+      return;
+    }
+
+    if (profile.coins < gift.cost) {
+      toast.error("Not enough coins");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      // Deduct coins
+      await supabase
+        .from("profiles")
+        .update({ coins: profile.coins - gift.cost })
+        .eq("id", user.id);
+
+      // Send gift message
+      await supabase.from("live_chat_messages").insert({
+        stream_id: streamId,
+        user_id: user.id,
+        content: `Sent ${gift.emoji} ${gift.name}`,
+        kind: "gift",
+        gift_key: gift.id,
+      });
+
+      toast.success(`Sent ${gift.emoji} ${gift.name}!`);
+      onClose();
+    } catch (err) {
+      toast.error("Failed to send gift");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/50"
-          />
-          <motion.div
-            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="glass-strong fixed bottom-0 left-1/2 z-50 w-[min(480px,100vw)] -translate-x-1/2 rounded-t-3xl p-5 pb-8 shadow-elegant"
+    <div className="w-full bg-gradient-to-t from-black via-black/95 to-black/80 rounded-t-3xl p-4 border-t border-white/10">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-black text-white">Send a Gift</h3>
+        <button onClick={onClose} className="text-white/50 hover:text-white active:scale-90">
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+        {Object.values(gifts).map((gift) => (
+          <button
+            key={gift.id}
+            onClick={() => handleSendGift(gift)}
+            disabled={isProcessing}
+            className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-90 transition-all disabled:opacity-50"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-lg font-bold">Send a gift</h3>
-              <button onClick={onClose} className="rounded-full p-1 hover:bg-muted">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="mb-4 flex items-center justify-between rounded-2xl border border-border bg-card/50 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="bg-gradient-gold flex h-9 w-9 items-center justify-center rounded-full">
-                  <Coins className="h-5 w-5 text-background" />
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Balance</div>
-                  <div className="font-display font-bold">{coins.toLocaleString()}</div>
-                </div>
-              </div>
-              <Link
-                to="/wallet"
-                onClick={onClose}
-                className="bg-gradient-primary rounded-full px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow active:scale-95"
-              >
-                Top up
-              </Link>
-            </div>
-            <div className="grid grid-cols-4 gap-3">
-              {gifts.map((g) => {
-                const tierRing =
-                  g.tier === "legendary" ? "ring-2 ring-gold" :
-                  g.tier === "rare" ? "ring-2 ring-primary" : "";
-                return (
-                  <button
-                    key={g.id}
-                    onClick={() => send(g)}
-                    disabled={coins < g.cost}
-                    className={`relative flex flex-col items-center gap-1 rounded-2xl border border-border bg-card/60 p-3 transition active:scale-95 disabled:opacity-40 ${tierRing} ${selected === g.id ? "scale-110" : ""}`}
-                  >
-                    <div className="text-3xl">{g.icon}</div>
-                    <div className="text-xs font-medium">{g.name}</div>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Coins className="h-2.5 w-2.5" /> {g.cost}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        </>
+            <span className="text-2xl">{gift.emoji}</span>
+            <p className="text-[9px] font-bold text-white text-center truncate">{gift.name}</p>
+            <p className="text-[8px] text-amber-400 font-mono">{gift.cost.toLocaleString()}</p>
+          </button>
+        ))}
+      </div>
+
+      {isProcessing && (
+        <div className="mt-3 flex items-center justify-center gap-2 text-sm text-white/50">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Processing...
+        </div>
       )}
-    </AnimatePresence>
+    </div>
   );
 }
