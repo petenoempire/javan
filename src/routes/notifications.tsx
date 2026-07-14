@@ -1,112 +1,118 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { MobileShell } from "@/components/MobileShell";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { ArrowLeft, Bell, Heart, MessageCircle, UserPlus, Gift, Wallet } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { MessageCircle, Heart, Share2, MoreHorizontal, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-export const Route = createFileRoute("/notifications")({
+export const Route = createFileRoute("/notifications")({ 
   head: () => ({ meta: [{ title: "Notifications · Javan" }] }),
   component: NotificationsPage,
 });
 
-type Notif = {
-  id: string; user_id: string; actor_id: string | null;
-  kind: string; body: string | null; read: boolean; created_at: string;
-  actor?: { handle: string; display_name: string; avatar_url: string | null } | null;
-};
-
-const iconFor = (k: string) => k === "follow" ? UserPlus : k === "like" ? Heart
-  : k === "comment" || k === "message" ? MessageCircle : k === "gift" ? Gift
-  : k === "payout" || k === "topup" ? Wallet : Bell;
+interface Notification {
+  id: string;
+  type: "like" | "comment" | "follow" | "share";
+  actor: { handle: string; display_name: string; avatar_url?: string };
+  post_id?: string;
+  created_at: string;
+}
 
 function NotificationsPage() {
   const { user } = useAuth();
-  const qc = useQueryClient();
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
-  const { data: items = [] } = useQuery({
+  const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notifications", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("notifications").select("*")
-        .eq("user_id", user!.id).order("created_at", { ascending: false }).limit(60);
-      const list = (data ?? []) as Notif[];
-      const ids = Array.from(new Set(list.map(n => n.actor_id).filter(Boolean) as string[]));
-      if (ids.length) {
-        const { data: profs } = await supabase.from("profiles")
-          .select("id,handle,display_name,avatar_url").in("id", ids);
-        const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
-        for (const n of list) if (n.actor_id) n.actor = map.get(n.actor_id) ?? null;
-      }
-      return list;
+      const { data } = await supabase
+        .from("notifications")
+        .select("*,actor:actor_id(handle,display_name,avatar_url)")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      return (data as Notification[]) ?? [];
     },
   });
 
-  useEffect(() => {
-    if (!user) return;
-    supabase.from("notifications").update({ read: true })
-      .eq("user_id", user.id).eq("read", false).then(() => {
-        qc.invalidateQueries({ queryKey: ["notifications", user.id] });
-      });
-  }, [user, qc]);
+  const getIcon = (type: string) => {
+    switch (type) {
+      case "like":
+        return <Heart className="h-4 w-4 text-rose-500" />;
+      case "comment":
+        return <MessageCircle className="h-4 w-4 text-cyan-500" />;
+      case "follow":
+        return <div className="h-4 w-4 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />;
+      case "share":
+        return <Share2 className="h-4 w-4 text-amber-500" />;
+      default:
+        return null;
+    }
+  };
 
-  if (!user) {
-    return (
-      <MobileShell>
-        <div className="px-6 pt-24 text-center">
-          <h1 className="font-display text-2xl font-bold">Sign in</h1>
-          <Link to="/auth" className="bg-gradient-primary mt-4 inline-block rounded-full px-6 py-2 text-sm font-semibold text-primary-foreground">Sign in</Link>
-        </div>
-      </MobileShell>
-    );
-  }
+  const getMessage = (notif: Notification) => {
+    switch (notif.type) {
+      case "like":
+        return `${notif.actor.display_name} liked your post`;
+      case "comment":
+        return `${notif.actor.display_name} commented on your post`;
+      case "follow":
+        return `${notif.actor.display_name} started following you`;
+      case "share":
+        return `${notif.actor.display_name} shared your post`;
+      default:
+        return "New notification";
+    }
+  };
+
+  const handleDismiss = (id: string) => {
+    setDismissedIds((prev) => new Set(prev).add(id));
+  };
+
+  const filteredNotifications = notifications.filter((n) => !dismissedIds.has(n.id));
 
   return (
     <MobileShell>
-      <header className="glass-strong sticky top-0 z-20 flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
-        <h1 className="font-display text-lg font-bold">Notifications</h1>
-      </header>
+      <div className="px-4 pt-4 pb-20">
+        <h1 className="font-display text-2xl font-black mb-4">Notifications</h1>
 
-      <div className="px-3 py-3">
-        {items.length === 0 ? (
-          <div className="glass mt-10 rounded-3xl p-10 text-center">
-            <Bell className="mx-auto h-8 w-8 text-muted-foreground" />
-            <div className="mt-3 font-display font-semibold">You're all caught up</div>
-            <div className="mt-1 text-xs text-muted-foreground">New activity will appear here.</div>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+          </div>
+        ) : filteredNotifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <MessageCircle className="h-12 w-12 text-white/20 mb-3" />
+            <p className="text-sm text-white/50">No notifications yet</p>
           </div>
         ) : (
-          <ul className="glass divide-y divide-border/40 overflow-hidden rounded-2xl">
-            {items.map((n) => {
-              const Icon = iconFor(n.kind);
-              return (
-                <li key={n.id}>
-                  <Link
-                    to={n.actor?.handle ? "/u/$handle" : "/"}
-                    params={n.actor?.handle ? { handle: n.actor.handle } : undefined as any}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-muted/40"
-                  >
-                    <div className="relative">
-                      {n.actor?.avatar_url
-                        ? <img src={n.actor.avatar_url} className="h-10 w-10 rounded-full object-cover" alt="" />
-                        : <div className="bg-gradient-primary h-10 w-10 rounded-full" />}
-                      <div className="bg-background absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-border">
-                        <Icon className="h-3 w-3 text-primary" />
-                      </div>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm">
-                        {n.actor?.handle && <span className="font-semibold">@{n.actor.handle} </span>}
-                        <span className="text-muted-foreground">{n.body ?? n.kind}</span>
-                      </div>
-                      <div className="mt-0.5 text-[11px] text-muted-foreground">{new Date(n.created_at).toLocaleString()}</div>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="space-y-2">
+            {filteredNotifications.map((notif) => (
+              <div
+                key={notif.id}
+                className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-all"
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500">
+                    {getIcon(notif.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white">{getMessage(notif)}</p>
+                    <p className="text-[10px] text-white/50">{new Date(notif.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDismiss(notif.id)}
+                  className="shrink-0 text-white/50 hover:text-white active:scale-90 transition-all"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </MobileShell>

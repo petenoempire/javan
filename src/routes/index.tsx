@@ -1,231 +1,176 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
-import { VideoCard } from "@/components/VideoCard";
-import { CommentDrawer } from "@/components/CommentDrawer";
-import { ReportDialog } from "@/components/ReportDialog";
-import { StoryTray } from "@/components/StoryTray";
-import { fetchFeed } from "@/lib/feed";
-import { fetchActiveStreams } from "@/lib/live";
 import { useAuth } from "@/lib/auth";
-import { motion } from "motion/react";
-import { Sparkles, Plus, Tv, Search, Radio, Users, BadgeCheck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Heart, MessageCircle, Share2, Eye, MoreHorizontal, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Javan — For You" },
-      { name: "description", content: "Real creators. Real stories. Javan is a community-first short-video network." },
-    ],
-  }),
-  component: FeedPage,
+export const Route = createFileRoute("/")({ 
+  head: () => ({ meta: [{ title: "For You · Javan" }] }),
+  component: HomePage,
 });
 
-type Tab = "live" | "drama" | "community" | "stem" | "following" | "foryou";
-const TABS: { key: Tab; label: string; icon?: typeof Tv }[] = [
-  { key: "live", label: "Live", icon: Tv },
-  { key: "drama", label: "Drama" },
-  { key: "community", label: "Community" },
-  { key: "stem", label: "STEM" },
-  { key: "following", label: "Following" },
-  { key: "foryou", label: "For You" },
-];
+interface Post {
+  id: string;
+  user_id: string;
+  content: string;
+  video_url?: string;
+  likes_count: number;
+  comments_count: number;
+  shares_count: number;
+  views_count: number;
+  created_at: string;
+  author: { handle: string; display_name: string; avatar_url?: string };
+  liked_by_user?: boolean;
+}
 
-function FeedPage() {
-  const { user } = useAuth();
-  const [tab, setTab] = useState<Tab>("foryou");
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [commentsFor, setCommentsFor] = useState<string | null>(null);
-  const [reportFor, setReportFor] = useState<{ type: "video"; id: string } | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+function HomePage() {
+  const { user, profile } = useAuth();
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
-  const { data: videos = [], isLoading } = useQuery({
-    queryKey: ["feed", tab, user?.id ?? null],
-    queryFn: () => fetchFeed({ followingOf: tab === "following" ? user?.id ?? null : null, userId: user?.id ?? null }),
-    enabled: tab !== "live",
+  const { data: posts = [], isLoading } = useQuery({
+    queryKey: ["feed"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("posts")
+        .select(
+          `*,
+           author:user_id(handle, display_name, avatar_url),
+           likes:post_likes(count)
+         `
+        )
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return (data as any[]) ?? [];
+    },
   });
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) setActiveIdx(Number((e.target as HTMLElement).dataset.idx));
-      }),
-      { root: el, threshold: 0.7 },
-    );
-    el.querySelectorAll("[data-idx]").forEach((n) => io.observe(n));
-    return () => io.disconnect();
-  }, [videos.length]);
+  const handleLikePost = async (postId: string) => {
+    if (!user) {
+      toast.error("Sign in to like posts");
+      return;
+    }
+
+    try {
+      const isLiked = likedPosts.has(postId);
+      if (isLiked) {
+        await supabase.from("post_likes").delete().match({ post_id: postId, user_id: user.id });
+        setLikedPosts((prev) => {
+          const next = new Set(prev);
+          next.delete(postId);
+          return next;
+        });
+      } else {
+        await supabase.from("post_likes").insert({ post_id: postId, user_id: user.id });
+        setLikedPosts((prev) => new Set(prev).add(postId));
+      }
+      toast.success(isLiked ? "Unliked" : "Liked");
+    } catch (err) {
+      toast.error("Failed to update like");
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await supabase.from("posts").delete().eq("id", postId);
+      toast.success("Post deleted");
+    } catch (err) {
+      toast.error("Failed to delete post");
+    }
+  };
 
   return (
-    <MobileShell immersive>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-black/55 via-black/20 to-transparent pb-4 pt-3">
-        <div className="pointer-events-auto flex items-center gap-2 pl-3 pr-3">
-          <div className="no-scrollbar -mx-1 flex flex-1 items-center gap-1.5 overflow-x-auto px-1">
-            {TABS.map((t) => {
-              const active = tab === t.key;
-              const Icon = t.icon;
-              return (
+    <MobileShell>
+      <div className="px-3 pt-4 pb-20 space-y-3">
+        <div className="flex items-center justify-between">
+          <h1 className="font-display text-2xl font-black">For You</h1>
+          <div className="flex gap-2">
+            <button className="rounded-full bg-white/5 border border-white/10 p-2 hover:bg-white/10 active:scale-90 transition-all">
+              <Heart className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Eye className="h-12 w-12 text-white/20 mb-3" />
+            <p className="text-sm text-white/50">No posts yet. Follow creators to see content!</p>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <div key={post.id} className="rounded-2xl border border-white/5 bg-white/5 backdrop-blur-md overflow-hidden">
+              {/* Post Header */}
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
+                  <div>
+                    <p className="text-xs font-black text-white">{post.author?.display_name || "Unknown"}</p>
+                    <p className="text-[10px] text-white/50">@{post.author?.handle || "user"}</p>
+                  </div>
+                </div>
+                {user?.id === post.user_id && (
+                  <button
+                    onClick={() => handleDeletePost(post.id)}
+                    className="text-white/50 hover:text-red-400 active:scale-90 transition-all"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Post Content */}
+              <div className="px-4 py-2">
+                <p className="text-sm text-white leading-relaxed">{post.content}</p>
+              </div>
+
+              {/* Post Video/Image */}
+              {post.video_url && (
+                <div className="w-full aspect-video bg-black/50">
+                  <video src={post.video_url} className="h-full w-full object-cover" />
+                </div>
+              )}
+
+              {/* Post Stats */}
+              <div className="flex items-center gap-3 px-4 py-2 text-[10px] text-white/50 border-t border-white/5">
+                <span>{post.views_count || 0} Views</span>
+                <span className="w-px h-3 bg-white/10" />
+                <span>{post.likes_count || 0} Likes</span>
+                <span className="w-px h-3 bg-white/10" />
+                <span>{post.comments_count || 0} Comments</span>
+              </div>
+
+              {/* Post Actions */}
+              <div className="flex items-center justify-around px-2 py-2 border-t border-white/5">
                 <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  className={`relative shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-                    active ? "text-white" : "text-white/65"
+                  onClick={() => handleLikePost(post.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition-all active:scale-90 ${
+                    likedPosts.has(post.id)
+                      ? "text-rose-400 bg-rose-500/10 border border-rose-500/30"
+                      : "text-white/50 hover:text-white hover:bg-white/5 border border-white/5"
                   }`}
                 >
-                  {active && (
-                    <motion.span
-                      layoutId="home-tab-pill"
-                      className="bg-gradient-primary absolute inset-0 -z-10 rounded-full shadow-glow"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                    />
-                  )}
-                  <span className="relative flex items-center gap-1.5">
-                    {Icon && <Icon className="h-3.5 w-3.5" />}
-                    {t.label}
-                  </span>
+                  <Heart className={`h-3.5 w-3.5 ${likedPosts.has(post.id) ? "fill-current" : ""}`} />
+                  Like
                 </button>
-              );
-            })}
-          </div>
-          <Link
-            to="/discover"
-            aria-label="Search"
-            className="glass-strong ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white shadow-elegant active:scale-90"
-          >
-            <Search className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
-
-      {tab === "live" ? (
-        <LiveGrid />
-      ) : isLoading ? (
-        <div className="flex h-[100dvh] items-center justify-center bg-black text-white/60 text-sm">Loading feed…</div>
-      ) : videos.length === 0 ? (
-        <>
-          <div className="pointer-events-auto absolute inset-x-0 top-10 z-30">
-            <StoryTray />
-          </div>
-          <EmptyFeed tab={tab} />
-        </>
-      ) : (
-        <div ref={containerRef} className="no-scrollbar h-[100dvh] snap-y snap-mandatory overflow-y-scroll">
-          {tab === "foryou" && (
-            <div className="pointer-events-auto absolute inset-x-0 top-10 z-30">
-              <StoryTray />
-            </div>
-          )}
-          {videos.map((v, i) => (
-            <div key={v.id} data-idx={i}>
-              <VideoCard
-                video={v}
-                active={i === activeIdx}
-                onComment={() => setCommentsFor(v.id)}
-                onShare={() => import("@/lib/share").then(({ shareOrCopy }) => shareOrCopy({ title: v.caption || "Javan", url: location.href }))}
-                onReport={() => setReportFor({ type: "video", id: v.id })}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      <CommentDrawer videoId={commentsFor} onClose={() => setCommentsFor(null)} />
-      <ReportDialog target={reportFor} onClose={() => setReportFor(null)} />
-    </MobileShell>
-  );
-}
-
-function LiveGrid() {
-  const { data: streams = [], isLoading } = useQuery({
-    queryKey: ["live-active"],
-    queryFn: () => fetchActiveStreams(),
-    refetchInterval: 20_000,
-  });
-
-  if (isLoading) {
-    return <div className="flex h-[100dvh] items-center justify-center bg-black text-white/60 text-sm">Loading LIVE…</div>;
-  }
-
-  if (streams.length === 0) {
-    return (
-      <div className="flex h-[100dvh] flex-col items-center justify-center bg-black px-8 text-center text-white">
-        <div className="bg-gradient-primary mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-glow">
-          <Tv className="h-8 w-8 text-primary-foreground" />
-        </div>
-        <h2 className="font-display text-2xl font-bold">No live streams right now</h2>
-        <p className="mt-2 max-w-xs text-sm text-white/70">Be the first — start a LIVE from the create studio and your room lights up here.</p>
-        <Link to="/create" className="bg-gradient-primary mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
-          <Radio className="h-4 w-4" /> Go LIVE
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-[100dvh] overflow-y-auto bg-black px-3 pb-28 pt-20">
-      <div className="mb-3 flex items-center gap-2 px-1">
-        <span className="flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white live-pulse">
-          <Radio className="h-3 w-3" /> Live
-        </span>
-        <span className="text-xs text-white/60">{streams.length} rooms open</span>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {streams.map((s) => (
-          <Link
-            key={s.id}
-            to="/live/$id"
-            params={{ id: s.id }}
-            className="relative aspect-[9/14] overflow-hidden rounded-2xl bg-gradient-to-br from-fuchsia-900/40 via-black to-rose-900/30 shadow-elegant active:scale-[0.98]"
-          >
-            {s.host.avatar_url && (
-              <img src={s.host.avatar_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70" />
-            )}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
-            <div className="absolute inset-x-2 top-2 flex items-center justify-between">
-              <span className="flex items-center gap-1 rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white live-pulse">
-                <Radio className="h-2.5 w-2.5" /> Live
-              </span>
-              <span className="glass flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                <Users className="h-2.5 w-2.5" /> {s.viewer_count || 1}
-              </span>
-            </div>
-            <div className="absolute inset-x-2 bottom-2 text-white">
-              <div className="flex items-center gap-1 text-xs font-semibold">
-                @{s.host.handle}
-                {s.host.is_verified && <BadgeCheck className="h-3 w-3 text-accent" />}
+                <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90">
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  Reply
+                </button>
+                <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90">
+                  <Share2 className="h-3.5 w-3.5" />
+                  Share
+                </button>
               </div>
-              {s.title && <div className="truncate text-[10px] text-white/80">{s.title}</div>}
             </div>
-          </Link>
-        ))}
+          ))
+        )}
       </div>
-    </div>
-  );
-}
-
-function EmptyFeed({ tab }: { tab: Tab }) {
-  const copy: Record<Tab, { title: string; body: string }> = {
-    live: { title: "", body: "" },
-    drama: { title: "No drama posts yet", body: "Cinematic shorts, scripted scenes and serials will land here." },
-    community: { title: "Community is just getting started", body: "Conversations, micro-vlogs and town-hall style posts will appear here." },
-    stem: { title: "STEM channel is empty", body: "Science, tech, engineering and math creators welcome." },
-    following: { title: "No posts from people you follow yet", body: "Follow creators you love and their videos will appear here." },
-    foryou: { title: "The feed starts with you", body: "Javan is brand new. Be the first to share a video and start your community." },
-  };
-  const c = copy[tab];
-  return (
-    <div className="flex h-[100dvh] flex-col items-center justify-center bg-black px-8 text-center text-white">
-      <div className="bg-gradient-primary mb-5 flex h-16 w-16 items-center justify-center rounded-2xl shadow-glow">
-        <Sparkles className="h-7 w-7 text-primary-foreground" />
-      </div>
-      <h2 className="font-display text-2xl font-bold">{c.title}</h2>
-      <p className="mt-2 max-w-xs text-sm text-white/70">{c.body}</p>
-      <Link to="/create" className="bg-gradient-primary mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
-        <Plus className="h-4 w-4" /> Upload a video
-      </Link>
-    </div>
+    </MobileShell>
   );
 }
