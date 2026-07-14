@@ -4,36 +4,43 @@ import { MobileShell } from "@/components/MobileShell";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useMemo } from "react";
-import { Coins, ArrowDownToLine, Plus, TrendingUp, Clock, CheckCircle2, XCircle, Sparkles, RefreshCw, Landmark } from "lucide-react";
+import { Coins, ArrowDownToLine, Plus, TrendingUp, Clock, CheckCircle2, XCircle, Sparkles, RefreshCw, Landmark, AlertCircle } from "lucide-react";
 import { TopUpDialog } from "@/components/TopUpDialog";
 import { PayoutRequestDialog, coinsToUsd } from "@/components/PayoutRequestDialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/wallet")({
-  head: () => ({ meta: [{ title: "Secure Asset Wallet · Javan" }] }),
+  head: () => ({ meta: [{ title: "Creator Wallet · Javan" }] }),
   component: WalletPage,
 });
 
 const MIN_PAYOUT_COINS = 2000;
 
-type CurrencyTier = "USD" | "GBP" | "NGN";
+type CurrencyTier = "USD" | "GBP" | "NGN" | "EUR" | "CAD" | "AUD";
 
 interface CurrencyRateMap {
   symbol: string;
   rate: number;
+  name: string;
 }
 
 const FIAT_FX_RATES: Record<CurrencyTier, CurrencyRateMap> = {
-  USD: { symbol: "$", rate: 1.0 },
-  GBP: { symbol: "£", rate: 0.79 },
-  NGN: { symbol: "₦", rate: 1480.0 }
+  USD: { symbol: "$", rate: 1.0, name: "US Dollar" },
+  GBP: { symbol: "£", rate: 0.79, name: "British Pound" },
+  NGN: { symbol: "₦", rate: 1480.0, name: "Nigerian Naira" },
+  EUR: { symbol: "€", rate: 0.92, name: "Euro" },
+  CAD: { symbol: "C$", rate: 1.36, name: "Canadian Dollar" },
+  AUD: { symbol: "A$", rate: 1.52, name: "Australian Dollar" },
 };
+
+const PLATFORM_FEE_PERCENT = 0.025; // 2.5% withdrawal fee
+const CREATOR_SHARE_PERCENT = 0.80; // 80% of ad revenue to creators
 
 function WalletPage() {
   const { profile, user } = useAuth();
   const queryClient = useQueryClient();
   const [activeCurrency, setActiveCurrency] = useState<CurrencyTier>("USD");
-  const [escrowIsolationLock, setEscrowIsolationLock] = useState(false);
+  const [processingLock, setProcessingLock] = useState(false);
 
   const currentFx = useMemo(() => FIAT_FX_RATES[activeCurrency], [activeCurrency]);
 
@@ -41,7 +48,12 @@ function WalletPage() {
     queryKey: ["coin-purchases", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("coin_purchases").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(10);
+      const { data } = await supabase
+        .from("coin_purchases")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
       return data ?? [];
     },
   });
@@ -50,28 +62,52 @@ function WalletPage() {
     queryKey: ["payout-requests", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase.from("payout_requests").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(10);
+      const { data } = await supabase
+        .from("payout_requests")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
       return data ?? [];
     },
   });
 
-  const executeEscrowSettlementMutation = useMutation({
-    mutationFn: async (payload: { type: "escrow_freeze" | "payout_init"; coinAmount: number }) => {
-      setEscrowIsolationLock(true);
-      await new Promise((resolve) => setTimeout(resolve, 1400));
-      return { transaction_hash: `TX_ACID_HEX_${Math.random().toString(16).substring(2, 10).toUpperCase()}`, timestamp: new Date().toISOString() };
+  const executeWithdrawalMutation = useMutation({
+    mutationFn: async (payload: { coinAmount: number }) => {
+      setProcessingLock(true);
+      try {
+        // Simulate ACID transaction with 2.5% fee
+        const baseAmount = coinsToUsd(payload.coinAmount);
+        const platformFee = baseAmount * PLATFORM_FEE_PERCENT;
+        const userReceives = baseAmount - platformFee;
+
+        const response = await fetch("/api/v1/wallet/request-payout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: user?.id,
+            coin_amount: payload.coinAmount,
+            usd_amount: userReceives,
+            platform_fee: platformFee,
+            currency: activeCurrency,
+            status: "pending",
+          }),
+        });
+
+        if (!response.ok) throw new Error("Failed to process withdrawal");
+        return await response.json();
+      } finally {
+        setProcessingLock(false);
+      }
     },
-    onSuccess: (data) => {
-      toast.success(`ACID Escrow Verified: Distributed Ledger Block Locked [${data.transaction_hash}]`);
+    onSuccess: () => {
+      toast.success("Payout request submitted. Review in 24-48 hours.");
       queryClient.invalidateQueries({ queryKey: ["coin-purchases"] });
       queryClient.invalidateQueries({ queryKey: ["payout-requests"] });
     },
-    onError: () => {
-      toast.error("Financial atomic mutation error: Rollback initiated.");
+    onError: (err: any) => {
+      toast.error(err.message || "Withdrawal failed. Try again.");
     },
-    onSettled: () => {
-      setEscrowIsolationLock(false);
-    }
   });
 
   if (!user) {
@@ -79,8 +115,13 @@ function WalletPage() {
       <MobileShell>
         <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center">
           <Coins className="mb-3 h-10 w-10 text-muted-foreground animate-bounce" />
-          <h2 className="font-display text-xl font-bold">Sign in to view secure wallet</h2>
-          <Link to="/auth" className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-5 rounded-full px-6 py-2.5 text-sm font-semibold text-white shadow-glow">Sign in</Link>
+          <h2 className="font-display text-xl font-bold">Sign in to view wallet</h2>
+          <Link
+            to="/auth"
+            className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-5 rounded-full px-6 py-2.5 text-sm font-semibold text-white shadow-glow"
+          >
+            Sign in
+          </Link>
         </div>
       </MobileShell>
     );
@@ -88,28 +129,34 @@ function WalletPage() {
 
   const coins = profile?.coins ?? 0;
   const earned = profile?.earned_coins ?? 0;
-  
+
   const baseUsdBalance = coinsToUsd(coins);
-  const localizedBalanceText = (baseUsdBalance * currentFx.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  
+  const localizedBalanceText = (baseUsdBalance * currentFx.rate).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   const baseUsdEarnings = coinsToUsd(earned);
-  const localizedEarningsText = (baseUsdEarnings * currentFx.rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  
+  const localizedEarningsText = (baseUsdEarnings * currentFx.rate).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   const canPayout = earned >= MIN_PAYOUT_COINS;
 
   return (
     <MobileShell>
       <div className="px-5 pt-6 pb-24">
         <div className="flex items-center justify-between">
-          <h1 className="font-display text-3xl font-black tracking-tight">Ledger</h1>
+          <h1 className="font-display text-3xl font-black tracking-tight">Wallet</h1>
           <div className="flex bg-neutral-900 border border-white/5 rounded-xl p-0.5 shadow-inner">
             {(Object.keys(FIAT_FX_RATES) as CurrencyTier[]).map((cur) => (
               <button
                 key={cur}
                 onClick={() => setActiveCurrency(cur)}
-                className={`px-3 py-1 text-[10px] font-black rounded-lg transition-all duration-150 ${
-                  activeCurrency === cur 
-                    ? "bg-gradient-to-r from-neutral-800 to-neutral-700 text-white shadow-md border-t border-white/10" 
+                className={`px-2 py-1 text-[9px] font-black rounded-lg transition-all duration-150 ${
+                  activeCurrency === cur
+                    ? "bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white shadow-md"
                     : "text-neutral-500 hover:text-neutral-300"
                 }`}
               >
@@ -119,99 +166,111 @@ function WalletPage() {
           </div>
         </div>
 
+        {/* Coin Balance Card */}
         <div className="bg-gradient-to-br from-fuchsia-600 to-rose-600 relative mt-5 overflow-hidden rounded-3xl p-6 text-white shadow-glow border border-white/10">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
-          
+
           <div className="flex items-center justify-between">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Coin Balance Stack</div>
-            {escrowIsolationLock && (
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Available Balance</div>
+            {processingLock && (
               <span className="flex items-center gap-1 text-[9px] font-mono bg-black/40 px-2 py-0.5 rounded-full text-amber-300 animate-pulse border border-amber-500/20">
-                <RefreshCw className="h-2 w-2 animate-spin" /> ACID_LOCK_ACTIVE
+                <RefreshCw className="h-2 w-2 animate-spin" /> PROCESSING
               </span>
             )}
           </div>
-          
+
           <div className="mt-3 flex items-end gap-2">
             <Coins className="mb-1 h-8 w-8 text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
             <span className="font-display text-5xl font-black tracking-tighter">{coins.toLocaleString()}</span>
           </div>
-          
+
           <div className="mt-2 text-xs font-medium opacity-80 font-mono">
-            ≈ {currentFx.symbol}{localizedBalanceText} {activeCurrency} <span className="opacity-50">($1.00 USD = 100 Coins)</span>
+            ≈ {currentFx.symbol}{localizedBalanceText} {activeCurrency} <span className="opacity-50">(100 coins = $1 USD)</span>
           </div>
 
           <TopUpDialog>
-            <button 
-              disabled={escrowIsolationLock}
-              onClick={() => executeEscrowSettlementMutation.mutate({ type: "escrow_freeze", coinAmount: 500 })}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-black backdrop-blur-md transition-all duration-100 hover:bg-white/25 active:scale-95 disabled:opacity-40"
+            <button
+              disabled={processingLock}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-black backdrop-blur-md transition-all duration-100 hover:bg-white/25 active:scale-95 disabled:opacity-50"
             >
-              <Plus className="h-4 w-4" /> Purchase Coins Securely
+              <Plus className="h-4 w-4" /> Purchase More Coins
             </button>
           </TopUpDialog>
         </div>
 
+        {/* Creator Earnings Card */}
         <div className="mt-5 rounded-3xl p-5 border border-white/5 bg-neutral-950/40 backdrop-blur-md relative">
           <div className="flex items-center justify-between">
-            <div className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Creator Clearing Valuation</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-neutral-500">Creator Earnings</div>
             <TrendingUp className="h-4 w-4 text-emerald-400" />
           </div>
-          
+
           <div className="mt-2 flex items-end gap-2">
-            <span className="font-display text-3xl font-black text-rose-400">
+            <span className="font-display text-3xl font-black text-emerald-400">
               {currentFx.symbol}{localizedEarningsText}
             </span>
             <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-400 border border-emerald-500/20">
-              <Sparkles className="h-2.5 w-2.5" /> 80% Share Guaranteed
+              <Sparkles className="h-2.5 w-2.5" /> {Math.round(CREATOR_SHARE_PERCENT * 100)}% Share
             </span>
           </div>
-          
+
           <div className="text-[11px] font-mono mt-1 text-neutral-400">
-            {earned.toLocaleString()} Assets Earned <span className="text-neutral-600">|</span> Minimum Payout Threshold: $20.00 Base
+            {earned.toLocaleString()} coins earned <span className="text-neutral-600">|</span> Min to cash out: {MIN_PAYOUT_COINS.toLocaleString()} coins
           </div>
 
           <PayoutRequestDialog earnedCoins={earned}>
             <button
-              disabled={!canPayout || escrowIsolationLock}
-              onClick={() => executeEscrowSettlementMutation.mutate({ type: "payout_init", coinAmount: earned })}
-              className="bg-amber-400 mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black text-black shadow-glow disabled:opacity-30 active:scale-95 transition-transform"
+              disabled={!canPayout || processingLock}
+              onClick={() => executeWithdrawalMutation.mutate({ coinAmount: earned })}
+              className="bg-emerald-500 mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black text-black shadow-glow disabled:opacity-30 active:scale-95 transition-all duration-150 hover:bg-emerald-400"
             >
-              <ArrowDownToLine className="h-4 w-4" /> Request Ledger Payout Settlement
+              <ArrowDownToLine className="h-4 w-4" /> Request Payout
             </button>
           </PayoutRequestDialog>
 
           <div className="mt-3 flex gap-2 items-start border-t border-white/5 pt-3">
-            <Landmark className="h-3.5 w-3.5 text-neutral-500 shrink-0 mt-0.5" />
+            <AlertCircle className="h-3.5 w-3.5 text-neutral-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">
-              Every payout operation requests an atomic snapshot matching isolation structures. Employs a mandatory **7-day rolling anti-fraud lock queue** prior to admin clearing verification.
+              Payouts include a 2.5% platform processing fee. Requests take 1-3 business days to process.
             </p>
           </div>
         </div>
 
+        {/* Transaction History */}
         <div className="mt-6 space-y-4">
-          <Section title="Top-up Audit Trails" empty="No transactional logs recorded.">
+          <Section title="Purchases" empty="No purchases yet.">
             {purchases.map((p: any) => (
               <Row
                 key={p.id}
-                left={<><Plus className="h-3.5 w-3.5 text-emerald-400" /> +{p.coins.toLocaleString()} Coins</>}
-                middle={`${currentFx.symbol}${( (p.usd_cents / 100) * (currentFx.rate / 1.0) ).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${activeCurrency} · ${new Date(p.created_at).toLocaleDateString()}`}
+                left={
+                  <>
+                    <Plus className="h-3.5 w-3.5 text-emerald-400" />
+                    +{p.coins.toLocaleString()} Coins
+                  </>
+                }
+                middle={`${currentFx.symbol}${((p.usd_cents / 100) * (currentFx.rate / 1.0)).toLocaleString(undefined, {
+                  maximumFractionDigits: 2,
+                })} ${activeCurrency} · ${new Date(p.created_at).toLocaleDateString()}`}
                 status={p.status}
               />
             ))}
           </Section>
 
-          <Section title="Payout Settlement Logs" empty="No payout records matching queries.">
+          <Section title="Payouts" empty="No payout history.">
             {payouts.map((p: any) => (
               <Row
                 key={p.id}
                 left={
                   <>
-                    <ArrowDownToLine className="h-3.5 w-3.5 text-amber-400" /> 
-                    {currentFx.symbol}{( (p.usd_cents / 100) * (currentFx.rate / 1.0) ).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    <ArrowDownToLine className="h-3.5 w-3.5 text-amber-400" />
+                    {currentFx.symbol}
+                    {((p.usd_cents / 100) * (currentFx.rate / 1.0)).toLocaleString(undefined, {
+                      maximumFractionDigits: 2,
+                    })}
                   </>
                 }
-                middle={`${p.payout_method.toUpperCase()} POOL · ${new Date(p.created_at).toLocaleDateString()}`}
+                middle={`${p.payout_method.toUpperCase()} · ${new Date(p.created_at).toLocaleDateString()}`}
                 status={p.status}
               />
             ))}
@@ -222,7 +281,15 @@ function WalletPage() {
   );
 }
 
-function Section({ title, empty, children }: { title: string; empty: string; children: any }) {
+function Section({
+  title,
+  empty,
+  children,
+}: {
+  title: string;
+  empty: string;
+  children: any;
+}) {
   const items = Array.isArray(children) ? children : [children];
   const hasItems = items.filter(Boolean).length > 0;
   return (
@@ -235,16 +302,29 @@ function Section({ title, empty, children }: { title: string; empty: string; chi
   );
 }
 
-function Row({ left, middle, status }: { left: any; middle: string; status: string }) {
+function Row({
+  left,
+  middle,
+  status,
+}: {
+  left: any;
+  middle: string;
+  status: string;
+}) {
   const tone =
-    status === "succeeded" || status === "paid" ? "text-emerald-400" :
-    status === "approved" ? "text-cyan-400" :
-    status === "failed" || status === "rejected" || status === "refunded" ? "text-rose-500" :
-    "text-neutral-500";
+    status === "succeeded" || status === "paid" || status === "completed"
+      ? "text-emerald-400"
+      : status === "approved" || status === "pending"
+      ? "text-cyan-400"
+      : status === "failed" || status === "rejected"
+      ? "text-rose-500"
+      : "text-neutral-500";
   const Icon =
-    status === "succeeded" || status === "paid" || status === "approved" ? CheckCircle2 :
-    status === "failed" || status === "rejected" ? XCircle :
-    Clock;
+    status === "succeeded" || status === "paid" || status === "completed" || status === "approved"
+      ? CheckCircle2
+      : status === "failed" || status === "rejected"
+      ? XCircle
+      : Clock;
   return (
     <div className="flex items-center justify-between gap-3 px-4 py-3 text-xs font-medium">
       <div className="flex items-center gap-1.5 font-bold text-white">{left}</div>

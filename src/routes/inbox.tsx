@@ -1,96 +1,79 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MobileShell } from "@/components/MobileShell";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
-import { Search, MessageCircle } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, Share2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/inbox")({
-  head: () => ({ meta: [{ title: "Inbox · Javan" }] }),
-  component: Inbox,
+export const Route = createFileRoute("/inbox")({ 
+  head: () => ({ meta: [{ title: "Messages · Javan" }] }),
+  component: InboxPage,
 });
 
-function Inbox() {
-  const { user, loading } = useAuth();
+interface Message {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  sender?: { handle: string; display_name: string; avatar_url?: string };
+}
 
-  const { data: convs = [], isLoading } = useQuery({
-    queryKey: ["conversations", user?.id],
-    enabled: !!user,
+function InboxPage() {
+  const { data: conversations = [], isLoading } = useQuery({
+    queryKey: ["conversations"],
     queryFn: async () => {
-      const { data: cs } = await supabase
-        .from("conversations")
-        .select("id,user_a,user_b,last_message_at")
-        .or(`user_a.eq.${user!.id},user_b.eq.${user!.id}`)
-        .order("last_message_at", { ascending: false });
-      const list = cs ?? [];
-      if (list.length === 0) return [];
-      const otherIds = list.map((c) => c.user_a === user!.id ? c.user_b : c.user_a);
-      const { data: profs } = await supabase.from("profiles").select("id,handle,display_name,avatar_url").in("id", otherIds);
-      const byId = new Map((profs ?? []).map((p: any) => [p.id, p]));
-      const { data: lastMsgs } = await supabase
-        .from("messages").select("conversation_id,body,created_at,sender_id")
-        .in("conversation_id", list.map((c) => c.id)).order("created_at", { ascending: false });
-      const lastByConv = new Map<string, any>();
-      for (const m of lastMsgs ?? []) if (!lastByConv.has(m.conversation_id)) lastByConv.set(m.conversation_id, m);
-      return list.map((c) => ({
-        id: c.id,
-        other: byId.get(c.user_a === user!.id ? c.user_b : c.user_a),
-        last: lastByConv.get(c.id),
-      }));
+      const { data } = await supabase
+        .from("messages")
+        .select(
+          `*,
+           sender:sender_id(handle, display_name, avatar_url)
+         `
+        )
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return (data as Message[]) ?? [];
     },
   });
 
-  if (loading) return <MobileShell><div className="px-5 pt-20 text-sm text-muted-foreground">Loading…</div></MobileShell>;
-
-  if (!user) {
-    return (
-      <MobileShell>
-        <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center">
-          <MessageCircle className="mb-3 h-10 w-10 text-muted-foreground" />
-          <h2 className="font-display text-xl font-bold">Sign in to message</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Your conversations stay private with end-to-end account protection.</p>
-          <Link to="/auth" className="bg-gradient-primary mt-5 rounded-full px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">Sign in</Link>
-        </div>
-      </MobileShell>
-    );
-  }
+  const uniqueConversations = Array.from(
+    new Map(
+      conversations.map((msg) => [msg.sender_id, msg])
+    ).values()
+  );
 
   return (
     <MobileShell>
-      <div className="px-5 pt-20">
-        <h1 className="font-display text-3xl font-bold">Inbox</h1>
-        <div className="glass mt-4 flex items-center gap-3 rounded-2xl px-4 py-3">
-          <Search className="h-5 w-5 text-muted-foreground" />
-          <input placeholder="Search messages" className="flex-1 bg-transparent text-sm outline-none" />
-        </div>
-        <div className="mt-6">
-          {isLoading ? (
-            <div className="text-sm text-muted-foreground">Loading…</div>
-          ) : convs.length === 0 ? (
-            <div className="glass flex flex-col items-center gap-2 rounded-3xl p-8 text-center">
-              <MessageCircle className="h-8 w-8 text-muted-foreground" />
-              <div className="font-display text-base font-semibold">No messages yet</div>
-              <div className="text-xs text-muted-foreground">When you connect with creators, your chats will show up here.</div>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {convs.map((c) => (
-                <Link key={c.id} to="/inbox/$id" params={{ id: c.id }} className="flex items-center gap-3 rounded-2xl p-3 hover:bg-muted">
-                  {c.other?.avatar_url
-                    ? <img src={c.other.avatar_url} className="h-12 w-12 rounded-full object-cover" alt="" />
-                    : <div className="bg-gradient-primary h-12 w-12 rounded-full" />}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="truncate font-display font-semibold">{c.other?.display_name ?? "User"}</span>
-                      {c.last && <span className="text-xs text-muted-foreground">{new Date(c.last.created_at).toLocaleDateString()}</span>}
-                    </div>
-                    <div className="truncate text-sm text-muted-foreground">{c.last?.body ?? "Say hi"}</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="px-4 pt-4 pb-20">
+        <h1 className="font-display text-2xl font-black mb-4">Messages</h1>
+
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+          </div>
+        ) : uniqueConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <MessageCircle className="h-12 w-12 text-white/20 mb-3" />
+            <p className="text-sm text-white/50">No messages yet</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {uniqueConversations.map((msg) => (
+              <Link
+                key={msg.id}
+                to={`/inbox/${msg.sender_id}`}
+                className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-all"
+              >
+                <div className="h-12 w-12 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-white truncate">{msg.sender?.display_name}</p>
+                  <p className="text-[10px] text-white/50 truncate">{msg.content}</p>
+                </div>
+                <p className="text-[9px] text-white/40 shrink-0">{new Date(msg.created_at).toLocaleDateString()}</p>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </MobileShell>
   );
