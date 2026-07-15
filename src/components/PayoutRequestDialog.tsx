@@ -5,16 +5,26 @@ import { AlertCircle } from "lucide-react";
 interface PayoutRequestDialogProps {
   children: ReactNode;
   earnedCoins: number;
+  onSubmit: (payload: { coinAmount: number; method: "bank" | "paypal" | "crypto"; accountInfo: string }) => void;
+  isSubmitting?: boolean;
 }
 
 export const coinsToUsd = (coins: number) => coins / 100;
 
-export function PayoutRequestDialog({ children, earnedCoins }: PayoutRequestDialogProps) {
+export function PayoutRequestDialog({ children, earnedCoins, onSubmit, isSubmitting = false }: PayoutRequestDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [method, setMethod] = React.useState<"bank" | "paypal" | "crypto">("bank");
   const [accountInfo, setAccountInfo] = React.useState("");
 
   const usdAmount = coinsToUsd(earnedCoins);
+  const canSubmit = accountInfo.trim().length > 0 && !isSubmitting;
+
+  const handleSubmit = () => {
+    if (!canSubmit) return;
+    onSubmit({ coinAmount: earnedCoins, method, accountInfo });
+    setOpen(false);
+    setAccountInfo("");
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -64,8 +74,12 @@ export function PayoutRequestDialog({ children, earnedCoins }: PayoutRequestDial
             <p>7-day holding period before processing. Review anti-fraud checks.</p>
           </div>
 
-          <button className="w-full rounded-full bg-emerald-600 py-2.5 font-bold text-white disabled:opacity-50 active:scale-95 transition-all hover:bg-emerald-500">
-            Submit Request
+          <button
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="w-full rounded-full bg-emerald-600 py-2.5 font-bold text-white disabled:opacity-50 active:scale-95 transition-all hover:bg-emerald-500"
+          >
+            {isSubmitting ? "Submitting..." : "Submit Request"}
           </button>
         </div>
       </DialogContent>
