@@ -98,26 +98,16 @@ function WalletPage() {
     mutationFn: async (payload: { coinAmount: number }) => {
       setProcessingLock(true);
       try {
-        // Simulate ACID transaction with 2.5% fee
-        const baseAmount = coinsToUsd(payload.coinAmount);
-        const platformFee = baseAmount * PLATFORM_FEE_PERCENT;
-        const userReceives = baseAmount - platformFee;
-
-        const response = await fetch("/api/v1/wallet/request-payout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const { data, error } = await supabase.functions.invoke("request-payout", {
+          body: {
             user_id: user?.id,
             coin_amount: payload.coinAmount,
-            usd_amount: userReceives,
-            platform_fee: platformFee,
             currency: activeCurrency,
-            status: "pending",
-          }),
+          },
         });
 
-        if (!response.ok) throw new Error("Failed to process withdrawal");
-        return await response.json();
+        if (error) throw new Error(error.message || "Failed to process withdrawal");
+        return data;
       } finally {
         setProcessingLock(false);
       }
