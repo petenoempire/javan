@@ -227,7 +227,11 @@ function WalletPage() {
             {earned.toLocaleString()} coins earned <span className="text-neutral-600">|</span> Min to cash out: {MIN_PAYOUT_COINS.toLocaleString()} coins
           </div>
 
-          <PayoutRequestDialog earnedCoins={earned}>
+          <PayoutRequestDialog
+            earnedCoins={earned}
+            isSubmitting={executeWithdrawalMutation.isPending}
+            onSubmit={({ coinAmount }) => executeWithdrawalMutation.mutate({ coinAmount })}
+          >
             <button
               disabled={!canPayout || processingLock}
               className="bg-emerald-500 mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black text-black shadow-glow disabled:opacity-30 active:scale-95 transition-all duration-150 hover:bg-emerald-400"
