@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { useAuth } from "@/lib/auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Heart, MessageCircle, Share2, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +29,7 @@ interface Post {
 function HomePage() {
   const { user, profile } = useAuth();
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["feed"],
@@ -67,6 +68,7 @@ function HomePage() {
         setLikedPosts((prev) => new Set(prev).add(postId));
       }
       toast.success(isLiked ? "Unliked" : "Liked");
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
     } catch (err) {
       toast.error("Failed to update like");
     }
@@ -76,8 +78,41 @@ function HomePage() {
     try {
       await supabase.from("posts").delete().eq("id", postId);
       toast.success("Post deleted");
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
     } catch (err) {
       toast.error("Failed to delete post");
+    }
+  };
+
+  const handleReply = (postId: string) => {
+    if (!user) {
+      toast.error("Sign in to reply");
+      return;
+    }
+    toast.info("Opening reply thread...");
+    // Hook this up to your comments/reply route or modal when that view exists
+  };
+
+  const handleShare = async (post: Post) => {
+    const shareUrl = `${window.location.origin}/post/${post.id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: post.author?.display_name || "Javan",
+          text: post.content,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Link copied to clipboard");
+      }
+      await supabase
+        .from("posts")
+        .update({ shares_count: (post.shares_count || 0) + 1 })
+        .eq("id", post.id);
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+    } catch (err) {
+      toast.error("Failed to share post");
     }
   };
 
@@ -158,11 +193,17 @@ function HomePage() {
                   <Heart className={`h-3.5 w-3.5 ${likedPosts.has(post.id) ? "fill-current" : ""}`} />
                   Like
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90">
+                <button
+                  onClick={() => handleReply(post.id)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90"
+                >
                   <MessageCircle className="h-3.5 w-3.5" />
                   Reply
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90">
+                <button
+                  onClick={() => handleShare(post)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90"
+                >
                   <Share2 className="h-3.5 w-3.5" />
                   Share
                 </button>
