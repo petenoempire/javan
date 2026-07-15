@@ -394,7 +394,7 @@ function LivePage() {
       {/* Gift Panel */}
       {giftOpen && (
         <div className="absolute inset-0 z-50 flex items-end bg-black/50 backdrop-blur-sm">
-          <GiftPanel gifts={PREMIUM_GIFTS} onClose={() => setGiftOpen(false)} streamId={id} />
+   <GiftPanel gifts={PREMIUM_GIFTS} onClose={() => setGiftOpen(false)} streamId={id} hostId={stream.host_id} />
         </div>
       )}
 
