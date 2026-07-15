@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MobileShell } from "@/components/MobileShell";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { Play, Upload, Edit2, LogOut, Heart, MessageCircle, Share2, UserPlus, CheckCircle2 } from "lucide-react";
+import { Play, Upload, Edit2, LogOut, Heart, MessageCircle, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile")({ 
@@ -22,11 +22,12 @@ interface UserPost {
   created_at: string;
 }
 
+type ProfileTab = "posts" | "likes" | "saved";
+
 function ProfilePage() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
 
   const { data: userPosts = [] } = useQuery({
     queryKey: ["user-posts", user?.id],
@@ -39,6 +40,20 @@ function ProfilePage() {
         .order("created_at", { ascending: false })
         .limit(12);
       return (data as UserPost[]) ?? [];
+    },
+  });
+
+  const { data: likedPosts = [] } = useQuery({
+    queryKey: ["liked-posts", user?.id],
+    enabled: !!user && activeTab === "likes",
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("post_likes")
+        .select("post:post_id(*)")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      return ((data as any[]) ?? []).map((row) => row.post).filter(Boolean) as UserPost[];
     },
   });
 
@@ -75,6 +90,8 @@ function ProfilePage() {
     );
   }
 
+  const visiblePosts = activeTab === "posts" ? userPosts : activeTab === "likes" ? likedPosts : [];
+
   return (
     <MobileShell>
       <div className="pb-20">
@@ -109,7 +126,7 @@ function ProfilePage() {
               <p className="text-[10px] text-white/50 uppercase mt-1">Followers</p>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-center">
-              <p className="text-lg font-black text-amber-400">{(profile.coins / 100).toFixed(0)}</p>
+              <p className="text-lg font-black text-amber-400">${(profile.coins / 100).toFixed(2)}</p>
               <p className="text-[10px] text-white/50 uppercase mt-1">Balance</p>
             </div>
           </div>
@@ -137,13 +154,28 @@ function ProfilePage() {
         {/* Tabs */}
         <div className="border-t border-white/5 mt-6">
           <div className="flex items-center gap-4 px-4 pt-4">
-            <button className="text-xs font-black text-white pb-2 border-b-2 border-white">
+            <button
+              onClick={() => setActiveTab("posts")}
+              className={`text-xs font-black pb-2 border-b-2 transition-all active:scale-95 ${
+                activeTab === "posts" ? "text-white border-white" : "text-white/50 border-transparent hover:text-white"
+              }`}
+            >
               Posts
             </button>
-            <button className="text-xs font-black text-white/50 pb-2 border-b-2 border-transparent hover:text-white">
+            <button
+              onClick={() => setActiveTab("likes")}
+              className={`text-xs font-black pb-2 border-b-2 transition-all active:scale-95 ${
+                activeTab === "likes" ? "text-white border-white" : "text-white/50 border-transparent hover:text-white"
+              }`}
+            >
               Likes
             </button>
-            <button className="text-xs font-black text-white/50 pb-2 border-b-2 border-transparent hover:text-white">
+            <button
+              onClick={() => setActiveTab("saved")}
+              className={`text-xs font-black pb-2 border-b-2 transition-all active:scale-95 ${
+                activeTab === "saved" ? "text-white border-white" : "text-white/50 border-transparent hover:text-white"
+              }`}
+            >
               Saved
             </button>
           </div>
@@ -151,13 +183,20 @@ function ProfilePage() {
 
         {/* Posts Grid */}
         <div className="px-2 pt-4 pb-4 grid grid-cols-2 gap-2">
-          {userPosts.length === 0 ? (
+          {activeTab === "saved" ? (
+            <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center">
+              <Bookmark className="h-12 w-12 text-white/20 mb-3" />
+              <p className="text-sm text-white/50">Saved posts coming soon.</p>
+            </div>
+          ) : visiblePosts.length === 0 ? (
             <div className="col-span-2 flex flex-col items-center justify-center py-12 text-center">
               <Upload className="h-12 w-12 text-white/20 mb-3" />
-              <p className="text-sm text-white/50">No posts yet. Create your first post!</p>
+              <p className="text-sm text-white/50">
+                {activeTab === "posts" ? "No posts yet. Create your first post!" : "No liked posts yet."}
+              </p>
             </div>
           ) : (
-            userPosts.map((post) => (
+            visiblePosts.map((post) => (
               <Link
                 key={post.id}
                 to={`/posts/${post.id}`}
