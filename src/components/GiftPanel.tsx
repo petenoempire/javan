@@ -15,16 +15,21 @@ interface GiftPanelProps {
   gifts: Record<string, GiftItem>;
   onClose: () => void;
   streamId: string;
+  hostId: string;
 }
 
-export function GiftPanel({ gifts, onClose, streamId }: GiftPanelProps) {
+export function GiftPanel({ gifts, onClose, streamId, hostId }: GiftPanelProps) {
   const { user, profile } = useAuth();
-  const [selectedGift, setSelectedGift] = useState<GiftItem | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSendGift = async (gift: GiftItem) => {
     if (!user || !profile) {
       toast.error("Sign in to send gifts");
+      return;
+    }
+
+    if (!hostId) {
+      toast.error("Unable to identify the streamer for this gift");
       return;
     }
 
@@ -35,25 +40,24 @@ export function GiftPanel({ gifts, onClose, streamId }: GiftPanelProps) {
 
     setIsProcessing(true);
     try {
-      // Deduct coins
-      await supabase
-        .from("profiles")
-        .update({ coins: profile.coins - gift.cost })
-        .eq("id", user.id);
-
-      // Send gift message
-      await supabase.from("live_chat_messages").insert({
-        stream_id: streamId,
-        user_id: user.id,
-        content: `Sent ${gift.emoji} ${gift.name}`,
-        kind: "gift",
-        gift_key: gift.id,
+      const { data, error } = await supabase.functions.invoke("send-gift", {
+        body: {
+          viewer_id: user.id,
+          streamer_id: hostId,
+          stream_id: streamId,
+          gift_key: gift.id,
+          gift_name: gift.name,
+          gift_emoji: gift.emoji,
+          coin_cost: gift.cost,
+        },
       });
+
+      if (error) throw new Error(error.message || "Failed to send gift");
 
       toast.success(`Sent ${gift.emoji} ${gift.name}!`);
       onClose();
-    } catch (err) {
-      toast.error("Failed to send gift");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send gift");
     } finally {
       setIsProcessing(false);
     }
