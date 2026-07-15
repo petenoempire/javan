@@ -16,7 +16,11 @@ export const Route = createFileRoute("/wallet")({
 
 const MIN_PAYOUT_COINS = 2000;
 
-type CurrencyTier = "USD" | "GBP" | "NGN" | "EUR" | "CAD" | "AUD";
+type CurrencyTier =
+  | "USD" | "GBP" | "NGN" | "EUR" | "CAD" | "AUD"
+  | "INR" | "ZAR" | "GHS" | "KES" | "AED" | "SAR"
+  | "JPY" | "CNY" | "SGD" | "MYR" | "BRL" | "MXN"
+  | "CHF" | "SEK" | "NOK" | "DKK" | "PLN" | "EGP";
 
 interface CurrencyRateMap {
   symbol: string;
@@ -31,6 +35,24 @@ const FIAT_FX_RATES: Record<CurrencyTier, CurrencyRateMap> = {
   EUR: { symbol: "€", rate: 0.92, name: "Euro" },
   CAD: { symbol: "C$", rate: 1.36, name: "Canadian Dollar" },
   AUD: { symbol: "A$", rate: 1.52, name: "Australian Dollar" },
+  INR: { symbol: "₹", rate: 83.3, name: "Indian Rupee" },
+  ZAR: { symbol: "R", rate: 18.1, name: "South African Rand" },
+  GHS: { symbol: "₵", rate: 14.9, name: "Ghanaian Cedi" },
+  KES: { symbol: "KSh", rate: 129.0, name: "Kenyan Shilling" },
+  AED: { symbol: "د.إ", rate: 3.67, name: "UAE Dirham" },
+  SAR: { symbol: "﷼", rate: 3.75, name: "Saudi Riyal" },
+  JPY: { symbol: "¥", rate: 151.0, name: "Japanese Yen" },
+  CNY: { symbol: "¥", rate: 7.24, name: "Chinese Yuan" },
+  SGD: { symbol: "S$", rate: 1.34, name: "Singapore Dollar" },
+  MYR: { symbol: "RM", rate: 4.47, name: "Malaysian Ringgit" },
+  BRL: { symbol: "R$", rate: 5.03, name: "Brazilian Real" },
+  MXN: { symbol: "MX$", rate: 17.1, name: "Mexican Peso" },
+  CHF: { symbol: "CHF", rate: 0.88, name: "Swiss Franc" },
+  SEK: { symbol: "kr", rate: 10.4, name: "Swedish Krona" },
+  NOK: { symbol: "kr", rate: 10.6, name: "Norwegian Krone" },
+  DKK: { symbol: "kr", rate: 6.85, name: "Danish Krone" },
+  PLN: { symbol: "zł", rate: 3.98, name: "Polish Złoty" },
+  EGP: { symbol: "£E", rate: 48.5, name: "Egyptian Pound" },
 };
 
 const PLATFORM_FEE_PERCENT = 0.025; // 2.5% withdrawal fee
@@ -149,21 +171,17 @@ function WalletPage() {
       <div className="px-5 pt-6 pb-24">
         <div className="flex items-center justify-between">
           <h1 className="font-display text-3xl font-black tracking-tight">Wallet</h1>
-          <div className="flex bg-neutral-900 border border-white/5 rounded-xl p-0.5 shadow-inner">
+          <select
+            value={activeCurrency}
+            onChange={(e) => setActiveCurrency(e.target.value as CurrencyTier)}
+            className="bg-neutral-900 border border-white/5 rounded-xl px-2 py-1.5 text-[10px] font-black text-white shadow-inner outline-none"
+          >
             {(Object.keys(FIAT_FX_RATES) as CurrencyTier[]).map((cur) => (
-              <button
-                key={cur}
-                onClick={() => setActiveCurrency(cur)}
-                className={`px-2 py-1 text-[9px] font-black rounded-lg transition-all duration-150 ${
-                  activeCurrency === cur
-                    ? "bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white shadow-md"
-                    : "text-neutral-500 hover:text-neutral-300"
-                }`}
-              >
-                {cur}
-              </button>
+              <option key={cur} value={cur} className="bg-neutral-900 text-white">
+                {cur} — {FIAT_FX_RATES[cur].name}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
 
         {/* Coin Balance Card */}
@@ -222,7 +240,6 @@ function WalletPage() {
           <PayoutRequestDialog earnedCoins={earned}>
             <button
               disabled={!canPayout || processingLock}
-              onClick={() => executeWithdrawalMutation.mutate({ coinAmount: earned })}
               className="bg-emerald-500 mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black text-black shadow-glow disabled:opacity-30 active:scale-95 transition-all duration-150 hover:bg-emerald-400"
             >
               <ArrowDownToLine className="h-4 w-4" /> Request Payout
@@ -249,7 +266,7 @@ function WalletPage() {
                     +{p.coins.toLocaleString()} Coins
                   </>
                 }
-                middle={`${currentFx.symbol}${((p.usd_cents / 100) * (currentFx.rate / 1.0)).toLocaleString(undefined, {
+                middle={`${currentFx.symbol}${((p.usd_cents / 100) * currentFx.rate).toLocaleString(undefined, {
                   maximumFractionDigits: 2,
                 })} ${activeCurrency} · ${new Date(p.created_at).toLocaleDateString()}`}
                 status={p.status}
@@ -265,7 +282,7 @@ function WalletPage() {
                   <>
                     <ArrowDownToLine className="h-3.5 w-3.5 text-amber-400" />
                     {currentFx.symbol}
-                    {((p.usd_cents / 100) * (currentFx.rate / 1.0)).toLocaleString(undefined, {
+                    {((p.usd_cents / 100) * currentFx.rate).toLocaleString(undefined, {
                       maximumFractionDigits: 2,
                     })}
                   </>
