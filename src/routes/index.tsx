@@ -34,17 +34,29 @@ function HomePage() {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["feed"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: rawPosts } = await supabase
         .from("posts")
-        .select(
-          `*,
-           author:user_id(handle, display_name, avatar_url),
-           likes:post_likes(count)
-         `
-        )
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(20);
-      return (data as any[]) ?? [];
+
+      const postList = rawPosts ?? [];
+      if (postList.length === 0) return [];
+
+      // Fetch author info separately from the public-safe view,
+      // since profiles is now locked down by RLS to owner-only reads.
+      const authorIds = [...new Set(postList.map((p: any) => p.user_id))];
+      const { data: authors } = await supabase
+        .from("public_profiles")
+        .select("id, handle, display_name, avatar_url")
+        .in("id", authorIds);
+
+      const authorMap = new Map((authors ?? []).map((a: any) => [a.id, a]));
+
+      return postList.map((post: any) => ({
+        ...post,
+        author: authorMap.get(post.user_id) ?? { handle: "user", display_name: "Unknown" },
+      })) as Post[];
     },
   });
 
