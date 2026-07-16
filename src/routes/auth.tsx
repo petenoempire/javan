@@ -19,10 +19,10 @@ interface CountryConfig {
 }
 
 const GLOBAL_COUNTRIES: CountryConfig[] = [
-  { code: "NG", name: "Nigeria", prefix: "+234", flag: "🇳", region: "NG" },
+  { code: "NG", name: "Nigeria", prefix: "+234", flag: "🇳🇬", region: "NG" },
   { code: "GB", name: "United Kingdom", prefix: "+44", flag: "🇬🇧", region: "GB" },
   { code: "US", name: "United States", prefix: "+1", flag: "🇺🇸", region: "US" },
-  { code: "CA", name: "Canada", prefix: "+1", flag: "🇨", region: "GLOBAL" },
+  { code: "CA", name: "Canada", prefix: "+1", flag: "🇨🇦", region: "GLOBAL" },
   { code: "AU", name: "Australia", prefix: "+61", flag: "🇦🇺", region: "GLOBAL" },
   { code: "DE", name: "Germany", prefix: "+49", flag: "🇩🇪", region: "GLOBAL" },
   { code: "FR", name: "France", prefix: "+33", flag: "🇫🇷", region: "GLOBAL" },
@@ -52,7 +52,7 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "HU", name: "Hungary", prefix: "+36", flag: "🇭🇺", region: "GLOBAL" },
   { code: "BR", name: "Brazil", prefix: "+55", flag: "🇧🇷", region: "GLOBAL" },
   { code: "MX", name: "Mexico", prefix: "+52", flag: "🇲🇽", region: "GLOBAL" },
-  { code: "AR", name: "Argentina", prefix: "+54", flag: "🇦🇷", region: "GLOBAL" },
+  { code: "AR", name: "Argentina", prefix: "+54", flag: "🇦", region: "GLOBAL" },
   { code: "CO", name: "Colombia", prefix: "+57", flag: "🇨🇴", region: "GLOBAL" },
   { code: "CL", name: "Chile", prefix: "+56", flag: "🇨🇱", region: "GLOBAL" },
   { code: "PE", name: "Peru", prefix: "+51", flag: "🇵🇪", region: "GLOBAL" },
@@ -63,20 +63,20 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "MY", name: "Malaysia", prefix: "+60", flag: "🇲🇾", region: "GLOBAL" },
   { code: "TH", name: "Thailand", prefix: "+66", flag: "🇹🇭", region: "GLOBAL" },
   { code: "PH", name: "Philippines", prefix: "+63", flag: "🇵🇭", region: "GLOBAL" },
-  { code: "ID", name: "Indonesia", prefix: "+62", flag: "🇮🇩", region: "GLOBAL" },
+  { code: "ID", name: "Indonesia", prefix: "+62", flag: "🇮", region: "GLOBAL" },
   { code: "VN", name: "Vietnam", prefix: "+84", flag: "🇻🇳", region: "GLOBAL" },
   { code: "PK", name: "Pakistan", prefix: "+92", flag: "🇵🇰", region: "GLOBAL" },
   { code: "BD", name: "Bangladesh", prefix: "+880", flag: "🇧🇩", region: "GLOBAL" },
   { code: "SA", name: "Saudi Arabia", prefix: "+966", flag: "🇸🇦", region: "GLOBAL" },
-  { code: "QA", name: "Qatar", prefix: "+974", flag: "🇶", region: "GLOBAL" },
+  { code: "QA", name: "Qatar", prefix: "+974", flag: "🇶🇦", region: "GLOBAL" },
   { code: "KW", name: "Kuwait", prefix: "+965", flag: "🇰🇼", region: "GLOBAL" },
   { code: "EG", name: "Egypt", prefix: "+20", flag: "🇪🇬", region: "GLOBAL" },
   { code: "MA", name: "Morocco", prefix: "+212", flag: "🇲🇦", region: "GLOBAL" },
-  { code: "DZ", name: "Algeria", prefix: "+213", flag: "🇩", region: "GLOBAL" },
+  { code: "DZ", name: "Algeria", prefix: "+213", flag: "🇩🇿", region: "GLOBAL" },
   { code: "TN", name: "Tunisia", prefix: "+216", flag: "🇹🇳", region: "GLOBAL" },
   { code: "ET", name: "Ethiopia", prefix: "+251", flag: "🇪🇹", region: "GLOBAL" },
   { code: "TZ", name: "Tanzania", prefix: "+255", flag: "🇹🇿", region: "GLOBAL" },
-  { code: "UG", name: "Uganda", prefix: "+256", flag: "🇺🇬", region: "GLOBAL" },
+  { code: "UG", name: "Uganda", prefix: "+256", flag: "🇺", region: "GLOBAL" },
   { code: "RW", name: "Rwanda", prefix: "+250", flag: "🇷🇼", region: "GLOBAL" },
   { code: "CM", name: "Cameroon", prefix: "+237", flag: "🇨🇲", region: "GLOBAL" },
   { code: "CI", name: "Ivory Coast", prefix: "+225", flag: "🇨🇮", region: "GLOBAL" },
@@ -128,35 +128,29 @@ function Auth() {
         
         const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
         
-        const response = await fetch("/api/v1/auth/dispatch-dual-verification", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        const { error } = await supabase.functions.invoke("dispatch-dual-verification", {
+          body: {
             email,
             phone: fullPhone,
             handle: handle.toLowerCase(),
             name,
             country: selectedCountry.code,
             region: selectedCountry.region,
-          }),
+          },
         });
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Failed to dispatch verification codes.");
+        if (error) throw new Error(error.message || "Failed to dispatch verification codes.");
         
         toast.success("Verification codes sent to SMS and email.");
         setStage("verify_signup");
       } else {
-        const response = await fetch("/api/v1/auth/challenge-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+        const { error } = await supabase.functions.invoke("challenge-login", {
+          body: { email, password },
         });
 
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Invalid credentials.");
+        if (error) throw new Error(error.message || "Invalid credentials.");
         
-        toast.success("5-digit 2FA code sent.");
+        toast.success("Login code sent to your email.");
         setStage("verify_signin");
       }
     } catch (err: any) {
@@ -176,10 +170,8 @@ function Auth() {
 
     try {
       const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
-      const response = await fetch("/api/v1/auth/confirm-dual-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const { error } = await supabase.functions.invoke("confirm-dual-verification", {
+        body: {
           email,
           phone: fullPhone,
           handle: handle.toLowerCase(),
@@ -189,11 +181,10 @@ function Auth() {
           region: selectedCountry.region,
           sms_code: smsOtpInput,
           email_code: emailOtpInput,
-        }),
+        },
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Verification failed.");
+      if (error) throw new Error(error.message || "Verification failed.");
 
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
       if (sessionError) throw sessionError;
@@ -216,14 +207,11 @@ function Auth() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/v1/auth/verify-login-2fa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, "2fa_code": loginOtpInput }),
+      const { error } = await supabase.functions.invoke("verify-login-2fa", {
+        body: { email, "2fa_code": loginOtpInput },
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Invalid 2FA code.");
+      if (error) throw new Error(error.message || "Invalid 2FA code.");
 
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
       if (sessionError) throw sessionError;
@@ -403,7 +391,7 @@ function Auth() {
           <form onSubmit={handleVerifySigninChallenge} className="space-y-4">
             <div className="text-center pb-2">
               <h3 className="text-white text-lg font-black uppercase tracking-tight">Two-Factor Authentication</h3>
-              <p className="text-xs text-muted-foreground mt-1">Enter the 5-digit code sent to your phone.</p>
+              <p className="text-xs text-muted-foreground mt-1">Enter the 5-digit code sent to your email.</p>
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest pl-1">2FA Code</label>
