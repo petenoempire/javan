@@ -4,7 +4,7 @@ import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { ArrowLeft, MapPin, MessageCircle, UserPlus, UserCheck, Flag, Film, Music2, Play, Pause } from "lucide-react";
+import { ArrowLeft, MapPin, MessageCircle, UserPlus, UserCheck, Flag, Film, Music2, Play, Pause, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { ReportDialog } from "@/components/ReportDialog";
 
@@ -32,15 +32,17 @@ function PublicProfile() {
         .maybeSingle();
       if (!profile) return null;
 
-      const [{ count: followers }, { count: following }, { data: posts }, { data: artistProfile }] = await Promise.all([
+      const [{ count: followers }, { count: following }, { data: posts }, { data: statusRow }] = await Promise.all([
         supabase.from("followers").select("follower_id", { count: "exact", head: true }).eq("following_id", profile.id),
         supabase.from("followers").select("following_id", { count: "exact", head: true }).eq("follower_id", profile.id),
         supabase.from("posts").select("id,video_url,image_url,media_type,content").eq("user_id", profile.id).order("created_at", { ascending: false }),
-        supabase.from("profiles").select("is_artist").eq("id", profile.id).maybeSingle(),
+        supabase.from("profiles").select("is_artist,is_verified").eq("id", profile.id).maybeSingle(),
       ]);
 
+      const isArtist = !!statusRow?.is_artist;
+      const isVerified = !!statusRow?.is_verified;
+
       let tracks: any[] = [];
-      const isArtist = !!artistProfile?.is_artist;
       if (isArtist) {
         const { data: trackRows } = await supabase
           .from("tracks")
@@ -68,6 +70,7 @@ function PublicProfile() {
         posts: posts ?? [],
         tracks,
         isArtist,
+        isVerified,
         isFollowing,
       };
     },
@@ -115,7 +118,7 @@ function PublicProfile() {
     );
   }
 
-  const { profile, followers, following, posts, tracks, isArtist, isFollowing } = data;
+  const { profile, followers, following, posts, tracks, isArtist, isVerified, isFollowing } = data;
   const isSelf = user?.id === profile.id;
 
   return (
@@ -143,6 +146,9 @@ function PublicProfile() {
           </div>
           <div className="mt-3 flex items-center gap-2">
             <h1 className="font-display text-2xl font-bold text-white">@{profile.handle}</h1>
+            {isVerified && (
+              <BadgeCheck className="h-5 w-5 fill-blue-500 text-white" aria-label="Verified" />
+            )}
             {isArtist && (
               <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-600 to-rose-600 px-2 py-0.5 text-[10px] font-bold text-white">
                 <Music2 className="h-3 w-3" /> Artist
