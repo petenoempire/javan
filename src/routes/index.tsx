@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
+import { StoryTray } from "@/components/StoryTray";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,8 +44,6 @@ function HomePage() {
       const postList = rawPosts ?? [];
       if (postList.length === 0) return [];
 
-      // Fetch author info separately from the public-safe view,
-      // since profiles is now locked down by RLS to owner-only reads.
       const authorIds = [...new Set(postList.map((p: any) => p.user_id))];
       const { data: authors } = await supabase
         .from("public_profiles")
@@ -102,7 +101,6 @@ function HomePage() {
       return;
     }
     toast.info("Opening reply thread...");
-    // Hook this up to your comments/reply route or modal when that view exists
   };
 
   const handleShare = async (post: Post) => {
@@ -130,8 +128,8 @@ function HomePage() {
 
   return (
     <MobileShell>
-      <div className="px-3 pt-4 pb-20 space-y-3">
-        <div className="flex items-center justify-between">
+      <div className="pt-4 pb-20 space-y-3">
+        <div className="flex items-center justify-between px-3">
           <h1 className="font-display text-2xl font-black">For You</h1>
           <div className="flex gap-2">
             <button className="rounded-full bg-white/5 border border-white/10 p-2 hover:bg-white/10 active:scale-90 transition-all">
@@ -140,89 +138,88 @@ function HomePage() {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
-          </div>
-        ) : posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Eye className="h-12 w-12 text-white/20 mb-3" />
-            <p className="text-sm text-white/50">No posts yet. Follow creators to see content!</p>
-          </div>
-        ) : (
-          posts.map((post) => (
-            <div key={post.id} className="rounded-2xl border border-white/5 bg-white/5 backdrop-blur-md overflow-hidden">
-              {/* Post Header */}
-              <div className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-9 w-9 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
-                  <div>
-                    <p className="text-xs font-black text-white">{post.author?.display_name || "Unknown"}</p>
-                    <p className="text-[10px] text-white/50">@{post.author?.handle || "user"}</p>
-                  </div>
-                </div>
-                {user?.id === post.user_id && (
-                  <button
-                    onClick={() => handleDeletePost(post.id)}
-                    className="text-white/50 hover:text-red-400 active:scale-90 transition-all"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
+        <StoryTray />
 
-              {/* Post Content */}
-              <div className="px-4 py-2">
-                <p className="text-sm text-white leading-relaxed">{post.content}</p>
-              </div>
-
-              {/* Post Video/Image */}
-              {post.video_url && (
-                <div className="w-full aspect-video bg-black/50">
-                  <video src={post.video_url} className="h-full w-full object-cover" />
-                </div>
-              )}
-
-              {/* Post Stats */}
-              <div className="flex items-center gap-3 px-4 py-2 text-[10px] text-white/50 border-t border-white/5">
-                <span>{post.views_count || 0} Views</span>
-                <span className="w-px h-3 bg-white/10" />
-                <span>{post.likes_count || 0} Likes</span>
-                <span className="w-px h-3 bg-white/10" />
-                <span>{post.comments_count || 0} Comments</span>
-              </div>
-
-              {/* Post Actions */}
-              <div className="flex items-center justify-around px-2 py-2 border-t border-white/5">
-                <button
-                  onClick={() => handleLikePost(post.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition-all active:scale-90 ${
-                    likedPosts.has(post.id)
-                      ? "text-rose-400 bg-rose-500/10 border border-rose-500/30"
-                      : "text-white/50 hover:text-white hover:bg-white/5 border border-white/5"
-                  }`}
-                >
-                  <Heart className={`h-3.5 w-3.5 ${likedPosts.has(post.id) ? "fill-current" : ""}`} />
-                  Like
-                </button>
-                <button
-                  onClick={() => handleReply(post.id)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90"
-                >
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  Reply
-                </button>
-                <button
-                  onClick={() => handleShare(post)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                  Share
-                </button>
-              </div>
+        <div className="px-3 space-y-3">
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
             </div>
-          ))
-        )}
+          ) : posts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Eye className="h-12 w-12 text-white/20 mb-3" />
+              <p className="text-sm text-white/50">No posts yet. Follow creators to see content!</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <div key={post.id} className="rounded-2xl border border-white/5 bg-white/5 backdrop-blur-md overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
+                    <div>
+                      <p className="text-xs font-black text-white">{post.author?.display_name || "Unknown"}</p>
+                      <p className="text-[10px] text-white/50">@{post.author?.handle || "user"}</p>
+                    </div>
+                  </div>
+                  {user?.id === post.user_id && (
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="text-white/50 hover:text-red-400 active:scale-90 transition-all"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="px-4 py-2">
+                  <p className="text-sm text-white leading-relaxed">{post.content}</p>
+                </div>
+
+                {post.video_url && (
+                  <div className="w-full aspect-video bg-black/50">
+                    <video src={post.video_url} className="h-full w-full object-cover" />
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 px-4 py-2 text-[10px] text-white/50 border-t border-white/5">
+                  <span>{post.views_count || 0} Views</span>
+                  <span className="w-px h-3 bg-white/10" />
+                  <span>{post.likes_count || 0} Likes</span>
+                  <span className="w-px h-3 bg-white/10" />
+                  <span>{post.comments_count || 0} Comments</span>
+                </div>
+
+                <div className="flex items-center justify-around px-2 py-2 border-t border-white/5">
+                  <button
+                    onClick={() => handleLikePost(post.id)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition-all active:scale-90 ${
+                      likedPosts.has(post.id)
+                        ? "text-rose-400 bg-rose-500/10 border border-rose-500/30"
+                        : "text-white/50 hover:text-white hover:bg-white/5 border border-white/5"
+                    }`}
+                  >
+                    <Heart className={`h-3.5 w-3.5 ${likedPosts.has(post.id) ? "fill-current" : ""}`} />
+                    Like
+                  </button>
+                  <button
+                    onClick={() => handleReply(post.id)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    Reply
+                  </button>
+                  <button
+                    onClick={() => handleShare(post)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 border border-white/5 transition-all active:scale-90"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                    Share
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </MobileShell>
   );
