@@ -1,119 +1,126 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, ShieldCheck, KeyRound, ChevronRight, MessageCircle, Search } from "lucide-react";
+import { MobileShell } from "@/components/MobileShell";
+import { ArrowLeft, ChevronDown, MessageCircle, AlertTriangle, Search } from "lucide-react";
 
 export const Route = createFileRoute("/help")({
   head: () => ({ meta: [{ title: "Help Center · Javan" }] }),
-  component: HelpCenter,
+  component: HelpCenterPage,
 });
 
-const categories = ["Account", "Privacy and user safety", "Posts", "LIVE", "Using Javan", "Monetization", "Other"];
+const FAQS = [
+  {
+    q: "How do I earn coins on Javan?",
+    a: "You earn coins through gifts sent to you during live streams and ad revenue from your posts. Once you reach the minimum threshold, you can request a payout from your Wallet.",
+  },
+  {
+    q: "How long do payouts take?",
+    a: "Payout requests are typically reviewed within 1-3 business days. A 2.5% platform processing fee applies to all withdrawals.",
+  },
+  {
+    q: "How do I become a verified artist?",
+    a: "Go to Profile → Become an Artist and submit proof of your original music (a distributor confirmation, Spotify for Artists screenshot, etc). Our team reviews applications within a few days.",
+  },
+  {
+    q: "How do I get the verified badge?",
+    a: "Public figures, artists, celebrities, politicians, and businesses can apply at Profile → Get Verified. You'll need to submit proof of identity and notability.",
+  },
+  {
+    q: "Why was my post removed?",
+    a: "Posts may be removed for violating our community guidelines, including spam, harassment, nudity, or copyright infringement. Check your email for details if this happens.",
+  },
+  {
+    q: "How do I report a user or post?",
+    a: "Tap the flag icon on any profile, or the ... menu on a post, and select Report. Choose a reason and submit — our team reviews all reports.",
+  },
+  {
+    q: "How do 2FA codes work?",
+    a: "When you sign up, we send a verification code to both your phone and email. When logging in, we send a login code to your email to keep your account secure.",
+  },
+  {
+    q: "Can I change my region after signup?",
+    a: "Your region is set at signup based on your country and affects your app theme and available features. Contact support if you need this changed.",
+  },
+];
 
-const faq: Record<string, string[]> = {
-  Account: ["Account growth", "Is my account suspended?", "Account safety", "Profile view history", "Forgot my password"],
-  "Privacy and user safety": ["Report a problem", "Your account status", "Report another issue", "Account safety", "Content violations and bans"],
-  Posts: ["Javan post view history", "Audience controls", "Can't post videos", "Location information on Javan", "App not responding"],
-  LIVE: ["How to go live", "How to start a Mobile Gaming LIVE?", "Javan LIVE multi-guest", "How to set up LIVE Poll?", "What is Javan LIVE?"],
-  "Using Javan": ["Manage direct messages", "Direct messages", "Following and unfollowing", "Messaging with businesses", "Why am I seeing a '...too fast' error message?"],
-  Monetization: ["How much does Promote cost?", "Can I promote a video more than one time?", "How Javan Shop recommends content", "How to use Promote to LIVE?", "What is Promote to LIVE?"],
-  Other: [
-    "Benefits of removing inauthentic followers and likes",
-    "Why I received a notification about 'inauthentic accounts'",
-    "Searching for content",
-    "Will there be other 'inauthentic accounts' in my follower/like list after previous ones are removed?",
-    "The difference between 'inauthentic accounts' and 'inactive users'",
-  ],
-};
+function HelpCenterPage() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
 
-function HelpCenter() {
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const [active, setActive] = useState(categories[0]);
-  const [open, setOpen] = useState<string | null>(null);
-  const [q, setQ] = useState("");
-
-  if (pathname !== "/help") return <Outlet />;
-
-  const items = faq[active].filter((r) => r.toLowerCase().includes(q.toLowerCase()));
+  const filteredFaqs = FAQS.filter(
+    (f) =>
+      f.q.toLowerCase().includes(search.toLowerCase()) ||
+      f.a.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-32">
-      <header className="glass-strong sticky top-0 z-20 border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Link to="/settings" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
-          <h1 className="font-display text-lg font-bold">Help Center</h1>
-        </div>
-      </header>
-
-      <div className="px-4 pt-5">
-        <h2 className="font-display text-3xl font-bold">How can we help?</h2>
-
-        <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search help articles" className="flex-1 bg-transparent text-sm outline-none" />
-        </div>
-
-        {/* Top shortcut cards */}
-        <div className="mt-4 flex gap-3 overflow-x-auto no-scrollbar">
-          <Link to="/settings/security/recovery" className="glass flex min-w-[180px] flex-col gap-2 rounded-2xl p-4 text-left">
-            <div className="bg-gradient-primary flex h-10 w-10 items-center justify-center rounded-xl shadow-glow">
-              <KeyRound className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div>
-              <div className="font-display text-sm font-bold">Account recovery</div>
-              <div className="text-[11px] text-muted-foreground">Get back into your account</div>
-            </div>
+    <MobileShell>
+      <div className="px-4 pt-4 pb-20">
+        <div className="flex items-center gap-3 mb-6">
+          <Link to="/profile" className="text-white/50 p-1">
+            <ArrowLeft className="h-4 w-4" />
           </Link>
-          <Link to="/help/safety" className="glass flex min-w-[180px] flex-col gap-2 rounded-2xl p-4 text-left">
-            <div className="bg-gradient-gold flex h-10 w-10 items-center justify-center rounded-xl shadow-elegant">
-              <ShieldCheck className="h-5 w-5 text-black" />
-            </div>
-            <div>
-              <div className="font-display text-sm font-bold">Safety Center</div>
-              <div className="text-[11px] text-muted-foreground">Tools, tips, and resources</div>
-            </div>
+          <h1 className="font-display text-lg font-black">Help Center</h1>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search help articles..."
+            className="w-full rounded-full border border-white/10 bg-white/5 pl-11 pr-4 py-3 text-sm outline-none focus:ring-1 focus:ring-fuchsia-500"
+          />
+        </div>
+
+        {/* Chat with us + Report a problem */}
+        <div className="grid grid-cols-2 gap-2 mb-6">
+          <Link
+            to="/help/chat"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-fuchsia-600/20 to-rose-600/20 border border-fuchsia-500/20 p-4 text-center active:scale-95 transition-all"
+          >
+            <MessageCircle className="h-6 w-6 text-fuchsia-400" />
+            <span className="text-xs font-bold text-white">Chat with us</span>
+          </Link>
+          <Link
+            to="/report-problem"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-white/5 border border-white/10 p-4 text-center active:scale-95 transition-all"
+          >
+            <AlertTriangle className="h-6 w-6 text-amber-400" />
+            <span className="text-xs font-bold text-white">Report a Problem</span>
           </Link>
         </div>
 
-        {/* Category tabs */}
-        <div className="mt-6 flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {categories.map((c) => (
-            <button
-              key={c} onClick={() => { setActive(c); setOpen(null); }}
-              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${active === c ? "bg-gradient-primary text-primary-foreground shadow-glow" : "glass text-foreground"}`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-
-        {/* FAQ accordions */}
-        <div className="glass mt-4 divide-y divide-border/40 overflow-hidden rounded-3xl">
-          {items.map((row) => (
-            <div key={row}>
-              <button onClick={() => setOpen(open === row ? null : row)} className="flex w-full items-center gap-3 px-4 py-4 text-left">
-                <span className="flex-1 text-sm font-medium">{row}</span>
-                <ChevronRight className={`h-4 w-4 text-muted-foreground transition ${open === row ? "rotate-90" : ""}`} />
-              </button>
-              {open === row && (
-                <div className="px-4 pb-4 text-xs leading-relaxed text-muted-foreground">
-                  Detailed article coming soon. If you need urgent help on "{row}", tap "Chat with us" below and pick the matching issue type.
-                </div>
-              )}
-            </div>
-          ))}
-          {items.length === 0 && <div className="px-4 py-6 text-center text-xs text-muted-foreground">No articles match "{q}".</div>}
+        {/* FAQ list */}
+        <h2 className="text-xs font-bold uppercase tracking-wide text-white/50 mb-3">
+          Frequently Asked Questions
+        </h2>
+        <div className="space-y-2">
+          {filteredFaqs.length === 0 ? (
+            <p className="text-center text-sm text-white/40 py-8">No results found</p>
+          ) : (
+            filteredFaqs.map((faq, i) => (
+              <div key={i} className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+                <button
+                  onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                >
+                  <span className="text-sm font-semibold text-white pr-3">{faq.q}</span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-white/40 transition-transform ${
+                      openIndex === i ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {openIndex === i && (
+                  <div className="px-4 pb-4 text-sm text-white/60 leading-relaxed">{faq.a}</div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
-
-      {/* Sticky chat CTA */}
-      <div className="fixed inset-x-0 bottom-4 z-10 mx-auto max-w-[440px] px-4">
-        <Link
-          to="/help/chat"
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 to-rose-500 py-3.5 text-sm font-bold text-white shadow-[0_0_40px_-8px_rgba(244,63,94,0.7)]"
-        >
-          <MessageCircle className="h-4 w-4" /> Chat with us
-        </Link>
-      </div>
-    </div>
+    </MobileShell>
   );
 }
