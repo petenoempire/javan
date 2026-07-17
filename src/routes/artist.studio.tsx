@@ -1,135 +1,156 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Music2, Plus, Trash2, Loader2, Upload, X, Disc, BarChart3, Radio, DatabaseZap } from "lucide-react";
+import { ArrowLeft, Music2, Plus, Trash2, Loader2, Upload, X, Disc, Play, Pause } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/artist/studio")({
-  head: () => ({ meta: [{ title: "Production Studio · Javan" }] }),
+  head: () => ({ meta: [{ title: "Artist Studio · Javan" }] }),
   component: ArtistStudio,
 });
 
+interface Track {
+  id: string;
+  title: string;
+  audio_url: string;
+  cover_url: string | null;
+  plays_count: number;
+  created_at: string;
+}
+
 function ArtistStudio() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => { if (!loading && !user) navigate({ to: "/auth" }); }, [loading, user, navigate]);
+  useEffect(() => {
+    if (!loading && !user) navigate({ to: "/auth" });
+  }, [loading, user, navigate]);
 
-  const { data: artist } = useQuery({
-    queryKey: ["my-artist", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase.from("artist_profiles").select("*").eq("user_id", user!.id).maybeSingle();
-      return data;
-    },
-  });
+  const isArtist = (profile as any)?.is_artist === true;
 
-  const { data: tracks } = useQuery({
+  const { data: tracks, isLoading } = useQuery({
     queryKey: ["artist-tracks", user?.id],
-    enabled: !!user,
+    enabled: !!user && isArtist,
     queryFn: async () => {
-      const { data } = await supabase.from("audio_tracks").select("*")
-        .eq("artist_id", user!.id).order("created_at", { ascending: false });
-      return data ?? [];
+      const { data } = await supabase
+        .from("tracks")
+        .select("*")
+        .eq("artist_id", user!.id)
+        .order("created_at", { ascending: false });
+      return (data ?? []) as Track[];
     },
   });
 
-  if (loading || !user) return <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black px-5 pt-20 text-xs font-mono text-neutral-500">INITIALIZING_STUDIO_METRICS…</div>;
+  const togglePlay = (track: Track) => {
+    if (playingId === track.id) {
+      audioRef.current?.pause();
+      setPlayingId(null);
+      return;
+    }
+    audioRef.current?.pause();
+    const audio = new Audio(track.audio_url);
+    audio.play();
+    audio.onended = () => setPlayingId(null);
+    audioRef.current = audio;
+    setPlayingId(track.id);
+  };
 
-  if (!artist || artist.status !== "approved") {
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("tracks").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Track removed");
+    qc.invalidateQueries({ queryKey: ["artist-tracks"] });
+  };
+
+  if (loading || !user) {
+    return <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black px-5 pt-20 text-xs text-neutral-500">Loading...</div>;
+  }
+
+  if (!isArtist) {
     return (
-      <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black text-white pb-24 selection:bg-rose-500/30">
+      <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black text-white pb-24">
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-white/5 bg-neutral-950/80 px-4 py-3.5 backdrop-blur-md">
-          <Link to="/profile" className="text-neutral-400 p-1"><ArrowLeft className="h-4 w-4" /></Link>
-          <h1 className="font-display text-xs font-black uppercase tracking-widest text-neutral-400">Security Gate</h1>
+          <Link to="/profile" className="text-neutral-400 p-1">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <h1 className="font-display text-sm font-black">Artist Studio</h1>
         </header>
         <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center">
-          <div className="bg-gradient-to-tr from-fuchsia-500 to-rose-500 mb-5 flex h-14 w-14 items-center justify-center rounded-2xl shadow-glow animate-pulse">
+          <div className="bg-gradient-to-tr from-fuchsia-500 to-rose-500 mb-5 flex h-14 w-14 items-center justify-center rounded-2xl">
             <Music2 className="h-5 w-5 text-white" />
           </div>
-          <h2 className="font-display text-sm font-black uppercase tracking-wider">Access Parameters Blocked</h2>
-          <p className="mt-2 text-[11px] text-neutral-400 max-w-xs leading-normal font-medium">
-            {artist?.status === "pending" ? "Your identity credentials are undergoing systemic validation audit pools right now." : "Verify your catalog profile identity ledger array to provision music assets."}
+          <h2 className="font-display text-sm font-black">Artist verification required</h2>
+          <p className="mt-2 text-xs text-neutral-400 max-w-xs leading-relaxed">
+            You need to be a verified artist to upload music. Apply below to get started.
           </p>
-          <Link to="/artist/onboarding" className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-5 rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-glow active:scale-98 transition-transform">
-            {artist?.status === "pending" ? "Audit Console Status" : "Begin Onboarding"}
+          <Link
+            to="/artist/onboarding"
+            className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-5 rounded-full px-6 py-2.5 text-xs font-bold text-white active:scale-95 transition-transform"
+          >
+            Apply Now
           </Link>
         </div>
       </div>
     );
   }
 
-  const remove = async (id: string) => {
-    if (!confirm("De-register track reference from public asset trays?")) return;
-    const { error } = await supabase.from("audio_tracks").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Track node severed from global distribution index maps.");
-    qc.invalidateQueries({ queryKey: ["artist-tracks"] });
-  };
-
   return (
-    <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black text-white pb-24 selection:bg-rose-500/30 select-none">
+    <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black text-white pb-24">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-white/5 bg-neutral-950/80 px-4 py-3.5 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <Link to="/profile" className="text-neutral-400 p-1"><ArrowLeft className="h-4 w-4" /></Link>
-          <h1 className="font-display text-xs font-black uppercase tracking-widest text-neutral-400">Studio Analytics Engine</h1>
+          <Link to="/profile" className="text-neutral-400 p-1">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <h1 className="font-display text-sm font-black">Artist Studio</h1>
         </div>
-        <button onClick={() => setAdding(true)} className="bg-gradient-to-r from-fuchsia-500 to-rose-500 inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white shadow-glow active:scale-95 transition-transform">
-          <Plus className="h-3 w-3" /> Link Track
+        <button
+          onClick={() => setAdding(true)}
+          className="bg-gradient-to-r from-fuchsia-500 to-rose-500 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold active:scale-95 transition-transform"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add Track
         </button>
       </header>
 
-      <div className="px-4 pt-5 space-y-4">
-        <div className="border border-white/5 bg-neutral-900/40 rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <div className="font-display text-sm font-black uppercase tracking-wider">{artist.stage_name}</div>
-            {artist.genre && <div className="text-[9px] font-mono font-bold uppercase text-neutral-500 tracking-wider mt-0.5">{artist.genre} Node Platform</div>}
-          </div>
-          <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-lg font-mono text-[9px] font-bold uppercase tracking-wider">
-            <Radio className="h-3 w-3 animate-pulse" /> Live
-          </div>
-        </div>
+      <div className="px-4 pt-5 space-y-3">
+        <h2 className="text-xs font-bold uppercase tracking-wide text-neutral-500">
+          Your Tracks ({tracks?.length ?? 0})
+        </h2>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-neutral-900/20 border border-white/5 rounded-xl p-3">
-            <div className="text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-wider">Sound Ingestion Usage</div>
-            <div className="text-base font-black tracking-tight mt-1">1,482 <span className="text-[10px] text-emerald-400 font-mono font-bold ml-1">+12%</span></div>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-neutral-500" />
           </div>
-          <div className="bg-neutral-900/20 border border-white/5 rounded-xl p-3">
-            <div className="text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-wider">Aggregate Streams</div>
-            <div className="text-base font-black tracking-tight mt-1">294.1K <span className="text-[10px] text-rose-500 font-mono font-bold ml-1">Live</span></div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 px-0.5 pt-2">
-          <DatabaseZap className="h-3.5 w-3.5 text-rose-400" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Indexed Sound Catalog Assets ({tracks?.length ?? 0})</span>
-        </div>
-
-        {!tracks || tracks.length === 0 ? (
-          <div className="border border-dashed border-white/10 rounded-2xl p-8 text-center bg-neutral-900/10">
-            <Music2 className="mx-auto mb-2.5 h-5 w-5 text-neutral-600" />
-            <div className="text-xs font-black uppercase tracking-wide text-neutral-400">Catalog Registry Empty</div>
-            <div className="mt-1 text-[11px] text-neutral-600 font-medium max-w-xs mx-auto leading-normal">No audio traces tied to this identifier node. Sync an ISRC to generate assets.</div>
+        ) : !tracks || tracks.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-white/10 bg-neutral-900/10 p-8 text-center">
+            <Music2 className="mx-auto mb-2.5 h-6 w-6 text-neutral-600" />
+            <p className="text-xs font-bold text-neutral-400">No tracks yet</p>
+            <p className="mt-1 text-[11px] text-neutral-600">Upload your first original track to get started.</p>
           </div>
         ) : (
-          <div className="border border-white/5 bg-neutral-900/20 rounded-2xl overflow-hidden divide-y divide-white/5">
+          <div className="rounded-2xl border border-white/5 bg-neutral-900/20 divide-y divide-white/5 overflow-hidden">
             {tracks.map((t) => (
-              <div key={t.id} className="flex items-center justify-between p-3 transition-colors hover:bg-neutral-900/40">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="bg-neutral-950 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 text-rose-400 relative group">
-                    <Disc className="h-4 w-4 animate-spin-slow group-hover:text-white transition-colors" />
+              <div key={t.id} className="flex items-center gap-3 p-3">
+                {t.cover_url ? (
+                  <img src={t.cover_url} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-600 to-rose-600">
+                    <Disc className="h-4 w-4 text-white/80" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="truncate text-xs font-black tracking-tight text-white">{t.title}</div>
-                    <div className="truncate text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-wider mt-0.5">ISRC: {t.isrc}</div>
-                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-bold">{t.title}</p>
+                  <p className="text-[10px] text-neutral-500">{t.plays_count} plays</p>
                 </div>
-                <button onClick={() => remove(t.id)} className="text-neutral-600 hover:text-rose-400 transition-colors p-2 active:scale-90" aria-label="Delete Track Parameter">
+                <button onClick={() => togglePlay(t)} className="rounded-full bg-white/10 p-2 active:scale-90">
+                  {playingId === t.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </button>
+                <button onClick={() => remove(t.id)} className="p-2 text-neutral-600 hover:text-rose-400 active:scale-90">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -139,72 +160,119 @@ function ArtistStudio() {
       </div>
 
       {adding && (
-        <AddTrackSheet onClose={() => { setAdding(false); qc.invalidateQueries({ queryKey: ["artist-tracks"] }); }} userId={user.id} artistName={artist.stage_name} />
+        <AddTrackSheet
+          userId={user.id}
+          onClose={() => {
+            setAdding(false);
+            qc.invalidateQueries({ queryKey: ["artist-tracks"] });
+          }}
+        />
       )}
     </div>
   );
 }
 
-function AddTrackSheet({ onClose, userId, artistName }: { onClose: () => void; userId: string; artistName: string }) {
+function AddTrackSheet({ userId, onClose }: { userId: string; onClose: () => void }) {
   const [title, setTitle] = useState("");
-  const [isrc, setIsrc] = useState("");
-  const [duration, setDuration] = useState("");
-  const [audioUrl, setAudioUrl] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
-  const save = async () => {
-    if (!title || !isrc || !audioUrl) { toast.error("Title, ISRC designation code, and CDN audio asset vectors are required."); return; }
-    setSaving(true);
-    try {
-      const { error } = await supabase.from("audio_tracks").insert({
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!title.trim() || !audioFile) throw new Error("Title and audio file are required");
+
+      const audioExt = audioFile.name.split(".").pop() || "mp3";
+      const audioPath = `${userId}/${Date.now()}.${audioExt}`;
+      const { error: audioError } = await supabase.storage
+        .from("tracks")
+        .upload(audioPath, audioFile, { contentType: audioFile.type });
+      if (audioError) throw audioError;
+      const { data: audioUrlData } = supabase.storage.from("tracks").getPublicUrl(audioPath);
+
+      let coverUrl: string | null = null;
+      if (coverFile) {
+        const coverExt = coverFile.name.split(".").pop() || "jpg";
+        const coverPath = `${userId}/cover-${Date.now()}.${coverExt}`;
+        const { error: coverError } = await supabase.storage
+          .from("tracks")
+          .upload(coverPath, coverFile, { contentType: coverFile.type });
+        if (coverError) throw coverError;
+        const { data: coverUrlData } = supabase.storage.from("tracks").getPublicUrl(coverPath);
+        coverUrl = coverUrlData.publicUrl;
+      }
+
+      const { error } = await supabase.from("tracks").insert({
         artist_id: userId,
         title: title.trim(),
-        artist_name: artistName,
-        isrc: isrc.trim().toUpperCase(),
-        audio_url: audioUrl.trim(),
-        duration_seconds: duration ? parseFloat(duration) : 30.00,
+        audio_url: audioUrlData.publicUrl,
+        cover_url: coverUrl,
       });
       if (error) throw error;
-      toast.success(`Track "${title}" loaded successfully into ecosystem sound array vectors.`);
+    },
+    onSuccess: () => {
+      toast.success("Track uploaded!");
       onClose();
-    } catch (e: any) {
-      toast.error(e.message ?? "Database ingestion layer rejected operational payload.");
-    } finally {
-      setSaving(false);
-    }
-  };
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Upload failed");
+    },
+  });
 
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-neutral-950 border-t border-white/10 max-h-[85dvh] w-full max-w-[480px] overflow-y-auto rounded-t-3xl p-5 space-y-4 shadow-2xl no-scrollbar" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-white/5 pb-2">
-          <h3 className="font-display text-xs font-black uppercase tracking-widest text-neutral-400">Ingest Distributed Track Node</h3>
-          <button onClick={onClose} className="text-neutral-500 hover:text-white transition-colors"><X className="h-4 w-4" /></button>
-        </div>
-        
-        <div className="space-y-4 pt-1">
-          <F label="Track Title Title *" v={title} on={setTitle} placeholder="e.g. Drvg Abuse" />
-          <F label="Official Distributed ISRC String *" v={isrc} on={setIsrc} placeholder="e.g. USSM12345678" />
-          <F label="High Quality Audio Snippet URL CDN *" v={audioUrl} on={setAudioUrl} placeholder="https://cdn.dittomusic.com/assets/track.mp3" />
-          <F label="Snippet Segment Duration Core (seconds)" v={duration} on={setDuration} placeholder="e.g. 30.00" />
-          
-          <button onClick={save} disabled={saving}
-            className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-3 w-full rounded-xl py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-glow disabled:opacity-40 active:scale-98 transition-transform"
-          >
-            {saving ? <span className="inline-flex items-center gap-1.5"><Loader2 className="h-3 w-3 animate-spin" /> EXECUTING_CATALOG_INGESTION…</span> : "Commit Sync Parameters"}
+      <div
+        className="w-full max-w-[480px] max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-neutral-950 border-t border-white/10 p-5 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-white/5 pb-3">
+          <h3 className="text-sm font-black">Upload Track</h3>
+          <button onClick={onClose} className="text-neutral-500">
+            <X className="h-4 w-4" />
           </button>
         </div>
+
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Track title"
+          className="w-full rounded-xl border border-white/10 bg-neutral-900/50 px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-fuchsia-500"
+        />
+
+        <input ref={audioInputRef} type="file" accept="audio/*" onChange={(e) => setAudioFile(e.target.files?.[0] || null)} className="hidden" />
+        <button
+          onClick={() => audioInputRef.current?.click()}
+          className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/10 py-4 text-xs font-bold text-neutral-400 hover:border-white/20 transition-colors"
+        >
+          <Music2 className="h-4 w-4" />
+          {audioFile ? audioFile.name : "Choose audio file"}
+        </button>
+
+        <input ref={coverInputRef} type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] || null)} className="hidden" />
+        <button
+          onClick={() => coverInputRef.current?.click()}
+          className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-white/10 py-3 text-xs font-bold text-neutral-400 hover:border-white/20 transition-colors"
+        >
+          {coverFile ? coverFile.name : "Cover art (optional)"}
+        </button>
+
+        <button
+          onClick={() => mutation.mutate()}
+          disabled={mutation.isPending || !title.trim() || !audioFile}
+          className="w-full flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-600 to-rose-600 py-3 text-sm font-bold disabled:opacity-50 active:scale-95 transition-all"
+        >
+          {mutation.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4" /> Upload
+            </>
+          )}
+        </button>
       </div>
     </div>
-  );
-}
-
-function F({ label, v, on, placeholder }: { label: string; v: string; on: (v: string) => void; placeholder?: string }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-[9px] font-mono font-black uppercase tracking-widest text-neutral-500">{label}</span>
-      <input value={v} onChange={(e) => on(e.target.value)} placeholder={placeholder}
-        className="w-full rounded-xl border border-white/5 bg-neutral-900/50 px-4 py-2.5 text-xs font-medium text-white outline-none focus:ring-1 focus:ring-rose-500 transition-shadow placeholder:text-neutral-700" />
-    </label>
   );
 }
