@@ -14,6 +14,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ReportProblemRouteImport } from './routes/report-problem'
 import { Route as QrRouteImport } from './routes/qr'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OfflineRouteImport } from './routes/offline'
@@ -83,6 +84,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportProblemRoute = ReportProblemRouteImport.update({
+  id: '/report-problem',
+  path: '/report-problem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QrRoute = QrRouteImport.update({
@@ -332,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/qr': typeof QrRoute
+  '/report-problem': typeof ReportProblemRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/studio': typeof StudioRouteWithChildren
@@ -383,6 +390,7 @@ export interface FileRoutesByTo {
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/qr': typeof QrRoute
+  '/report-problem': typeof ReportProblemRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/studio': typeof StudioRouteWithChildren
   '/verify': typeof VerifyRoute
@@ -435,6 +443,7 @@ export interface FileRoutesById {
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/qr': typeof QrRoute
+  '/report-problem': typeof ReportProblemRoute
   '/settings': typeof SettingsRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/studio': typeof StudioRouteWithChildren
@@ -489,6 +498,7 @@ export interface FileRouteTypes {
     | '/offline'
     | '/profile'
     | '/qr'
+    | '/report-problem'
     | '/settings'
     | '/sitemap.xml'
     | '/studio'
@@ -540,6 +550,7 @@ export interface FileRouteTypes {
     | '/offline'
     | '/profile'
     | '/qr'
+    | '/report-problem'
     | '/sitemap.xml'
     | '/studio'
     | '/verify'
@@ -591,6 +602,7 @@ export interface FileRouteTypes {
     | '/offline'
     | '/profile'
     | '/qr'
+    | '/report-problem'
     | '/settings'
     | '/sitemap.xml'
     | '/studio'
@@ -644,6 +656,7 @@ export interface RootRouteChildren {
   OfflineRoute: typeof OfflineRoute
   ProfileRoute: typeof ProfileRouteWithChildren
   QrRoute: typeof QrRoute
+  ReportProblemRoute: typeof ReportProblemRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StudioRoute: typeof StudioRouteWithChildren
@@ -694,6 +707,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/report-problem': {
+      id: '/report-problem'
+      path: '/report-problem'
+      fullPath: '/report-problem'
+      preLoaderRoute: typeof ReportProblemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/qr': {
@@ -1145,6 +1165,7 @@ const rootRouteChildren: RootRouteChildren = {
   OfflineRoute: OfflineRoute,
   ProfileRoute: ProfileRouteWithChildren,
   QrRoute: QrRoute,
+  ReportProblemRoute: ReportProblemRoute,
   SettingsRoute: SettingsRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StudioRoute: StudioRouteWithChildren,
