@@ -1,5 +1,5 @@
 import { defineConfig } from "vinxi";
-import { tanstackStart } from "@tanstack/react-start/plugin";
+import { tanstackStart } from "@tanstack/start-vite-plugin";
 
 export default defineConfig({
   routers: [
