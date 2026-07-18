@@ -1,4 +1,4 @@
-Import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { StoryTray } from "@/components/StoryTray";
