@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+Import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { StoryTray } from "@/components/StoryTray";
@@ -177,17 +177,15 @@ function HomePage() {
                   <p className="text-sm text-white leading-relaxed">{post.content}</p>
                 </div>
 
-                {post.media_type === "image" && post.image_url && (
+                {post.media_type === "image" && post.image_url ? (
                   <div className="w-full">
-                    <img src={post.image_url} alt="post media" className="w-full max-h-[500px] object-cover" />
+                    <img src={post.image_url} alt="" className="w-full max-h-[500px] object-cover" />
                   </div>
-                )}
-
-                {post.media_type === "video" && post.video_url && (
+                ) : post.video_url ? (
                   <div className="w-full aspect-video bg-black/50">
                     <video src={post.video_url} controls className="h-full w-full object-cover" />
                   </div>
-                )}
+                ) : null}
 
                 <div className="flex items-center gap-3 px-4 py-2 text-[10px] text-white/50 border-t border-white/5">
                   <span>{post.views_count || 0} Views</span>
