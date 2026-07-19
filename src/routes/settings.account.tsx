@@ -3,7 +3,19 @@ import { ArrowLeft, ShieldCheck, AtSign, KeyRound, ChevronRight, Mic2 } from "lu
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/account")({
-  head: () => ({ meta: [{ title: "Account · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Account Settings · Javan" },
+      { name: "description", content: "Manage your Javan account verification, artist status, username, and security settings." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Account Settings · Javan" },
+      { property: "og:description", content: "Manage your Javan account verification, artist status, username, and security settings." },
+      { property: "og:url", content: "https://javan.lovable.app/settings/account" },
+      { name: "twitter:title", content: "Account Settings · Javan" },
+      { name: "twitter:description", content: "Manage your Javan account verification, artist status, username, and security settings." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/settings/account" }],
+  }),
   component: AccountSettings,
 });
 
@@ -23,7 +35,7 @@ function AccountSettings() {
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-24">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/settings" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/settings" aria-label="Back to settings" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
         <h1 className="font-display text-lg font-bold">Account</h1>
       </header>
 
