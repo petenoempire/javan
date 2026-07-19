@@ -9,7 +9,53 @@ import { toast } from "sonner";
 import { ReportDialog } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/u/$handle")({
-  head: ({ params }) => ({ meta: [{ title: `@${params.handle} · Javan` }] }),
+  loader: async ({ params }) => {
+    const { data: profile } = await supabase
+      .from("public_profiles")
+      .select("handle, display_name, bio, avatar_url")
+      .eq("handle", params.handle)
+      .maybeSingle();
+    return { profile };
+  },
+  head: ({ params, loaderData }) => {
+    const profile = loaderData?.profile;
+    const title = profile ? `${profile.display_name} (@${params.handle}) · Javan` : `@${params.handle} · Javan`;
+    const description = profile?.bio || `View @${params.handle}'s profile on Javan.`;
+    const url = `https://javan.app/u/${params.handle}`;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "profile" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: profile
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "ProfilePage",
+                mainEntity: {
+                  "@type": "Person",
+                  name: profile.display_name,
+                  alternateName: `@${params.handle}`,
+                  description: profile.bio || undefined,
+                  image: profile.avatar_url || undefined,
+                  url,
+                },
+              }),
+            },
+          ]
+        : [],
+    };
+  },
   component: PublicProfile,
 });
 
@@ -124,20 +170,20 @@ function PublicProfile() {
   return (
     <MobileShell>
       <div className="relative">
-        <button onClick={() => history.back()} className="absolute left-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 backdrop-blur-md">
+        <button onClick={() => history.back()} aria-label="Go back" className="absolute left-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 backdrop-blur-md">
           <ArrowLeft className="h-5 w-5 text-white" />
         </button>
         <div className="bg-gradient-to-r from-fuchsia-600 to-rose-600 h-32 w-full opacity-80" />
         <div className="px-5 pb-6">
           <div className="-mt-12 flex items-end justify-between">
             {profile.avatar_url ? (
-              <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-black object-cover" alt="" />
+              <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-black object-cover" alt={`${profile.display_name}'s avatar`} />
             ) : (
               <div className="bg-gradient-to-r from-rose-500 to-fuchsia-500 h-24 w-24 rounded-full border-4 border-black" />
             )}
             {!isSelf && (
               <>
-                <button onClick={() => setReportOpen(true)} className="rounded-full bg-white/10 p-2">
+                <button onClick={() => setReportOpen(true)} aria-label="Report user" className="rounded-full bg-white/10 p-2">
                   <Flag className="h-4 w-4" />
                 </button>
                 <ReportDialog target={reportOpen ? { type: "user", id: profile.id } : null} onClose={() => setReportOpen(false)} />
@@ -226,7 +272,7 @@ function PublicProfile() {
               {tracks.map((t: any) => (
                 <div key={t.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
                   {t.cover_url ? (
-                    <img src={t.cover_url} alt="" className="h-11 w-11 rounded-lg object-cover" />
+                    <img src={t.cover_url} alt={`${t.title} cover art`} className="h-11 w-11 rounded-lg object-cover" />
                   ) : (
                     <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-600 to-rose-600">
                       <Music2 className="h-4 w-4 text-white/80" />
@@ -236,7 +282,7 @@ function PublicProfile() {
                     <p className="truncate text-sm font-bold text-white">{t.title}</p>
                     <p className="text-[10px] text-white/40">{t.plays_count} plays</p>
                   </div>
-                  <button onClick={() => togglePlay(t)} className="rounded-full bg-white/10 p-2 active:scale-90">
+                  <button onClick={() => togglePlay(t)} aria-label={playingId === t.id ? `Pause ${t.title}` : `Play ${t.title}`} className="rounded-full bg-white/10 p-2 active:scale-90">
                     {playingId === t.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </button>
                 </div>
