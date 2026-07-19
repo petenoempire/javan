@@ -297,7 +297,8 @@ function PublicProfile() {
               {posts.map((p: any) => (
                 <Link
                   key={p.id}
-                  to={`/posts/${p.id}`}
+                  to="/posts/$id"
+                  params={{ id: p.id }}
                   className="relative aspect-[3/4] overflow-hidden rounded-md bg-white/5"
                 >
                   {p.media_type === "image" && p.image_url ? (
