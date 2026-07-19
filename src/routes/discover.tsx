@@ -8,7 +8,18 @@ import { UserPlus, X, Search } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/discover")({ 
-  head: () => ({ meta: [{ title: "Discover · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Discover Creators · Javan" },
+      { name: "description", content: "Find and follow new creators on Javan. Search by name or handle to discover fresh video and live content." },
+      { property: "og:title", content: "Discover Creators · Javan" },
+      { property: "og:description", content: "Find and follow new creators on Javan. Search by name or handle to discover fresh video and live content." },
+      { property: "og:url", content: "https://javan.lovable.app/discover" },
+      { name: "twitter:title", content: "Discover Creators · Javan" },
+      { name: "twitter:description", content: "Find and follow new creators on Javan. Search by name or handle to discover fresh video and live content." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/discover" }],
+  }),
   component: DiscoverPage,
 });
 
@@ -103,7 +114,11 @@ function DiscoverPage() {
                 key={creator.id}
                 className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-all"
               >
-                <Link to={`/u/${creator.handle}`} className="flex items-center gap-3 flex-1 min-w-0">
+                <Link
+                  to="/u/$handle"
+                  params={{ handle: creator.handle }}
+                  className="flex items-center gap-3 flex-1 min-w-0"
+                >
                   <div className="h-10 w-10 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
