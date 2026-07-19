@@ -291,6 +291,8 @@ function LivePage() {
         />
       )}
       <div className="fixed inset-0 z-50 flex h-screen w-screen flex-col overflow-hidden bg-black text-white">
+        <h1 className="sr-only">{stream.title || "Live Stream"}</h1>
+
         {/* Gift Animation Overlay */}
         <AnimatePresence>
           {activeGiftAnimation && (
