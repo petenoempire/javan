@@ -43,7 +43,7 @@ export const Route = createFileRoute("/live/$id")({
     const stream = loaderData?.stream as any;
     const title = stream?.title ? `${stream.title} · Live on Javan` : "Live Stream · Javan";
     const description = stream?.description || "Watch this live stream on Javan.";
-    const url = `https://javan.app/live/${params.id}`;
+    const url = `https://javan.lovable.app/live/${params.id}`;
     const thumbnail = stream?.thumbnail_url;
 
     return {
