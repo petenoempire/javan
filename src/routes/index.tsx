@@ -134,7 +134,10 @@ function HomePage() {
         <div className="flex items-center justify-between px-3">
           <h1 className="font-display text-2xl font-black">For You</h1>
           <div className="flex gap-2">
-            <button className="rounded-full bg-white/5 border border-white/10 p-2 hover:bg-white/10 active:scale-90 transition-all">
+            <button
+              aria-label="View liked posts"
+              className="rounded-full bg-white/5 border border-white/10 p-2 hover:bg-white/10 active:scale-90 transition-all"
+            >
               <Heart className="h-4 w-4" />
             </button>
           </div>
@@ -166,6 +169,7 @@ function HomePage() {
                   {user?.id === post.user_id && (
                     <button
                       onClick={() => handleDeletePost(post.id)}
+                      aria-label="Delete post"
                       className="text-white/50 hover:text-red-400 active:scale-90 transition-all"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -179,7 +183,11 @@ function HomePage() {
 
                 {post.media_type === "image" && post.image_url ? (
                   <div className="w-full">
-                    <img src={post.image_url} alt="" className="w-full max-h-[500px] object-cover" />
+                    <img
+                      src={post.image_url}
+                      alt={`Photo posted by ${post.author?.display_name || "user"}`}
+                      className="w-full max-h-[500px] object-cover"
+                    />
                   </div>
                 ) : post.video_url ? (
                   <div className="w-full aspect-video bg-black/50">
@@ -198,6 +206,7 @@ function HomePage() {
                 <div className="flex items-center justify-around px-2 py-2 border-t border-white/5">
                   <button
                     onClick={() => handleLikePost(post.id)}
+                    aria-pressed={likedPosts.has(post.id)}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition-all active:scale-90 ${
                       likedPosts.has(post.id)
                         ? "text-rose-400 bg-rose-500/10 border border-rose-500/30"
