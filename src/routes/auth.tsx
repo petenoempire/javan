@@ -6,7 +6,19 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Secure Gateway · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign In or Create Account · Javan" },
+      { name: "description", content: "Sign in or create your Javan account to start posting, streaming live, and connecting with creators." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Sign In or Create Account · Javan" },
+      { property: "og:description", content: "Sign in or create your Javan account to start posting, streaming live, and connecting with creators." },
+      { property: "og:url", content: "https://javan.lovable.app/auth" },
+      { name: "twitter:title", content: "Sign In or Create Account · Javan" },
+      { name: "twitter:description", content: "Sign in or create your Javan account to start posting, streaming live, and connecting with creators." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/auth" }],
+  }),
   component: Auth,
 });
 
@@ -31,7 +43,7 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "KE", name: "Kenya", prefix: "+254", flag: "🇰🇪", region: "GLOBAL" },
   { code: "IN", name: "India", prefix: "+91", flag: "🇮🇳", region: "GLOBAL" },
   { code: "AE", name: "United Arab Emirates", prefix: "+971", flag: "🇦🇪", region: "GLOBAL" },
-  { code: "IE", name: "Ireland", prefix: "+353", flag: "🇮🇪", region: "GLOBAL" },
+  { code: "IE", name: "Ireland", prefix: "+353", flag: "🇮", region: "GLOBAL" },
   { code: "IT", name: "Italy", prefix: "+39", flag: "🇮🇹", region: "GLOBAL" },
   { code: "ES", name: "Spain", prefix: "+34", flag: "🇪🇸", region: "GLOBAL" },
   { code: "PT", name: "Portugal", prefix: "+351", flag: "🇵🇹", region: "GLOBAL" },
@@ -50,9 +62,9 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "CZ", name: "Czech Republic", prefix: "+420", flag: "🇨🇿", region: "GLOBAL" },
   { code: "RO", name: "Romania", prefix: "+40", flag: "🇷🇴", region: "GLOBAL" },
   { code: "HU", name: "Hungary", prefix: "+36", flag: "🇭🇺", region: "GLOBAL" },
-  { code: "BR", name: "Brazil", prefix: "+55", flag: "🇧🇷", region: "GLOBAL" },
+  { code: "BR", name: "Brazil", prefix: "+55", flag: "🇧", region: "GLOBAL" },
   { code: "MX", name: "Mexico", prefix: "+52", flag: "🇲🇽", region: "GLOBAL" },
-  { code: "AR", name: "Argentina", prefix: "+54", flag: "🇦", region: "GLOBAL" },
+  { code: "AR", name: "Argentina", prefix: "+54", flag: "🇦🇷", region: "GLOBAL" },
   { code: "CO", name: "Colombia", prefix: "+57", flag: "🇨🇴", region: "GLOBAL" },
   { code: "CL", name: "Chile", prefix: "+56", flag: "🇨🇱", region: "GLOBAL" },
   { code: "PE", name: "Peru", prefix: "+51", flag: "🇵🇪", region: "GLOBAL" },
@@ -61,11 +73,11 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "KR", name: "South Korea", prefix: "+82", flag: "🇰🇷", region: "GLOBAL" },
   { code: "SG", name: "Singapore", prefix: "+65", flag: "🇸🇬", region: "GLOBAL" },
   { code: "MY", name: "Malaysia", prefix: "+60", flag: "🇲🇾", region: "GLOBAL" },
-  { code: "TH", name: "Thailand", prefix: "+66", flag: "🇹🇭", region: "GLOBAL" },
+  { code: "TH", name: "Thailand", prefix: "+66", flag: "🇹", region: "GLOBAL" },
   { code: "PH", name: "Philippines", prefix: "+63", flag: "🇵🇭", region: "GLOBAL" },
-  { code: "ID", name: "Indonesia", prefix: "+62", flag: "🇮", region: "GLOBAL" },
+  { code: "ID", name: "Indonesia", prefix: "+62", flag: "🇮🇩", region: "GLOBAL" },
   { code: "VN", name: "Vietnam", prefix: "+84", flag: "🇻🇳", region: "GLOBAL" },
-  { code: "PK", name: "Pakistan", prefix: "+92", flag: "🇵🇰", region: "GLOBAL" },
+  { code: "PK", name: "Pakistan", prefix: "+92", flag: "🇵", region: "GLOBAL" },
   { code: "BD", name: "Bangladesh", prefix: "+880", flag: "🇧🇩", region: "GLOBAL" },
   { code: "SA", name: "Saudi Arabia", prefix: "+966", flag: "🇸🇦", region: "GLOBAL" },
   { code: "QA", name: "Qatar", prefix: "+974", flag: "🇶🇦", region: "GLOBAL" },
@@ -76,16 +88,16 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "TN", name: "Tunisia", prefix: "+216", flag: "🇹🇳", region: "GLOBAL" },
   { code: "ET", name: "Ethiopia", prefix: "+251", flag: "🇪🇹", region: "GLOBAL" },
   { code: "TZ", name: "Tanzania", prefix: "+255", flag: "🇹🇿", region: "GLOBAL" },
-  { code: "UG", name: "Uganda", prefix: "+256", flag: "🇺", region: "GLOBAL" },
+  { code: "UG", name: "Uganda", prefix: "+256", flag: "🇺🇬", region: "GLOBAL" },
   { code: "RW", name: "Rwanda", prefix: "+250", flag: "🇷🇼", region: "GLOBAL" },
-  { code: "CM", name: "Cameroon", prefix: "+237", flag: "🇨🇲", region: "GLOBAL" },
+  { code: "CM", name: "Cameroon", prefix: "+237", flag: "🇨", region: "GLOBAL" },
   { code: "CI", name: "Ivory Coast", prefix: "+225", flag: "🇨🇮", region: "GLOBAL" },
   { code: "SN", name: "Senegal", prefix: "+221", flag: "🇸🇳", region: "GLOBAL" },
   { code: "ZM", name: "Zambia", prefix: "+260", flag: "🇿🇲", region: "GLOBAL" },
   { code: "ZW", name: "Zimbabwe", prefix: "+263", flag: "🇿🇼", region: "GLOBAL" },
   { code: "NZ", name: "New Zealand", prefix: "+64", flag: "🇳🇿", region: "GLOBAL" },
   { code: "IL", name: "Israel", prefix: "+972", flag: "🇮🇱", region: "GLOBAL" },
-  { code: "JO", name: "Jordan", prefix: "+962", flag: "🇯", region: "GLOBAL" },
+  { code: "JO", name: "Jordan", prefix: "+962", flag: "🇯🇴", region: "GLOBAL" },
   { code: "LB", name: "Lebanon", prefix: "+961", flag: "🇱🇧", region: "GLOBAL" },
 ];
 
@@ -283,8 +295,9 @@ function Auth() {
                     className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary transition-all duration-200"
                   />
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Country</label>
+                    <label htmlFor="auth-country" className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Country</label>
                     <select
+                      id="auth-country"
                       value={selectedCountry.code}
                       onChange={(e) => handleCountryChange(e.target.value)}
                       className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary text-foreground font-semibold"
@@ -297,12 +310,13 @@ function Auth() {
                     </select>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Phone Number</label>
+                    <label htmlFor="auth-phone" className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Phone Number</label>
                     <div className="relative flex items-center">
                       <span className="absolute left-4 text-sm font-mono font-bold text-muted-foreground select-none">
                         {selectedCountry.flag} {selectedCountry.prefix}
                       </span>
                       <input
+                        id="auth-phone"
                         type="tel"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
