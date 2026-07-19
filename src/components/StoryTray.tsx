@@ -78,40 +78,41 @@ export function StoryTray() {
       />
 
       {/* Your story bubble */}
-      <button
-        onClick={() => (myStories ? navigate({ to: "/story/$userId", params: { userId: user!.id } }) : handleAddStoryClick())}
-        className="flex shrink-0 flex-col items-center gap-1 active:scale-95 transition-all"
-      >
-        <div
-          className={`relative h-16 w-16 rounded-full p-[2px] ${
-            myStories?.hasUnviewed
-              ? "bg-gradient-to-tr from-fuchsia-500 to-rose-500"
-              : myStories
-              ? "bg-white/15"
-              : "bg-transparent"
-          }`}
+      <div className="flex shrink-0 flex-col items-center gap-1">
+        <button
+          onClick={() => (myStories ? navigate({ to: "/story/$userId", params: { userId: user!.id } }) : handleAddStoryClick())}
+          aria-label={myStories ? "View your story" : "Add a story"}
+          className="active:scale-95 transition-all"
         >
-          <div className="h-full w-full rounded-full border-2 border-black overflow-hidden bg-white/10 flex items-center justify-center">
-            {user ? (
-              <div className="bg-gradient-primary h-full w-full" />
-            ) : (
-              <div className="h-full w-full bg-white/10" />
-            )}
+          <div
+            className={`relative h-16 w-16 rounded-full p-[2px] ${
+              myStories?.hasUnviewed
+                ? "bg-gradient-to-tr from-fuchsia-500 to-rose-500"
+                : myStories
+                ? "bg-white/15"
+                : "bg-transparent"
+            }`}
+          >
+            <div className="h-full w-full rounded-full border-2 border-black overflow-hidden bg-white/10 flex items-center justify-center">
+              {user ? (
+                <div className="bg-gradient-primary h-full w-full" />
+              ) : (
+                <div className="h-full w-full bg-white/10" />
+              )}
+            </div>
           </div>
-          {user && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddStoryClick();
-              }}
-              className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-fuchsia-600 border-2 border-black active:scale-90"
-            >
-              <Plus className="h-3 w-3 text-white" />
-            </button>
-          )}
-        </div>
+        </button>
+        {user && (
+          <button
+            onClick={handleAddStoryClick}
+            aria-label="Add a story"
+            className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-fuchsia-600 border-2 border-black active:scale-90"
+          >
+            <Plus className="h-3 w-3 text-white" />
+          </button>
+        )}
         <span className="text-[9px] font-bold text-white/70 max-w-[64px] truncate">Your Story</span>
-      </button>
+      </div>
 
       {/* Other users' story bubbles */}
       {others.map((item) => (
@@ -128,7 +129,11 @@ export function StoryTray() {
           >
             <div className="h-full w-full rounded-full border-2 border-black overflow-hidden">
               {item.author.avatar_url ? (
-                <img src={item.author.avatar_url} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={item.author.avatar_url}
+                  alt={`${item.author.handle}'s story`}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <div className="bg-gradient-primary h-full w-full" />
               )}
