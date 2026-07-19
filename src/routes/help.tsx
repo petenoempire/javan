@@ -3,11 +3,6 @@ import { useState } from "react";
 import { MobileShell } from "@/components/MobileShell";
 import { ArrowLeft, ChevronDown, MessageCircle, AlertTriangle, Search } from "lucide-react";
 
-export const Route = createFileRoute("/help")({
-  head: () => ({ meta: [{ title: "Help Center · Javan" }] }),
-  component: HelpCenterPage,
-});
-
 const FAQS = [
   {
     q: "How do I earn coins on Javan?",
@@ -43,6 +38,41 @@ const FAQS = [
   },
 ];
 
+const FAQ_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.a,
+    },
+  })),
+};
+
+export const Route = createFileRoute("/help")({
+  head: () => ({
+    meta: [
+      { title: "Help Center · Javan" },
+      { name: "description", content: "Get answers to common questions about coins, payouts, verification, reporting, and account security on Javan." },
+      { property: "og:title", content: "Help Center · Javan" },
+      { property: "og:description", content: "Get answers to common questions about coins, payouts, verification, reporting, and account security on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/help" },
+      { name: "twitter:title", content: "Help Center · Javan" },
+      { name: "twitter:description", content: "Get answers to common questions about coins, payouts, verification, reporting, and account security on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/help" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(FAQ_SCHEMA),
+      },
+    ],
+  }),
+  component: HelpCenterPage,
+});
+
 function HelpCenterPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [search, setSearch] = useState("");
@@ -57,7 +87,7 @@ function HelpCenterPage() {
     <MobileShell>
       <div className="px-4 pt-4 pb-20">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/profile" className="text-white/50 p-1">
+          <Link to="/profile" aria-label="Back to profile" className="text-white/50 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <h1 className="font-display text-lg font-black">Help Center</h1>
