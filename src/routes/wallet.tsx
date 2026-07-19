@@ -10,7 +10,19 @@ import { PayoutRequestDialog, coinsToUsd } from "@/components/PayoutRequestDialo
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/wallet")({
-  head: () => ({ meta: [{ title: "Creator Wallet · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Creator Wallet · Javan" },
+      { name: "description", content: "Manage your Javan coin balance, purchase coins, and request creator payouts." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Creator Wallet · Javan" },
+      { property: "og:description", content: "Manage your Javan coin balance, purchase coins, and request creator payouts." },
+      { property: "og:url", content: "https://javan.lovable.app/wallet" },
+      { name: "twitter:title", content: "Creator Wallet · Javan" },
+      { name: "twitter:description", content: "Manage your Javan coin balance, purchase coins, and request creator payouts." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/wallet" }],
+  }),
   component: WalletPage,
 });
 
@@ -161,7 +173,9 @@ function WalletPage() {
       <div className="px-5 pt-6 pb-24">
         <div className="flex items-center justify-between">
           <h1 className="font-display text-3xl font-black tracking-tight">Wallet</h1>
+          <label htmlFor="wallet-currency" className="sr-only">Select display currency</label>
           <select
+            id="wallet-currency"
             value={activeCurrency}
             onChange={(e) => setActiveCurrency(e.target.value as CurrencyTier)}
             className="bg-neutral-900 border border-white/5 rounded-xl px-2 py-1.5 text-[10px] font-black text-white shadow-inner outline-none"
