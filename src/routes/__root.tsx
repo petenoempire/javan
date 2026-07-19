@@ -46,22 +46,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#0a0a1a" },
-      { title: "Javan" },
+      { title: "Javan - Short Video & Live Streaming Community" },
       { name: "description", content: "Javan is a premium short-video and live-streaming community." },
-      { property: "og:title", content: "Javan" },
-      { name: "twitter:title", content: "Javan" },
+      { property: "og:title", content: "Javan - Short Video & Live Streaming Community" },
+      { name: "twitter:title", content: "Javan - Short Video & Live Streaming Community" },
       { property: "og:description", content: "Javan is a premium short-video and live-streaming community." },
       { name: "twitter:description", content: "Javan is a premium short-video and live-streaming community." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/531aeca7-4a55-4b93-b9b3-800e9b07c727" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/531aeca7-4a55-4b93-b9b3-800e9b07c727" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://javan.app" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" },
+      { rel: "canonical", href: "https://javan.app" },
     ],
   }),
   shellComponent: RootShell,
@@ -86,7 +88,9 @@ function RootComponent() {
       <ThemeProvider>
         <AuthProvider>
           <RegionProvider>
-            <Outlet />
+            <main>
+              <Outlet />
+            </main>
           </RegionProvider>
         </AuthProvider>
       </ThemeProvider>
