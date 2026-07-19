@@ -301,7 +301,7 @@ function PublicProfile() {
                   className="relative aspect-[3/4] overflow-hidden rounded-md bg-white/5"
                 >
                   {p.media_type === "image" && p.image_url ? (
-                    <img src={p.image_url} alt="" className="h-full w-full object-cover" />
+                    <img src={p.image_url} alt={`Post by ${profile.display_name}`} className="h-full w-full object-cover" />
                   ) : p.video_url ? (
                     <video src={p.video_url} className="h-full w-full object-cover" muted />
                   ) : null}
