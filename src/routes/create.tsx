@@ -303,6 +303,7 @@ function CreatePage() {
     return (
       <MobileShell>
         <div className="flex min-h-[60dvh] flex-col items-center justify-center text-center">
+          <h1 className="sr-only">Create a post</h1>
           <p className="text-sm text-white/50 mb-4">Sign in to create posts</p>
           <Link
             to="/auth"
@@ -319,18 +320,21 @@ function CreatePage() {
   if (capturedBlob && capturedUrl) {
     return (
       <div className="fixed inset-0 z-50 bg-black text-white flex flex-col">
+        <h1 className="sr-only">Review your post</h1>
         <div className="relative flex-1">
           {capturedType === "video" ? (
             <video src={capturedUrl} autoPlay loop muted playsInline className="h-full w-full object-contain" />
           ) : (
-            <img src={capturedUrl} alt="" className="h-full w-full object-contain" />
+            <img src={capturedUrl} alt="Captured preview" className="h-full w-full object-contain" />
           )}
-          <button onClick={retake} className="absolute top-6 left-4 rounded-full bg-black/50 p-2 active:scale-90">
+          <button onClick={retake} aria-label="Discard and retake" className="absolute top-6 left-4 rounded-full bg-black/50 p-2 active:scale-90">
             <X className="h-5 w-5" />
           </button>
         </div>
         <div className="px-4 py-4 space-y-3 bg-black">
+          <label htmlFor="caption-input" className="sr-only">Caption</label>
           <input
+            id="caption-input"
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="Write a caption..."
@@ -360,6 +364,7 @@ function CreatePage() {
   // Live camera screen
   return (
     <div className="fixed inset-0 z-50 bg-black text-white flex flex-col">
+      <h1 className="sr-only">Create a post</h1>
       <input ref={fileInputRef} type="file" accept="image/*,video/*" onChange={handleGallerySelect} className="hidden" />
       <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBackgroundSelect} className="hidden" />
 
@@ -380,10 +385,10 @@ function CreatePage() {
         )}
         <canvas ref={captureCanvasRef} className="hidden" />
 
-        <button onClick={() => navigate({ to: "/" })} className="absolute top-6 left-4 z-10 rounded-full bg-black/40 p-2 active:scale-90">
+        <button onClick={() => navigate({ to: "/" })} aria-label="Cancel and go back" className="absolute top-6 left-4 z-10 rounded-full bg-black/40 p-2 active:scale-90">
           <X className="h-5 w-5" />
         </button>
-        <button onClick={flipCamera} className="absolute top-6 right-4 z-10 rounded-full bg-black/40 p-2 active:scale-90">
+        <button onClick={flipCamera} aria-label="Flip camera" className="absolute top-6 right-4 z-10 rounded-full bg-black/40 p-2 active:scale-90">
           <RotateCw className="h-5 w-5" />
         </button>
 
@@ -415,6 +420,7 @@ function CreatePage() {
             <button
               key={key}
               onClick={() => setArMode(key)}
+              aria-pressed={arMode === key}
               className={`shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${
                 arMode === key ? "bg-white text-black" : "bg-black/40 text-white border border-white/20"
               }`}
@@ -431,6 +437,7 @@ function CreatePage() {
             <button
               key={key}
               onClick={() => setColorFilter(key)}
+              aria-pressed={colorFilter === key}
               className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition-all active:scale-95 ${
                 colorFilter === key ? "bg-white text-black" : "bg-black/40 text-white border border-white/20"
               }`}
@@ -442,7 +449,7 @@ function CreatePage() {
       </div>
 
       <div className="relative z-10 flex items-center justify-between px-8 py-6 bg-black">
-        <button onClick={() => fileInputRef.current?.click()} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 active:scale-90">
+        <button onClick={() => fileInputRef.current?.click()} aria-label="Choose from gallery" className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 active:scale-90">
           <ImageIcon className="h-5 w-5" />
         </button>
 
@@ -458,6 +465,7 @@ function CreatePage() {
             document.addEventListener("touchend", clear);
           }}
           disabled={!cameraReady}
+          aria-label={isRecording ? "Stop recording" : "Take photo, hold to record video"}
           className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white active:scale-90 transition-all disabled:opacity-40"
         >
           {isRecording ? <Square className="h-6 w-6 fill-red-500 text-red-500" /> : <Circle className="h-12 w-12 fill-white text-white" />}
