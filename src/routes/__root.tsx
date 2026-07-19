@@ -40,6 +40,21 @@ function ErrorComponent({ reset }: { error: Error; reset: () => void }) {
   );
 }
 
+const ORG_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Javan",
+  url: "https://javan.lovable.app",
+  logo: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/531aeca7-4a55-4b93-b9b3-800e9b07c727",
+};
+
+const WEBSITE_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Javan",
+  url: "https://javan.lovable.app",
+};
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -65,6 +80,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" },
       { rel: "canonical", href: "https://javan.lovable.app" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(ORG_SCHEMA),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(WEBSITE_SCHEMA),
+      },
     ],
   }),
   shellComponent: RootShell,
