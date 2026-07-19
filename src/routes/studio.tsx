@@ -10,7 +10,19 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/studio")({
-  head: () => ({ meta: [{ title: "Creator Studio · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Creator Studio · Javan" },
+      { name: "description", content: "Track your views, followers, and earnings, and access creator tools and monetization on Javan." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Creator Studio · Javan" },
+      { property: "og:description", content: "Track your views, followers, and earnings, and access creator tools and monetization on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/studio" },
+      { name: "twitter:title", content: "Creator Studio · Javan" },
+      { name: "twitter:description", content: "Track your views, followers, and earnings, and access creator tools and monetization on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/studio" }],
+  }),
   component: CreatorStudio,
 });
 
