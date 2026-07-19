@@ -7,8 +7,20 @@ import { MessageCircle, Heart, Share2, MoreHorizontal, Trash2 } from "lucide-rea
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/notifications")({ 
-  head: () => ({ meta: [{ title: "Notifications · Javan" }] }),
+export const Route = createFileRoute("/notifications")({
+  head: () => ({
+    meta: [
+      { title: "Notifications · Javan" },
+      { name: "description", content: "See your latest likes, comments, follows, and shares on Javan." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Notifications · Javan" },
+      { property: "og:description", content: "See your latest likes, comments, follows, and shares on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/notifications" },
+      { name: "twitter:title", content: "Notifications · Javan" },
+      { name: "twitter:description", content: "See your latest likes, comments, follows, and shares on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/notifications" }],
+  }),
   component: NotificationsPage,
 });
 
@@ -106,6 +118,7 @@ function NotificationsPage() {
                 </div>
                 <button
                   onClick={() => handleDismiss(notif.id)}
+                  aria-label="Dismiss notification"
                   className="shrink-0 text-white/50 hover:text-white active:scale-90 transition-all"
                 >
                   <Trash2 className="h-4 w-4" />
