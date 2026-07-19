@@ -4,7 +4,19 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/notifications")({
-  head: () => ({ meta: [{ title: "Notifications · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Notification Settings · Javan" },
+      { name: "description", content: "Choose which notifications you receive on Javan, including likes, comments, followers, gifts, and wallet activity." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Notification Settings · Javan" },
+      { property: "og:description", content: "Choose which notifications you receive on Javan, including likes, comments, followers, gifts, and wallet activity." },
+      { property: "og:url", content: "https://javan.lovable.app/settings/notifications" },
+      { name: "twitter:title", content: "Notification Settings · Javan" },
+      { name: "twitter:description", content: "Choose which notifications you receive on Javan, including likes, comments, followers, gifts, and wallet activity." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/settings/notifications" }],
+  }),
   component: NotifSettings,
 });
 
@@ -25,7 +37,7 @@ function NotifSettings() {
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-20">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/settings" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/settings" aria-label="Back to settings" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
         <h1 className="font-display text-lg font-bold">Notifications</h1>
       </header>
 
@@ -45,6 +57,7 @@ function NotifSettings() {
                   <div className="text-[11px] text-muted-foreground">{it.desc}</div>
                 </div>
                 <button onClick={() => setState(s => ({ ...s, [it.key]: !on }))}
+                  role="switch" aria-checked={on} aria-label={it.label}
                   className={`relative h-6 w-11 rounded-full transition ${on ? "bg-primary" : "bg-muted"}`}>
                   <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-background transition ${on ? "left-5" : "left-0.5"}`} />
                 </button>
