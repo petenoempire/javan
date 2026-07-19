@@ -59,27 +59,6 @@ export const Route = createFileRoute("/live/$id")({
         ...(thumbnail ? [{ property: "og:image", content: thumbnail }, { name: "twitter:image", content: thumbnail }] : []),
       ],
       links: [{ rel: "canonical", href: url }],
-      scripts: stream
-        ? [
-            {
-              type: "application/ld+json",
-              children: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "VideoObject",
-                name: stream.title || "Live Stream",
-                description,
-                thumbnailUrl: thumbnail || undefined,
-                uploadDate: stream.started_at || undefined,
-                publication: {
-                  "@type": "BroadcastEvent",
-                  isLiveBroadcast: !stream.ended_at,
-                  startDate: stream.started_at || undefined,
-                  endDate: stream.ended_at || undefined,
-                },
-              }),
-            },
-          ]
-        : [],
     };
   },
   component: LivePage,
@@ -289,190 +268,213 @@ function LivePage() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex h-screen w-screen flex-col overflow-hidden bg-black text-white">
-      {/* Gift Animation Overlay */}
-      <AnimatePresence>
-        {activeGiftAnimation && (
-          <motion.div
-            key={activeGiftAnimation.id}
-            className="absolute inset-0 pointer-events-none flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+    <>
+      {stream && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "VideoObject",
+              name: stream.title || "Live Stream",
+              description: stream.description || "Watch this live stream on Javan.",
+              thumbnailUrl: stream.thumbnail_url || undefined,
+              uploadDate: stream.started_at || undefined,
+              publication: {
+                "@type": "BroadcastEvent",
+                isLiveBroadcast: !stream.ended_at,
+                startDate: stream.started_at || undefined,
+                endDate: stream.ended_at || undefined,
+              },
+            }),
+          }}
+        />
+      )}
+      <div className="fixed inset-0 z-50 flex h-screen w-screen flex-col overflow-hidden bg-black text-white">
+        {/* Gift Animation Overlay */}
+        <AnimatePresence>
+          {activeGiftAnimation && (
             <motion.div
-              className="text-8xl font-black"
-              initial={{ scale: 0, y: 100 }}
-              animate={{
-                scale: activeGiftAnimation.animationType === "roar" ? [1, 1.5, 1] : 1,
-                y: activeGiftAnimation.animationType === "stampede" ? [100, -50, 0] : 0,
-              }}
-              transition={{ duration: 2 }}
+              key={activeGiftAnimation.id}
+              className="absolute inset-0 pointer-events-none flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
-              {activeGiftAnimation.emoji}
+              <motion.div
+                className="text-8xl font-black"
+                initial={{ scale: 0, y: 100 }}
+                animate={{
+                  scale: activeGiftAnimation.animationType === "roar" ? [1, 1.5, 1] : 1,
+                  y: activeGiftAnimation.animationType === "stampede" ? [100, -50, 0] : 0,
+                }}
+                transition={{ duration: 2 }}
+              >
+                {activeGiftAnimation.emoji}
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
 
-      {/* Video Stream */}
-      <div className="absolute inset-0">
-        {wantHost && hostStream ? (
-          <video ref={hostVideoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-black to-neutral-900">
-            <div className="text-center">
-              <div className="h-24 w-24 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 mb-4 animate-pulse" />
-              <p className="text-xs text-white/50">Loading stream...</p>
+        {/* Video Stream */}
+        <div className="absolute inset-0">
+          {wantHost && hostStream ? (
+            <video ref={hostVideoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-black to-neutral-900">
+              <div className="text-center">
+                <div className="h-24 w-24 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 mb-4 animate-pulse" />
+                <p className="text-xs text-white/50">Loading stream...</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Header Info */}
+        <div className="relative z-10 flex items-center justify-between px-3 pt-3">
+          <button
+            onClick={handleCloseStream}
+            aria-label="Exit stream"
+            className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-black/60 active:scale-95 transition-all"
+          >
+            <ArrowLeft className="h-3 w-3" /> Exit
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md border border-red-500/30 px-3 py-1.5 text-xs font-black text-red-400">
+              <Radio className="h-2 w-2 animate-pulse" /> LIVE
+            </div>
+            <div className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1.5 text-xs font-bold text-white">
+              <Users className="h-3 w-3" /> {viewers.toLocaleString()}
             </div>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Header Info */}
-      <div className="relative z-10 flex items-center justify-between px-3 pt-3">
-        <button
-          onClick={handleCloseStream}
-          aria-label="Exit stream"
-          className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-black/60 active:scale-95 transition-all"
-        >
-          <ArrowLeft className="h-3 w-3" /> Exit
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md border border-red-500/30 px-3 py-1.5 text-xs font-black text-red-400">
-            <Radio className="h-2 w-2 animate-pulse" /> LIVE
+        {/* Control Tray - 2 Rows of 5 Buttons */}
+        <div className="relative z-10 mx-auto mt-auto flex w-full max-w-[520px] flex-col gap-2 px-3 pb-4">
+          <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-2 grid grid-cols-5 gap-1">
+            {[
+              { key: "flip", label: "Flip", icon: RotateCw },
+              { key: "beautify", label: "Beautify", icon: Wand2 },
+              { key: "effects", label: "Effects", icon: Sliders },
+              { key: "settings", label: "Settings", icon: Settings },
+              { key: "service", label: "Service", icon: HeartHandshake },
+            ].map(({ key, label, icon: Icon }) => {
+              const k = key as keyof typeof trayStates;
+              return (
+                <button
+                  key={k}
+                  onClick={() => handleControlTrayAction(k)}
+                  aria-label={label}
+                  aria-pressed={trayStates[k]}
+                  className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
+                    trayStates[k]
+                      ? "bg-emerald-600/30 border-emerald-400 text-emerald-300"
+                      : "bg-white/5 border-white/10 text-white/70 hover:text-white"
+                  }`}
+                  title={label}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-[7px] uppercase mt-0.5 font-black">{label}</span>
+                </button>
+              );
+            })}
           </div>
-          <div className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 px-3 py-1.5 text-xs font-bold text-white">
-            <Users className="h-3 w-3" /> {viewers.toLocaleString()}
-          </div>
-        </div>
-      </div>
 
-      {/* Control Tray - 2 Rows of 5 Buttons */}
-      <div className="relative z-10 mx-auto mt-auto flex w-full max-w-[520px] flex-col gap-2 px-3 pb-4">
-        <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-2 grid grid-cols-5 gap-1">
-          {[
-            { key: "flip", label: "Flip", icon: RotateCw },
-            { key: "beautify", label: "Beautify", icon: Wand2 },
-            { key: "effects", label: "Effects", icon: Sliders },
-            { key: "settings", label: "Settings", icon: Settings },
-            { key: "service", label: "Service", icon: HeartHandshake },
-          ].map(({ key, label, icon: Icon }) => {
-            const k = key as keyof typeof trayStates;
-            return (
-              <button
-                key={k}
-                onClick={() => handleControlTrayAction(k)}
-                aria-label={label}
-                aria-pressed={trayStates[k]}
-                className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
-                  trayStates[k]
-                    ? "bg-emerald-600/30 border-emerald-400 text-emerald-300"
-                    : "bg-white/5 border-white/10 text-white/70 hover:text-white"
-                }`}
-                title={label}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="text-[7px] uppercase mt-0.5 font-black">{label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-2 grid grid-cols-5 gap-1">
-          {[
-            { key: "fanclub", label: "Fan Club", icon: UserPlus },
-            { key: "interact", label: "Interact", icon: MessageSquare },
-            { key: "share", label: "Share", icon: Share2 },
-            { key: "promote", label: "Promote", icon: TrendingUp },
-          ].map(({ key, label, icon: Icon }) => {
-            const k = key as keyof typeof trayStates;
-            return (
-              <button
-                key={k}
-                onClick={() => handleControlTrayAction(k)}
-                aria-label={label}
-                aria-pressed={trayStates[k]}
-                className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
-                  trayStates[k]
-                    ? "bg-emerald-600/30 border-emerald-400 text-emerald-300"
-                    : "bg-white/5 border-white/10 text-white/70 hover:text-white"
-                }`}
-                title={label}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="text-[7px] uppercase mt-0.5 font-black">{label}</span>
-              </button>
-            );
-          })}
-          <button
-            onClick={() => setGiftOpen(!giftOpen)}
-            aria-label="Open gifts panel"
-            aria-pressed={giftOpen}
-            className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
-              giftOpen
-                ? "bg-amber-500/30 border-amber-400 text-amber-300"
-                : "bg-white/5 border-white/10 text-white/70 hover:text-white"
-            }`}
-            title="Gifts"
-          >
-            <GiftIcon className="h-4 w-4" />
-            <span className="text-[7px] uppercase mt-0.5 font-black">Gifts</span>
-          </button>
-        </div>
-
-        {/* Message and Heart Actions */}
-        <div className="flex gap-2">
-          <div className="flex-1 flex bg-black/40 backdrop-blur-md border border-white/10 rounded-full items-center px-3">
-            <label htmlFor="live-chat-input" className="sr-only">Send a message</label>
-            <input
-              id="live-chat-input"
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-              placeholder="Say something..."
-              className="flex-1 bg-transparent py-2 text-xs outline-none text-white placeholder:text-white/40"
-            />
+          <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-2 grid grid-cols-5 gap-1">
+            {[
+              { key: "fanclub", label: "Fan Club", icon: UserPlus },
+              { key: "interact", label: "Interact", icon: MessageSquare },
+              { key: "share", label: "Share", icon: Share2 },
+              { key: "promote", label: "Promote", icon: TrendingUp },
+            ].map(({ key, label, icon: Icon }) => {
+              const k = key as keyof typeof trayStates;
+              return (
+                <button
+                  key={k}
+                  onClick={() => handleControlTrayAction(k)}
+                  aria-label={label}
+                  aria-pressed={trayStates[k]}
+                  className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
+                    trayStates[k]
+                      ? "bg-emerald-600/30 border-emerald-400 text-emerald-300"
+                      : "bg-white/5 border-white/10 text-white/70 hover:text-white"
+                  }`}
+                  title={label}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-[7px] uppercase mt-0.5 font-black">{label}</span>
+                </button>
+              );
+            })}
             <button
-              onClick={handleSendMessage}
-              aria-label="Send message"
-              className="ml-2 text-white/70 hover:text-white active:scale-90 transition-all"
+              onClick={() => setGiftOpen(!giftOpen)}
+              aria-label="Open gifts panel"
+              aria-pressed={giftOpen}
+              className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
+                giftOpen
+                  ? "bg-amber-500/30 border-amber-400 text-amber-300"
+                  : "bg-white/5 border-white/10 text-white/70 hover:text-white"
+              }`}
+              title="Gifts"
             >
-              <Send className="h-4 w-4" />
+              <GiftIcon className="h-4 w-4" />
+              <span className="text-[7px] uppercase mt-0.5 font-black">Gifts</span>
             </button>
           </div>
-          <button
-            onClick={handleSendHeart}
-            aria-label="Send heart"
-            className="flex items-center justify-center rounded-full bg-rose-600/30 border border-rose-400 w-10 h-10 text-rose-300 hover:text-rose-200 active:scale-90 transition-all"
-          >
-            <Heart className="h-4 w-4 fill-current" />
-          </button>
+
+          {/* Message and Heart Actions */}
+          <div className="flex gap-2">
+            <div className="flex-1 flex bg-black/40 backdrop-blur-md border border-white/10 rounded-full items-center px-3">
+              <label htmlFor="live-chat-input" className="sr-only">Send a message</label>
+              <input
+                id="live-chat-input"
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                placeholder="Say something..."
+                className="flex-1 bg-transparent py-2 text-xs outline-none text-white placeholder:text-white/40"
+              />
+              <button
+                onClick={handleSendMessage}
+                aria-label="Send message"
+                className="ml-2 text-white/70 hover:text-white active:scale-90 transition-all"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+            <button
+              onClick={handleSendHeart}
+              aria-label="Send heart"
+              className="flex items-center justify-center rounded-full bg-rose-600/30 border border-rose-400 w-10 h-10 text-rose-300 hover:text-rose-200 active:scale-90 transition-all"
+            >
+              <Heart className="h-4 w-4 fill-current" />
+            </button>
+          </div>
         </div>
+
+        {/* Gift Panel */}
+        {giftOpen && (
+          <div className="absolute inset-0 z-50 flex items-end bg-black/50 backdrop-blur-sm">
+            <GiftPanel gifts={PREMIUM_GIFTS} onClose={() => setGiftOpen(false)} streamId={id} hostId={stream.host_id} />
+          </div>
+        )}
+
+        {/* Floating Hearts Animation */}
+        <AnimatePresence>
+          {hearts.map((heartId) => (
+            <motion.div
+              key={heartId}
+              className="absolute pointer-events-none"
+              initial={{ x: Math.random() * 50 - 25, y: window.innerHeight - 100, opacity: 1 }}
+              animate={{ y: window.innerHeight - 300, opacity: 0 }}
+              transition={{ duration: 2 }}
+            >
+              <Heart className="h-6 w-6 text-rose-500 fill-rose-500" />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
-
-      {/* Gift Panel */}
-      {giftOpen && (
-        <div className="absolute inset-0 z-50 flex items-end bg-black/50 backdrop-blur-sm">
-          <GiftPanel gifts={PREMIUM_GIFTS} onClose={() => setGiftOpen(false)} streamId={id} hostId={stream.host_id} />
-        </div>
-      )}
-
-      {/* Floating Hearts Animation */}
-      <AnimatePresence>
-        {hearts.map((heartId) => (
-          <motion.div
-            key={heartId}
-            className="absolute pointer-events-none"
-            initial={{ x: Math.random() * 50 - 25, y: window.innerHeight - 100, opacity: 1 }}
-            animate={{ y: window.innerHeight - 300, opacity: 0 }}
-            transition={{ duration: 2 }}
-          >
-            <Heart className="h-6 w-6 text-rose-500 fill-rose-500" />
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </div>
+    </>
   );
 }
