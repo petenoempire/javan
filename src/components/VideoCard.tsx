@@ -93,7 +93,11 @@ export function VideoCard({
           className="block active:scale-95"
         >
           {video.author.avatar_url ? (
-            <img src={video.author.avatar_url} alt="" className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-glow" />
+            <img
+              src={video.author.avatar_url}
+              alt={`${video.author.handle}'s avatar`}
+              className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-glow"
+            />
           ) : (
             <div className="bg-gradient-primary h-12 w-12 rounded-full border-2 border-white shadow-glow" />
           )}
