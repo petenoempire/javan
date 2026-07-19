@@ -10,7 +10,19 @@ import { fetchFeed } from "@/lib/feed";
 import { Users, UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/friends")({
-  head: () => ({ meta: [{ title: "Friends · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Friends · Javan" },
+      { name: "description", content: "Watch videos from creators you and your mutual followers both follow on Javan." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Friends · Javan" },
+      { property: "og:description", content: "Watch videos from creators you and your mutual followers both follow on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/friends" },
+      { name: "twitter:title", content: "Friends · Javan" },
+      { name: "twitter:description", content: "Watch videos from creators you and your mutual followers both follow on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/friends" }],
+  }),
   component: FriendsFeed,
 });
 
@@ -59,6 +71,7 @@ function FriendsFeed() {
   if (!user) {
     return (
       <MobileShell>
+        <h1 className="sr-only">Friends</h1>
         <Empty
           title="Sign in to see friends"
           body="Your mutual followers' posts show up here."
@@ -70,6 +83,7 @@ function FriendsFeed() {
 
   return (
     <MobileShell immersive>
+      <h1 className="sr-only">Friends</h1>
       <div className="pointer-events-none absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-black/55 via-black/15 to-transparent pb-3 pt-3">
         <div className="pointer-events-auto flex items-center justify-center gap-2">
           <div className="glass-strong inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold text-white">
