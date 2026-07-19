@@ -1,4 +1,4 @@
-import { defineMcp } from "./lovable-stub";
+import { defineMcp } from "@lovable.dev/mcp-js";
 import searchUsers from "./tools/search-users";
 import getProfile from "./tools/get-profile";
 import listTrendingVideos from "./tools/list-trending-videos";

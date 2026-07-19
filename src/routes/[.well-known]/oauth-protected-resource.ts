@@ -5,7 +5,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { createTanStackOAuthProtectedResourceMetadataHandler } from "@/lib/mcp/stacks/tanstack";
+import { createTanStackOAuthProtectedResourceMetadataHandler } from "@lovable.dev/mcp-js/stacks/tanstack";
 
 import mcp from "../../lib/mcp/index";
 
