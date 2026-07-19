@@ -8,7 +8,19 @@ import { ArrowLeft, BadgeCheck, Upload, Loader2, Clock, CheckCircle2, XCircle } 
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/verify")({
-  head: () => ({ meta: [{ title: "Get Verified · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Get Verified · Javan" },
+      { name: "description", content: "Request the verified badge on Javan for public figures, artists, celebrities, politicians, and businesses." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Get Verified · Javan" },
+      { property: "og:description", content: "Request the verified badge on Javan for public figures, artists, celebrities, politicians, and businesses." },
+      { property: "og:url", content: "https://javan.lovable.app/verify" },
+      { name: "twitter:title", content: "Get Verified · Javan" },
+      { name: "twitter:description", content: "Request the verified badge on Javan for public figures, artists, celebrities, politicians, and businesses." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/verify" }],
+  }),
   component: VerifyPage,
 });
 
@@ -102,7 +114,7 @@ function VerifyPage() {
       <MobileShell>
         <div className="px-4 pt-4">
           <div className="flex items-center gap-3 mb-6">
-            <Link to="/profile" className="text-white/50 p-1">
+            <Link to="/profile" aria-label="Back to profile" className="text-white/50 p-1">
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <h1 className="font-display text-lg font-black">Verification Request</h1>
@@ -117,7 +129,7 @@ function VerifyPage() {
     <MobileShell>
       <div className="px-4 pt-4 pb-20">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/profile" className="text-white/50 p-1">
+          <Link to="/profile" aria-label="Back to profile" className="text-white/50 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <h1 className="font-display text-lg font-black">Get Verified</h1>
