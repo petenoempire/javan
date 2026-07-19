@@ -31,7 +31,57 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/live/$id")({
   validateSearch: (s: Record<string, unknown>) => ({ host: s.host === "1" ? "1" : undefined }),
-  head: () => ({ meta: [{ title: "Live Stream · Javan" }] }),
+  loader: async ({ params }) => {
+    try {
+      const stream = await fetchStream(params.id);
+      return { stream };
+    } catch {
+      return { stream: null };
+    }
+  },
+  head: ({ params, loaderData }) => {
+    const stream = loaderData?.stream as any;
+    const title = stream?.title ? `${stream.title} · Live on Javan` : "Live Stream · Javan";
+    const description = stream?.description || "Watch this live stream on Javan.";
+    const url = `https://javan.app/live/${params.id}`;
+    const thumbnail = stream?.thumbnail_url;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "video.other" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        ...(thumbnail ? [{ property: "og:image", content: thumbnail }, { name: "twitter:image", content: thumbnail }] : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: stream
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "VideoObject",
+                name: stream.title || "Live Stream",
+                description,
+                thumbnailUrl: thumbnail || undefined,
+                uploadDate: stream.started_at || undefined,
+                publication: {
+                  "@type": "BroadcastEvent",
+                  isLiveBroadcast: !stream.ended_at,
+                  startDate: stream.started_at || undefined,
+                  endDate: stream.ended_at || undefined,
+                },
+              }),
+            },
+          ]
+        : [],
+    };
+  },
   component: LivePage,
 });
 
@@ -283,6 +333,7 @@ function LivePage() {
       <div className="relative z-10 flex items-center justify-between px-3 pt-3">
         <button
           onClick={handleCloseStream}
+          aria-label="Exit stream"
           className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 px-3 py-2 text-xs font-bold text-white hover:bg-black/60 active:scale-95 transition-all"
         >
           <ArrowLeft className="h-3 w-3" /> Exit
@@ -312,6 +363,8 @@ function LivePage() {
               <button
                 key={k}
                 onClick={() => handleControlTrayAction(k)}
+                aria-label={label}
+                aria-pressed={trayStates[k]}
                 className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
                   trayStates[k]
                     ? "bg-emerald-600/30 border-emerald-400 text-emerald-300"
@@ -338,6 +391,8 @@ function LivePage() {
               <button
                 key={k}
                 onClick={() => handleControlTrayAction(k)}
+                aria-label={label}
+                aria-pressed={trayStates[k]}
                 className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
                   trayStates[k]
                     ? "bg-emerald-600/30 border-emerald-400 text-emerald-300"
@@ -352,6 +407,8 @@ function LivePage() {
           })}
           <button
             onClick={() => setGiftOpen(!giftOpen)}
+            aria-label="Open gifts panel"
+            aria-pressed={giftOpen}
             className={`flex flex-col items-center justify-center rounded-xl p-2 border transition-all duration-150 active:scale-90 ${
               giftOpen
                 ? "bg-amber-500/30 border-amber-400 text-amber-300"
@@ -367,7 +424,9 @@ function LivePage() {
         {/* Message and Heart Actions */}
         <div className="flex gap-2">
           <div className="flex-1 flex bg-black/40 backdrop-blur-md border border-white/10 rounded-full items-center px-3">
+            <label htmlFor="live-chat-input" className="sr-only">Send a message</label>
             <input
+              id="live-chat-input"
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -377,6 +436,7 @@ function LivePage() {
             />
             <button
               onClick={handleSendMessage}
+              aria-label="Send message"
               className="ml-2 text-white/70 hover:text-white active:scale-90 transition-all"
             >
               <Send className="h-4 w-4" />
@@ -384,6 +444,7 @@ function LivePage() {
           </div>
           <button
             onClick={handleSendHeart}
+            aria-label="Send heart"
             className="flex items-center justify-center rounded-full bg-rose-600/30 border border-rose-400 w-10 h-10 text-rose-300 hover:text-rose-200 active:scale-90 transition-all"
           >
             <Heart className="h-4 w-4 fill-current" />
@@ -394,7 +455,7 @@ function LivePage() {
       {/* Gift Panel */}
       {giftOpen && (
         <div className="absolute inset-0 z-50 flex items-end bg-black/50 backdrop-blur-sm">
-   <GiftPanel gifts={PREMIUM_GIFTS} onClose={() => setGiftOpen(false)} streamId={id} hostId={stream.host_id} />
+          <GiftPanel gifts={PREMIUM_GIFTS} onClose={() => setGiftOpen(false)} streamId={id} hostId={stream.host_id} />
         </div>
       )}
 
