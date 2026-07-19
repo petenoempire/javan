@@ -4,19 +4,31 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/qr")({
-  head: () => ({ meta: [{ title: "Your QR · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Your QR Code · Javan" },
+      { name: "description", content: "Share your Javan profile QR code so people can follow you instantly." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Your QR Code · Javan" },
+      { property: "og:description", content: "Share your Javan profile QR code so people can follow you instantly." },
+      { property: "og:url", content: "https://javan.lovable.app/qr" },
+      { name: "twitter:title", content: "Your QR Code · Javan" },
+      { name: "twitter:description", content: "Share your Javan profile QR code so people can follow you instantly." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/qr" }],
+  }),
   component: QrPage,
 });
 
 function QrPage() {
   const { profile } = useAuth();
-  const url = profile?.handle ? `${typeof window !== "undefined" ? window.location.origin : "https://boogle.app"}/u/${profile.handle}` : "";
+  const url = profile?.handle ? `${typeof window !== "undefined" ? window.location.origin : "https://javan.lovable.app"}/u/${profile.handle}` : "";
   const qrSrc = url ? `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=8&data=${encodeURIComponent(url)}` : "";
 
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-20">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/profile" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/profile" aria-label="Back to profile" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
         <h1 className="font-display text-lg font-bold">Your QR code</h1>
       </header>
 
@@ -37,7 +49,7 @@ function QrPage() {
               className="flex items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-bold backdrop-blur">
               <Share2 className="h-4 w-4" /> Share
             </button>
-            <a href={qrSrc} download={`boogle-${profile?.handle}.png`}
+            <a href={qrSrc} download={`javan-${profile?.handle}.png`}
               className="flex items-center justify-center gap-2 rounded-2xl bg-white/15 py-3 text-sm font-bold backdrop-blur">
               <Download className="h-4 w-4" /> Save
             </a>
