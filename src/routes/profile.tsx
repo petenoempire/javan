@@ -206,7 +206,8 @@ function ProfilePage() {
             visiblePosts.map((post) => (
               <Link
                 key={post.id}
-                to={`/posts/${post.id}`}
+                to="/posts/$id"
+                params={{ id: post.id }}
                 className="group relative aspect-square rounded-xl bg-gradient-to-r from-rose-500 to-fuchsia-500 overflow-hidden cursor-pointer"
               >
                 {post.video_url && <video src={post.video_url} className="h-full w-full object-cover" />}
