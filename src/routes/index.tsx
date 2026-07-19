@@ -106,7 +106,7 @@ function HomePage() {
   };
 
   const handleShare = async (post: Post) => {
-    const shareUrl = `${window.location.origin}/post/${post.id}`;
+    const shareUrl = `${window.location.origin}/posts/${post.id}`;
     try {
       if (navigator.share) {
         await navigator.share({
