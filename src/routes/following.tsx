@@ -6,7 +6,19 @@ import { useAuth } from "@/lib/auth";
 import { ArrowLeft, Users } from "lucide-react";
 
 export const Route = createFileRoute("/following")({
-  head: () => ({ meta: [{ title: "Following · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Following · Javan" },
+      { name: "description", content: "See the creators you follow on Javan." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Following · Javan" },
+      { property: "og:description", content: "See the creators you follow on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/following" },
+      { name: "twitter:title", content: "Following · Javan" },
+      { name: "twitter:description", content: "See the creators you follow on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/following" }],
+  }),
   component: FollowingPage,
 });
 
@@ -31,7 +43,7 @@ function FollowingPage() {
   return (
     <MobileShell>
       <header className="glass-strong sticky top-0 z-20 flex items-center gap-3 border-b border-border px-4 py-3">
-        <button onClick={() => nav({ to: "/profile" })} className="p-1"><ArrowLeft className="h-5 w-5" /></button>
+        <button onClick={() => nav({ to: "/profile" })} aria-label="Back to profile" className="p-1"><ArrowLeft className="h-5 w-5" /></button>
         <h1 className="font-display text-lg font-bold">Following</h1>
       </header>
       <div className="px-3 py-3">
@@ -47,7 +59,7 @@ function FollowingPage() {
               <li key={p.id}>
                 <Link to="/u/$handle" params={{ handle: p.handle }} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/40">
                   {p.avatar_url
-                    ? <img src={p.avatar_url} className="h-11 w-11 rounded-full object-cover" alt="" />
+                    ? <img src={p.avatar_url} className="h-11 w-11 rounded-full object-cover" alt={`${p.display_name}'s avatar`} />
                     : <div className="bg-gradient-primary h-11 w-11 rounded-full" />}
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold">@{p.handle}</div>
