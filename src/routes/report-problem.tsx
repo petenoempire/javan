@@ -7,7 +7,19 @@ import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/report-problem")({
-  head: () => ({ meta: [{ title: "Report a Problem · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Report a Problem · Javan" },
+      { name: "description", content: "Report a bug, account issue, payment problem, or safety concern to the Javan support team." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Report a Problem · Javan" },
+      { property: "og:description", content: "Report a bug, account issue, payment problem, or safety concern to the Javan support team." },
+      { property: "og:url", content: "https://javan.lovable.app/report-problem" },
+      { name: "twitter:title", content: "Report a Problem · Javan" },
+      { name: "twitter:description", content: "Report a bug, account issue, payment problem, or safety concern to the Javan support team." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/report-problem" }],
+  }),
   component: ReportProblemPage,
 });
 
@@ -87,7 +99,7 @@ function ReportProblemPage() {
     <MobileShell>
       <div className="px-4 pt-4 pb-20">
         <div className="flex items-center gap-3 mb-6">
-          <Link to="/help" className="text-white/50 p-1">
+          <Link to="/help" aria-label="Back to help center" className="text-white/50 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <h1 className="font-display text-lg font-black">Report a Problem</h1>
