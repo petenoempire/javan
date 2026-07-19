@@ -9,8 +9,20 @@ import { toast } from "sonner";
 import { initFaceLandmarker, initSegmenter } from "@/lib/arEngine";
 import { renderARFrame, type ARMode } from "@/lib/arRenderer";
 
-export const Route = createFileRoute("/create")({ 
-  head: () => ({ meta: [{ title: "Create · Javan" }] }),
+export const Route = createFileRoute("/create")({
+  head: () => ({
+    meta: [
+      { title: "Create · Javan" },
+      { name: "description", content: "Record a video or take a photo, add filters and AR effects, and share it on Javan." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Create · Javan" },
+      { property: "og:description", content: "Record a video or take a photo, add filters and AR effects, and share it on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/create" },
+      { name: "twitter:title", content: "Create · Javan" },
+      { name: "twitter:description", content: "Record a video or take a photo, add filters and AR effects, and share it on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/create" }],
+  }),
   component: CreatePage,
 });
 
