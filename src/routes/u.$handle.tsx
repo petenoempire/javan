@@ -21,7 +21,7 @@ export const Route = createFileRoute("/u/$handle")({
     const profile = loaderData?.profile;
     const title = profile ? `${profile.display_name} (@${params.handle}) · Javan` : `@${params.handle} · Javan`;
     const description = profile?.bio || `View @${params.handle}'s profile on Javan.`;
-    const url = `https://javan.app/u/${params.handle}`;
+    const url = `https://javan.lovable.app/u/${params.handle}`;
 
     return {
       meta: [
