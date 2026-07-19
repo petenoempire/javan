@@ -57,6 +57,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://javan.lovable.app" },
+      { name: "google-site-verification", content: "KA99Ya3sO2l7XhZfpoi-hGwkBhFVYNFZwgtdPmAyKzc" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
