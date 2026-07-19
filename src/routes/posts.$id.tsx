@@ -70,6 +70,7 @@ function PostDetailPage() {
   return (
     <MobileShell>
       <div className="px-4 pt-4 pb-20">
+        <h1 className="sr-only">Post</h1>
         <Link to="/" aria-label="Back to feed" className="inline-flex items-center gap-1 text-white/50 mb-4">
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
