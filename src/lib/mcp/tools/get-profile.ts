@@ -1,4 +1,4 @@
-import { defineTool } from "@lovable.dev/mcp-js";
+import { defineTool } from "../lovable-stub";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
