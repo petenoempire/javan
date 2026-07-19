@@ -5,7 +5,19 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/settings/security")({
-  head: () => ({ meta: [{ title: "Password & Security · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Password & Security · Javan" },
+      { name: "description", content: "Update your password, set up account recovery, and review security tips for your Javan account." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Password & Security · Javan" },
+      { property: "og:description", content: "Update your password, set up account recovery, and review security tips for your Javan account." },
+      { property: "og:url", content: "https://javan.lovable.app/settings/security" },
+      { name: "twitter:title", content: "Password & Security · Javan" },
+      { name: "twitter:description", content: "Update your password, set up account recovery, and review security tips for your Javan account." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/settings/security" }],
+  }),
   component: SecurityPage,
 });
 
@@ -39,7 +51,7 @@ function SecurityPage() {
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-20">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/settings/account" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/settings/account" aria-label="Back to account settings" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
         <h1 className="font-display text-lg font-bold">Password & Security</h1>
       </header>
 
@@ -50,9 +62,11 @@ function SecurityPage() {
             <div className="text-sm font-semibold">Change password</div>
           </div>
           <div className="mt-4 space-y-3">
-            <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="New password"
+            <label htmlFor="security-new-password" className="sr-only">New password</label>
+            <input id="security-new-password" type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="New password"
               className="glass w-full rounded-xl px-4 py-3 text-sm outline-none" />
-            <input type="password" value={pw2} onChange={e => setPw2(e.target.value)} placeholder="Confirm new password"
+            <label htmlFor="security-confirm-password" className="sr-only">Confirm new password</label>
+            <input id="security-confirm-password" type="password" value={pw2} onChange={e => setPw2(e.target.value)} placeholder="Confirm new password"
               className="glass w-full rounded-xl px-4 py-3 text-sm outline-none" />
             <button onClick={submit} disabled={busy}
               className="bg-gradient-primary w-full rounded-2xl py-3 text-sm font-bold text-primary-foreground shadow-glow disabled:opacity-60">
