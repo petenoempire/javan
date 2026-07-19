@@ -109,6 +109,7 @@ function ProfilePage() {
             </div>
             <button
               onClick={handleSignOut}
+              aria-label="Sign out"
               className="flex items-center gap-1 rounded-full bg-white/10 border border-white/20 px-3 py-2 text-xs font-bold hover:bg-white/20 active:scale-90 transition-all"
             >
               <LogOut className="h-3 w-3" /> Sign Out
@@ -153,8 +154,10 @@ function ProfilePage() {
 
         {/* Tabs */}
         <div className="border-t border-white/5 mt-6">
-          <div className="flex items-center gap-4 px-4 pt-4">
+          <div role="tablist" aria-label="Profile content" className="flex items-center gap-4 px-4 pt-4">
             <button
+              role="tab"
+              aria-selected={activeTab === "posts"}
               onClick={() => setActiveTab("posts")}
               className={`text-xs font-black pb-2 border-b-2 transition-all active:scale-95 ${
                 activeTab === "posts" ? "text-white border-white" : "text-white/50 border-transparent hover:text-white"
@@ -163,6 +166,8 @@ function ProfilePage() {
               Posts
             </button>
             <button
+              role="tab"
+              aria-selected={activeTab === "likes"}
               onClick={() => setActiveTab("likes")}
               className={`text-xs font-black pb-2 border-b-2 transition-all active:scale-95 ${
                 activeTab === "likes" ? "text-white border-white" : "text-white/50 border-transparent hover:text-white"
@@ -171,6 +176,8 @@ function ProfilePage() {
               Likes
             </button>
             <button
+              role="tab"
+              aria-selected={activeTab === "saved"}
               onClick={() => setActiveTab("saved")}
               className={`text-xs font-black pb-2 border-b-2 transition-all active:scale-95 ${
                 activeTab === "saved" ? "text-white border-white" : "text-white/50 border-transparent hover:text-white"
