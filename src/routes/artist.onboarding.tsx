@@ -7,7 +7,19 @@ import { ArrowLeft, Mic2, Upload, Loader2, CheckCircle2, XCircle, Clock, Chevron
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/artist/onboarding")({
-  head: () => ({ meta: [{ title: "Artist Verification · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Become an Artist · Javan" },
+      { name: "description", content: "Apply for verified artist status on Javan to upload your original music and showcase it on your profile." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Become an Artist · Javan" },
+      { property: "og:description", content: "Apply for verified artist status on Javan to upload your original music and showcase it on your profile." },
+      { property: "og:url", content: "https://javan.lovable.app/artist/onboarding" },
+      { name: "twitter:title", content: "Become an Artist · Javan" },
+      { name: "twitter:description", content: "Apply for verified artist status on Javan to upload your original music and showcase it on your profile." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/artist/onboarding" }],
+  }),
   component: ArtistOnboarding,
 });
 
@@ -99,7 +111,7 @@ function ArtistOnboarding() {
     return (
       <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black text-white pb-24">
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-white/5 bg-neutral-950/80 px-4 py-3.5 backdrop-blur-md">
-          <Link to="/profile" className="text-neutral-400 p-1">
+          <Link to="/profile" aria-label="Back to profile" className="text-neutral-400 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <h1 className="font-display text-sm font-black">Artist Application</h1>
@@ -114,7 +126,7 @@ function ArtistOnboarding() {
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black text-white pb-24">
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-white/5 bg-neutral-950/80 px-4 py-3.5 backdrop-blur-md">
-        <Link to="/profile" className="text-neutral-400 p-1">
+        <Link to="/profile" aria-label="Back to profile" className="text-neutral-400 p-1">
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <h1 className="font-display text-sm font-black">Become an Artist</h1>
