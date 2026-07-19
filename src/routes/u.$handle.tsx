@@ -35,25 +35,6 @@ export const Route = createFileRoute("/u/$handle")({
         { name: "twitter:description", content: description },
       ],
       links: [{ rel: "canonical", href: url }],
-      scripts: profile
-        ? [
-            {
-              type: "application/ld+json",
-              children: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "ProfilePage",
-                mainEntity: {
-                  "@type": "Person",
-                  name: profile.display_name,
-                  alternateName: `@${params.handle}`,
-                  description: profile.bio || undefined,
-                  image: profile.avatar_url || undefined,
-                  url,
-                },
-              }),
-            },
-          ]
-        : [],
     };
   },
   component: PublicProfile,
@@ -168,148 +149,169 @@ function PublicProfile() {
   const isSelf = user?.id === profile.id;
 
   return (
-    <MobileShell>
-      <div className="relative">
-        <button onClick={() => history.back()} aria-label="Go back" className="absolute left-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 backdrop-blur-md">
-          <ArrowLeft className="h-5 w-5 text-white" />
-        </button>
-        <div className="bg-gradient-to-r from-fuchsia-600 to-rose-600 h-32 w-full opacity-80" />
-        <div className="px-5 pb-6">
-          <div className="-mt-12 flex items-end justify-between">
-            {profile.avatar_url ? (
-              <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-black object-cover" alt={`${profile.display_name}'s avatar`} />
-            ) : (
-              <div className="bg-gradient-to-r from-rose-500 to-fuchsia-500 h-24 w-24 rounded-full border-4 border-black" />
-            )}
-            {!isSelf && (
-              <>
-                <button onClick={() => setReportOpen(true)} aria-label="Report user" className="rounded-full bg-white/10 p-2">
-                  <Flag className="h-4 w-4" />
-                </button>
-                <ReportDialog target={reportOpen ? { type: "user", id: profile.id } : null} onClose={() => setReportOpen(false)} />
-              </>
-            )}
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            <h1 className="font-display text-2xl font-bold text-white">@{profile.handle}</h1>
-            {isVerified && (
-              <BadgeCheck className="h-5 w-5 fill-blue-500 text-white" aria-label="Verified" />
-            )}
-            {isArtist && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-600 to-rose-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                <Music2 className="h-3 w-3" /> Artist
-              </span>
-            )}
-          </div>
-          <div className="text-sm text-white/80">{profile.display_name}</div>
-          {profile.bio && <p className="mt-2 text-sm text-white/60">{profile.bio}</p>}
-          {profile.country && (
-            <div className="mt-2 flex items-center gap-1 text-xs text-white/50">
-              <MapPin className="h-3 w-3" />
-              {profile.country}
-            </div>
-          )}
-
-          <div className="mt-5 grid grid-cols-3 gap-2 text-center">
-            <Stat n={followers} label="Followers" />
-            <Stat n={following} label="Following" />
-            <Stat n={posts.length} label="Posts" />
-          </div>
-
-          {!isSelf && (
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                onClick={toggleFollow}
-                className={`flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold transition ${
-                  isFollowing ? "bg-white/10 text-white" : "bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white"
-                }`}
-              >
-                {isFollowing ? (
-                  <>
-                    <UserCheck className="h-4 w-4" /> Following
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4" /> Follow
-                  </>
-                )}
-              </button>
-              <button className="flex items-center justify-center gap-2 rounded-2xl bg-white/10 py-3.5 text-sm font-bold text-white">
-                <MessageCircle className="h-4 w-4" /> Message
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {isArtist && (
-        <div className="mx-5 mb-3 grid grid-cols-2 gap-1 rounded-2xl bg-white/5 p-1">
-          <button
-            onClick={() => setTab("posts")}
-            className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${
-              tab === "posts" ? "bg-white/10 text-white" : "text-white/50"
-            }`}
-          >
-            <Film className="h-4 w-4" /> Posts
-          </button>
-          <button
-            onClick={() => setTab("music")}
-            className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${
-              tab === "music" ? "bg-white/10 text-white" : "text-white/50"
-            }`}
-          >
-            <Music2 className="h-4 w-4" /> Music ({tracks.length})
-          </button>
-        </div>
+    <>
+      {data && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "ProfilePage",
+              mainEntity: {
+                "@type": "Person",
+                name: profile.display_name,
+                alternateName: `@${profile.handle}`,
+                description: profile.bio || undefined,
+                image: profile.avatar_url || undefined,
+                url: `https://javan.lovable.app/u/${handle}`,
+              },
+            }),
+          }}
+        />
       )}
-
-      <div className="px-5 pb-8">
-        {tab === "music" && isArtist ? (
-          tracks.length === 0 ? (
-            <div className="rounded-3xl bg-white/5 p-8 text-center text-sm text-white/50">No tracks yet.</div>
-          ) : (
-            <div className="space-y-2">
-              {tracks.map((t: any) => (
-                <div key={t.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
-                  {t.cover_url ? (
-                    <img src={t.cover_url} alt={`${t.title} cover art`} className="h-11 w-11 rounded-lg object-cover" />
-                  ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-600 to-rose-600">
-                      <Music2 className="h-4 w-4 text-white/80" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm font-bold text-white">{t.title}</p>
-                    <p className="text-[10px] text-white/40">{t.plays_count} plays</p>
-                  </div>
-                  <button onClick={() => togglePlay(t)} aria-label={playingId === t.id ? `Pause ${t.title}` : `Play ${t.title}`} className="rounded-full bg-white/10 p-2 active:scale-90">
-                    {playingId === t.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+      <MobileShell>
+        <div className="relative">
+          <button onClick={() => history.back()} aria-label="Go back" className="absolute left-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 backdrop-blur-md">
+            <ArrowLeft className="h-5 w-5 text-white" />
+          </button>
+          <div className="bg-gradient-to-r from-fuchsia-600 to-rose-600 h-32 w-full opacity-80" />
+          <div className="px-5 pb-6">
+            <div className="-mt-12 flex items-end justify-between">
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} className="h-24 w-24 rounded-full border-4 border-black object-cover" alt={`${profile.display_name}'s avatar`} />
+              ) : (
+                <div className="bg-gradient-to-r from-rose-500 to-fuchsia-500 h-24 w-24 rounded-full border-4 border-black" />
+              )}
+              {!isSelf && (
+                <>
+                  <button onClick={() => setReportOpen(true)} aria-label="Report user" className="rounded-full bg-white/10 p-2">
+                    <Flag className="h-4 w-4" />
                   </button>
-                </div>
-              ))}
+                  <ReportDialog target={reportOpen ? { type: "user", id: profile.id } : null} onClose={() => setReportOpen(false)} />
+                </>
+              )}
             </div>
-          )
-        ) : posts.length === 0 ? (
-          <div className="rounded-3xl bg-white/5 p-8 text-center text-sm text-white/50">No posts yet.</div>
-        ) : (
-          <div className="grid grid-cols-3 gap-1">
-            {posts.map((p: any) => (
-              <Link
-                key={p.id}
-                to={`/posts/${p.id}`}
-                className="relative aspect-[3/4] overflow-hidden rounded-md bg-white/5"
-              >
-                {p.media_type === "image" && p.image_url ? (
-                  <img src={p.image_url} alt="" className="h-full w-full object-cover" />
-                ) : p.video_url ? (
-                  <video src={p.video_url} className="h-full w-full object-cover" muted />
-                ) : null}
-              </Link>
-            ))}
+            <div className="mt-3 flex items-center gap-2">
+              <h1 className="font-display text-2xl font-bold text-white">@{profile.handle}</h1>
+              {isVerified && (
+                <BadgeCheck className="h-5 w-5 fill-blue-500 text-white" aria-label="Verified" />
+              )}
+              {isArtist && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-600 to-rose-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                  <Music2 className="h-3 w-3" /> Artist
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-white/80">{profile.display_name}</div>
+            {profile.bio && <p className="mt-2 text-sm text-white/60">{profile.bio}</p>}
+            {profile.country && (
+              <div className="mt-2 flex items-center gap-1 text-xs text-white/50">
+                <MapPin className="h-3 w-3" />
+                {profile.country}
+              </div>
+            )}
+
+            <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+              <Stat n={followers} label="Followers" />
+              <Stat n={following} label="Following" />
+              <Stat n={posts.length} label="Posts" />
+            </div>
+
+            {!isSelf && (
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  onClick={toggleFollow}
+                  className={`flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold transition ${
+                    isFollowing ? "bg-white/10 text-white" : "bg-gradient-to-r from-fuchsia-600 to-rose-600 text-white"
+                  }`}
+                >
+                  {isFollowing ? (
+                    <>
+                      <UserCheck className="h-4 w-4" /> Following
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4" /> Follow
+                    </>
+                  )}
+                </button>
+                <button className="flex items-center justify-center gap-2 rounded-2xl bg-white/10 py-3.5 text-sm font-bold text-white">
+                  <MessageCircle className="h-4 w-4" /> Message
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {isArtist && (
+          <div className="mx-5 mb-3 grid grid-cols-2 gap-1 rounded-2xl bg-white/5 p-1">
+            <button
+              onClick={() => setTab("posts")}
+              className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${
+                tab === "posts" ? "bg-white/10 text-white" : "text-white/50"
+              }`}
+            >
+              <Film className="h-4 w-4" /> Posts
+            </button>
+            <button
+              onClick={() => setTab("music")}
+              className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition ${
+                tab === "music" ? "bg-white/10 text-white" : "text-white/50"
+              }`}
+            >
+              <Music2 className="h-4 w-4" /> Music ({tracks.length})
+            </button>
           </div>
         )}
-      </div>
-    </MobileShell>
+
+        <div className="px-5 pb-8">
+          {tab === "music" && isArtist ? (
+            tracks.length === 0 ? (
+              <div className="rounded-3xl bg-white/5 p-8 text-center text-sm text-white/50">No tracks yet.</div>
+            ) : (
+              <div className="space-y-2">
+                {tracks.map((t: any) => (
+                  <div key={t.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+                    {t.cover_url ? (
+                      <img src={t.cover_url} alt={`${t.title} cover art`} className="h-11 w-11 rounded-lg object-cover" />
+                    ) : (
+                      <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-600 to-rose-600">
+                        <Music2 className="h-4 w-4 text-white/80" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm font-bold text-white">{t.title}</p>
+                      <p className="text-[10px] text-white/40">{t.plays_count} plays</p>
+                    </div>
+                    <button onClick={() => togglePlay(t)} aria-label={playingId === t.id ? `Pause ${t.title}` : `Play ${t.title}`} className="rounded-full bg-white/10 p-2 active:scale-90">
+                      {playingId === t.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : posts.length === 0 ? (
+            <div className="rounded-3xl bg-white/5 p-8 text-center text-sm text-white/50">No posts yet.</div>
+          ) : (
+            <div className="grid grid-cols-3 gap-1">
+              {posts.map((p: any) => (
+                <Link
+                  key={p.id}
+                  to={`/posts/${p.id}`}
+                  className="relative aspect-[3/4] overflow-hidden rounded-md bg-white/5"
+                >
+                  {p.media_type === "image" && p.image_url ? (
+                    <img src={p.image_url} alt="" className="h-full w-full object-cover" />
+                  ) : p.video_url ? (
+                    <video src={p.video_url} className="h-full w-full object-cover" muted />
+                  ) : null}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </MobileShell>
+    </>
   );
 }
 
