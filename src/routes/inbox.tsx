@@ -5,8 +5,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Heart, MessageCircle, Share2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/inbox")({ 
-  head: () => ({ meta: [{ title: "Messages · Javan" }] }),
+export const Route = createFileRoute("/inbox")({
+  head: () => ({
+    meta: [
+      { title: "Messages · Javan" },
+      { name: "description", content: "View and manage your direct messages on Javan." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Messages · Javan" },
+      { property: "og:description", content: "View and manage your direct messages on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/inbox" },
+      { name: "twitter:title", content: "Messages · Javan" },
+      { name: "twitter:description", content: "View and manage your direct messages on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/inbox" }],
+  }),
   component: InboxPage,
 });
 
@@ -61,7 +73,8 @@ function InboxPage() {
             {uniqueConversations.map((msg) => (
               <Link
                 key={msg.id}
-                to={`/inbox/${msg.sender_id}`}
+                to="/inbox/$id"
+                params={{ id: msg.sender_id }}
                 className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-all"
               >
                 <div className="h-12 w-12 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
