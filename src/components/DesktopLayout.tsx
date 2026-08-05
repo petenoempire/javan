@@ -2,7 +2,7 @@ import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { 
   Home, Compass, Radio, BookOpen, Film, Users, Music, TrendingUp, Heart, 
-  Bell, Plus, Search, LogOut, ChevronRight
+  Bell, Plus, Search, LogOut, ChevronRight, Mic2
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
     { icon: Film, label: "Drama", href: "/drama" },
     { icon: Users, label: "Community", href: "/community" },
     { icon: Music, label: "Music", href: "/music" },
+    { icon: Mic2, label: "For Artists", href: "/short-video-platform-for-musicians" },
     { icon: TrendingUp, label: "Trending", href: "/trending" },
     { icon: Heart, label: "Following", href: "/following" },
   ];
