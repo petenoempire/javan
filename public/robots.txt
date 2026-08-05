@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /inbox
+Disallow: /notifications
+Disallow: /settings
+Disallow: /create
+Disallow: /wallet
+Disallow: /studio
+
+Sitemap: https://javan.lovable.app/sitemap.xml

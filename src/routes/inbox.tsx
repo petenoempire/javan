@@ -1,0 +1,131 @@
+import { createFileRoute, useParams } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { MobileShell } from "@/components/MobileShell";
+import { DesktopLayout } from "@/components/DesktopLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Heart, MessageCircle, Share2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/inbox")({
+  head: () => ({
+    meta: [
+      { title: "Messages · Javan" },
+      { name: "description", content: "View and manage your direct messages on Javan." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Messages · Javan" },
+      { property: "og:description", content: "View and manage your direct messages on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/inbox" },
+      { name: "twitter:title", content: "Messages · Javan" },
+      { name: "twitter:description", content: "View and manage your direct messages on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/inbox" }],
+  }),
+  component: InboxPage,
+});
+
+interface Message {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  sender?: { handle: string; display_name: string; avatar_url?: string };
+}
+
+function InboxPage() {
+  const { data: conversations = [], isLoading } = useQuery({
+    queryKey: ["conversations"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select(
+          `*,
+           sender:sender_id(handle, display_name, avatar_url)
+         `
+        )
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return (data as Message[]) ?? [];
+    },
+  });
+
+  const uniqueConversations = Array.from(
+    new Map(
+      conversations.map((msg) => [msg.sender_id, msg])
+    ).values()
+  );
+
+  return (
+    <>
+    <DesktopLayout>
+      <div className="max-w-4xl mx-auto py-10">
+        <h1 className="text-4xl font-black text-chrome mb-8">Messages</h1>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+          </div>
+        ) : uniqueConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center glass rounded-3xl border border-white/5">
+            <MessageCircle className="h-12 w-12 text-white/10 mb-4" />
+            <p className="text-white/40">No messages yet. Start a conversation!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {uniqueConversations.map((msg) => (
+              <Link
+                key={msg.id}
+                to="/inbox/$id"
+                params={{ id: msg.sender_id }}
+                className="flex items-center justify-between glass p-4 rounded-2xl border border-white/5 hover:bg-white/5 transition-all"
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-rose-500 to-purple-600 shadow-lg"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white">{msg.sender?.display_name}</p>
+                    <p className="text-xs text-white/40 mt-1 truncate">{msg.content}</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-white/20">{new Date(msg.created_at).toLocaleDateString()}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </DesktopLayout>
+    <MobileShell>
+      <div className="px-4 pt-4 pb-20">
+        <h1 className="font-display text-2xl font-black mb-4 text-chrome">Messages</h1>
+
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+          </div>
+        ) : uniqueConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <MessageCircle className="h-12 w-12 text-white/20 mb-3" />
+            <p className="text-sm text-white/50">No messages yet</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {uniqueConversations.map((msg) => (
+              <Link
+                key={msg.id}
+                to="/inbox/$id"
+                params={{ id: msg.sender_id }}
+                className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-all"
+              >
+                <div className="h-12 w-12 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-white truncate">{msg.sender?.display_name}</p>
+                  <p className="text-[10px] text-white/50 truncate">{msg.content}</p>
+                </div>
+                <p className="text-[9px] text-white/40 shrink-0">{new Date(msg.created_at).toLocaleDateString()}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </MobileShell>
+    </>
+  );
+}

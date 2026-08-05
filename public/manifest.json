@@ -1,0 +1,21 @@
+{
+  "name": "Javan: Go Live & Get Paid",
+  "short_name": "Javan",
+  "description": "Post short videos, go live, and build a real audience… then get paid for it.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0a0a1a",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

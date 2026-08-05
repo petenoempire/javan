@@ -1,0 +1,104 @@
+import React, { ReactNode, useState } from "react";
+import { Link, useLocation } from "@tanstack/react-router";
+import { Home, Users, Plus, Mail, User, Search } from "lucide-react";
+import { SearchOverlay } from "./SearchOverlay";
+
+interface MobileShellProps {
+  children: ReactNode;
+  immersive?: boolean;
+}
+
+export function MobileShell({ children, immersive = false }: MobileShellProps) {
+  const location = useLocation();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const isHomepage = location.pathname === "/";
+
+  const navItems = [
+    { icon: Home, label: "Home", href: "/", glow: "rgba(0, 212, 255, 0.5)" },
+    { icon: Users, label: "Friends", href: "/friends", glow: "rgba(124, 58, 237, 0.5)" },
+    { icon: Plus, label: "Create", href: "/create", isCenter: true },
+    { icon: Mail, label: "Inbox", href: "/inbox", glow: "rgba(255, 0, 128, 0.5)" },
+    { icon: User, label: "Profile", href: "/profile", glow: "rgba(255, 215, 0, 0.5)" },
+  ];
+
+  return (
+    <div className="lg:hidden flex flex-col min-h-[100dvh] bg-[#020210] text-white relative overflow-hidden">
+      {/* Immersive Background Effects */}
+      <div className="aurora-bg">
+        <div className="aurora-ribbon" style={{ top: '20%', opacity: 0.3, filter: 'blur(80px)' }}></div>
+        <div className="aurora-ribbon" style={{ top: '60%', animationDelay: '-8s', opacity: 0.2, filter: 'blur(80px)' }}></div>
+      </div>
+
+      {/* Mobile Header - Only visible on Homepage and not in immersive mode */}
+      {!immersive && isHomepage && (
+        <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 pt-12 pb-4 bg-gradient-to-b from-[#020210] to-transparent">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/logo.png" alt="JAVAN" className="h-8 w-8 rounded-lg object-cover shadow-glow" />
+            <span className="text-xl font-black text-chrome tracking-tighter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] uppercase">JAVAN</span>
+          </Link>
+          <button 
+            onClick={() => setIsSearchOpen(true)}
+            className="h-10 w-10 rounded-full glass flex items-center justify-center border border-white/20 active:scale-90 transition-transform" 
+            aria-label="Search"
+          >
+            <Search className="h-5 w-5 text-white/80" />
+          </button>
+        </header>
+      )}
+
+      {/* Main Content Area */}
+      <main className={`flex-1 overflow-y-auto no-scrollbar ${immersive || !isHomepage ? "" : "pt-24 pb-24"}`}>
+        {children}
+      </main>
+
+      {/* Search Overlay */}
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
+      {/* Bottom Navigation Bar */}
+      <nav className="fixed bottom-6 left-5 right-5 z-50">
+        <div className="glass-strong rounded-[2.5rem] px-4 py-3 flex items-center justify-around border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.href;
+            
+            if (item.isCenter) {
+              return (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  aria-label={item.label}
+                  className="relative -top-6 flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-rose-500 via-purple-600 to-cyan-500 shadow-[0_0_25px_rgba(255,0,128,0.4)] active:scale-90 transition-transform"
+                >
+                  <Plus className="h-8 w-8 text-white" />
+                </Link>
+              );
+            }
+
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                aria-label={item.label}
+                className="relative flex flex-col items-center gap-1 group"
+              >
+                <div className={`p-2 rounded-full transition-all duration-300 ${isActive ? "bg-white/10" : "group-active:scale-90"}`}>
+                  <item.icon 
+                    className={`h-6 w-6 transition-all duration-300 ${
+                      isActive ? "text-white" : "text-white/40 group-hover:text-white/70"
+                    }`} 
+                    style={isActive ? { filter: `drop-shadow(0 0 8px ${item.glow})` } : {}}
+                  />
+                </div>
+                {isActive && (
+                  <div 
+                    className="absolute -bottom-1 w-1 h-1 rounded-full"
+                    style={{ backgroundColor: item.glow, boxShadow: `0 0 8px ${item.glow}` }}
+                  ></div>
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </div>
+  );
+}
