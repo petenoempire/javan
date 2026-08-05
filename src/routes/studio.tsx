@@ -65,7 +65,7 @@ function CreatorStudio() {
           <h2 className="text-4xl font-black text-chrome tracking-tight">Creator Studio</h2>
           <div className="flex gap-4">
              <Link to="/settings"><Button variant="outline" className="rounded-xl border-white/10"><Settings className="h-4 w-4 mr-2" /> Settings</Button></Link>
-             <Link to="/create"><Button className="bg-gradient-primary rounded-xl"><Plus className="h-4 w-4 mr-2" /> New Post</Button></Link>
+             <Link to="/create" search={{ mode: undefined }}><Button className="bg-gradient-primary rounded-xl"><Plus className="h-4 w-4 mr-2" /> New Post</Button></Link>
           </div>
         </div>
 
@@ -148,7 +148,7 @@ function CreatorStudio() {
       {tab === "posts" ? <PostsView stats={stats} /> : <LiveView />}
 
       <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-[480px] border-t border-white/5 bg-[#020210]/95 px-4 py-3 backdrop-blur">
-        <Link to="/create"
+        <Link to="/create" search={{ mode: undefined }}
           className="bg-gradient-primary flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold text-white shadow-glow">
           {tab === "posts" ? <><Camera className="h-4 w-4" /> Start creating</> : <><Radio className="h-4 w-4" /> Go LIVE</>}
         </Link>

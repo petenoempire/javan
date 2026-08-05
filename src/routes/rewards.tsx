@@ -4,6 +4,7 @@ import { MobileShell } from "@/components/MobileShell";
 import { Award, DollarSign, TrendingUp, Users, Gift, Star, Zap, ChevronRight, Play } from "lucide-react";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 
+// @ts-expect-error - TanStack file-based route auto-registration
 export const Route = createFileRoute("/rewards")({
   head: () => ({
     meta: [
@@ -63,7 +64,7 @@ function RewardsPage() {
               Whether you're a live streamer, a short-form video creator, or an artist, there's a program for you.
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
-              <Link to="/create" className="bg-gradient-primary px-8 py-4 rounded-2xl font-black text-white shadow-glow hover:scale-105 transition-transform">
+              <Link to="/create" search={{ mode: undefined }} className="bg-gradient-primary px-8 py-4 rounded-2xl font-black text-white shadow-glow hover:scale-105 transition-transform">
                 Start Creating
               </Link>
               <Link to="/studio" className="bg-white/5 border border-white/10 px-8 py-4 rounded-2xl font-black text-white hover:bg-white/10 transition-colors">
@@ -82,8 +83,7 @@ function RewardsPage() {
                 <p className="text-white/60 leading-relaxed mb-6">
                   {p.description}
                 </p>
-                <Link to="/studio" className="flex items-center gap-2 text-sm font-bold text-cyan-400 hover:text-cyan-300" aria-label={`Learn how to earn ${p.title}`}
-                  
+                <Link to="/studio" className="flex items-center gap-2 text-sm font-bold text-cyan-400 hover:text-cyan-300" aria-label={`Learn how to earn ${p.title}`}>
                   Explore {p.title} rewards <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -155,7 +155,7 @@ function RewardsPage() {
           <div className="bg-gradient-primary p-8 rounded-3xl text-center shadow-glow">
             <h2 className="text-xl font-black text-white mb-2">Ready to earn?</h2>
             <p className="text-xs text-white/80 mb-6">Start your creator journey today.</p>
-            <Link to="/create" className="inline-block bg-white text-black px-6 py-3 rounded-xl text-sm font-black">
+            <Link to="/create" search={{ mode: undefined }} className="inline-block bg-white text-black px-6 py-3 rounded-xl text-sm font-black">
               Create Now
             </Link>
           </div>

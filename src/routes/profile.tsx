@@ -231,7 +231,7 @@ function ProfilePage() {
         <div className="px-4 pt-14 pb-4">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="font-display text-2xl font-black" role="heading" aria-level="1">{profile.display_name}</h1>
+              <h1 className="font-display text-2xl font-black" role="heading" aria-level={1}>{profile.display_name}</h1>
               <p className="text-sm text-white/50">@{profile.handle}</p>
             </div>
             <button
@@ -272,6 +272,7 @@ function ProfilePage() {
             </Link>
             <Link
               to="/create"
+              search={{ mode: undefined }}
               className="flex-1 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-600 to-rose-600 py-2.5 text-xs font-bold text-white hover:from-fuchsia-500 hover:to-rose-500 active:scale-95 transition-all"
             >
               <Upload className="h-3.5 w-3.5" /> Create

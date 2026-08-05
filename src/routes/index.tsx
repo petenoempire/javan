@@ -247,7 +247,7 @@ function HomePage() {
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center p-10 text-center">
               <p className="text-white/40">No posts found in the {activeCategory} feed yet.</p>
-              <Link to="/create" className="mt-4 px-6 py-2 bg-gradient-primary rounded-full text-sm font-bold">Start Posting</Link>
+              <Link to="/create" search={{ mode: undefined }} className="mt-4 px-6 py-2 bg-gradient-primary rounded-full text-sm font-bold">Start Posting</Link>
             </div>
           )}
         </div>
@@ -368,7 +368,7 @@ function HomePage() {
                 ) : (
                   <div className="col-span-full py-20 text-center glass rounded-3xl border border-white/5">
                     <p className="text-white/40">No posts found in the feed yet.</p>
-                    <Link to="/create" className="mt-4 inline-block text-cyan-400 hover:underline">Be the first to share something!</Link>
+                    <Link to="/create" search={{ mode: undefined }} className="mt-4 inline-block text-cyan-400 hover:underline">Be the first to share something!</Link>
                   </div>
                 )}
               </div>

@@ -25,12 +25,15 @@ import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as MusicRouteImport } from './routes/music'
+import { Route as MusicPromotionGuideRouteImport } from './routes/music-promotion-guide'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OfflineRouteImport } from './routes/offline'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as QrRouteImport } from './routes/qr'
 import { Route as ReportProblemRouteImport } from './routes/report-problem'
+import { Route as RewardsRouteImport } from './routes/rewards'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ShortVideoPlatformForMusiciansRouteImport } from './routes/short-video-platform-for-musicians'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StemRouteImport } from './routes/stem'
 import { Route as StudioRouteImport } from './routes/studio'
@@ -150,6 +153,11 @@ const MusicRoute = MusicRouteImport.update({
   path: '/music',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MusicPromotionGuideRoute = MusicPromotionGuideRouteImport.update({
+  id: '/music-promotion-guide',
+  path: '/music-promotion-guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -175,11 +183,22 @@ const ReportProblemRoute = ReportProblemRouteImport.update({
   path: '/report-problem',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RewardsRoute = RewardsRouteImport.update({
+  id: '/rewards',
+  path: '/rewards',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShortVideoPlatformForMusiciansRoute =
+  ShortVideoPlatformForMusiciansRouteImport.update({
+    id: '/short-video-platform-for-musicians',
+    path: '/short-video-platform-for-musicians',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -393,12 +412,15 @@ export interface FileRoutesByFullPath {
   '/live': typeof LiveRouteWithChildren
   '/mcp': typeof McpRoute
   '/music': typeof MusicRoute
+  '/music-promotion-guide': typeof MusicPromotionGuideRoute
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/qr': typeof QrRoute
   '/report-problem': typeof ReportProblemRoute
+  '/rewards': typeof RewardsRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/short-video-platform-for-musicians': typeof ShortVideoPlatformForMusiciansRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stem': typeof StemRoute
   '/studio': typeof StudioRouteWithChildren
@@ -454,11 +476,14 @@ export interface FileRoutesByTo {
   '/live': typeof LiveRouteWithChildren
   '/mcp': typeof McpRoute
   '/music': typeof MusicRoute
+  '/music-promotion-guide': typeof MusicPromotionGuideRoute
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/qr': typeof QrRoute
   '/report-problem': typeof ReportProblemRoute
+  '/rewards': typeof RewardsRoute
+  '/short-video-platform-for-musicians': typeof ShortVideoPlatformForMusiciansRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stem': typeof StemRoute
   '/studio': typeof StudioRouteWithChildren
@@ -516,12 +541,15 @@ export interface FileRoutesById {
   '/live': typeof LiveRouteWithChildren
   '/mcp': typeof McpRoute
   '/music': typeof MusicRoute
+  '/music-promotion-guide': typeof MusicPromotionGuideRoute
   '/notifications': typeof NotificationsRoute
   '/offline': typeof OfflineRoute
   '/profile': typeof ProfileRouteWithChildren
   '/qr': typeof QrRoute
   '/report-problem': typeof ReportProblemRoute
+  '/rewards': typeof RewardsRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/short-video-platform-for-musicians': typeof ShortVideoPlatformForMusiciansRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/stem': typeof StemRoute
   '/studio': typeof StudioRouteWithChildren
@@ -580,12 +608,15 @@ export interface FileRouteTypes {
     | '/live'
     | '/mcp'
     | '/music'
+    | '/music-promotion-guide'
     | '/notifications'
     | '/offline'
     | '/profile'
     | '/qr'
     | '/report-problem'
+    | '/rewards'
     | '/settings'
+    | '/short-video-platform-for-musicians'
     | '/sitemap.xml'
     | '/stem'
     | '/studio'
@@ -641,11 +672,14 @@ export interface FileRouteTypes {
     | '/live'
     | '/mcp'
     | '/music'
+    | '/music-promotion-guide'
     | '/notifications'
     | '/offline'
     | '/profile'
     | '/qr'
     | '/report-problem'
+    | '/rewards'
+    | '/short-video-platform-for-musicians'
     | '/sitemap.xml'
     | '/stem'
     | '/studio'
@@ -702,12 +736,15 @@ export interface FileRouteTypes {
     | '/live'
     | '/mcp'
     | '/music'
+    | '/music-promotion-guide'
     | '/notifications'
     | '/offline'
     | '/profile'
     | '/qr'
     | '/report-problem'
+    | '/rewards'
     | '/settings'
+    | '/short-video-platform-for-musicians'
     | '/sitemap.xml'
     | '/stem'
     | '/studio'
@@ -765,12 +802,15 @@ export interface RootRouteChildren {
   LiveRoute: typeof LiveRouteWithChildren
   McpRoute: typeof McpRoute
   MusicRoute: typeof MusicRoute
+  MusicPromotionGuideRoute: typeof MusicPromotionGuideRoute
   NotificationsRoute: typeof NotificationsRoute
   OfflineRoute: typeof OfflineRoute
   ProfileRoute: typeof ProfileRouteWithChildren
   QrRoute: typeof QrRoute
   ReportProblemRoute: typeof ReportProblemRoute
+  RewardsRoute: typeof RewardsRoute
   SettingsRoute: typeof SettingsRouteWithChildren
+  ShortVideoPlatformForMusiciansRoute: typeof ShortVideoPlatformForMusiciansRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StemRoute: typeof StemRoute
   StudioRoute: typeof StudioRouteWithChildren
@@ -901,6 +941,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MusicRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/music-promotion-guide': {
+      id: '/music-promotion-guide'
+      path: '/music-promotion-guide'
+      fullPath: '/music-promotion-guide'
+      preLoaderRoute: typeof MusicPromotionGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notifications': {
       id: '/notifications'
       path: '/notifications'
@@ -936,11 +983,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportProblemRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rewards': {
+      id: '/rewards'
+      path: '/rewards'
+      fullPath: '/rewards'
+      preLoaderRoute: typeof RewardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/short-video-platform-for-musicians': {
+      id: '/short-video-platform-for-musicians'
+      path: '/short-video-platform-for-musicians'
+      fullPath: '/short-video-platform-for-musicians'
+      preLoaderRoute: typeof ShortVideoPlatformForMusiciansRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1364,12 +1425,15 @@ const rootRouteChildren: RootRouteChildren = {
   LiveRoute: LiveRouteWithChildren,
   McpRoute: McpRoute,
   MusicRoute: MusicRoute,
+  MusicPromotionGuideRoute: MusicPromotionGuideRoute,
   NotificationsRoute: NotificationsRoute,
   OfflineRoute: OfflineRoute,
   ProfileRoute: ProfileRouteWithChildren,
   QrRoute: QrRoute,
   ReportProblemRoute: ReportProblemRoute,
+  RewardsRoute: RewardsRoute,
   SettingsRoute: SettingsRouteWithChildren,
+  ShortVideoPlatformForMusiciansRoute: ShortVideoPlatformForMusiciansRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StemRoute: StemRoute,
   StudioRoute: StudioRouteWithChildren,

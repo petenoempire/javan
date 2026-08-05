@@ -22,6 +22,7 @@ import {
   Coins,
 } from "lucide-react";
 
+// @ts-expect-error - TanStack file-based route auto-registration
 export const Route = createFileRoute("/music-promotion-guide")({
   head: () => ({
     meta: [
@@ -99,7 +100,7 @@ function MusicPromotionGuidePage() {
             Start Promoting Your Music
           </Link>
           <Link
-            to="/short-video-platform-for-musicians"
+            to={"/short-video-platform-for-musicians" as any}
             className="px-10 py-5 rounded-full font-bold border border-white/10 hover:bg-white/5 transition-colors text-lg"
           >
             Learn About Javan for Musicians
@@ -556,7 +557,7 @@ function MusicPromotionGuidePage() {
               Join Javan — It's Free
             </Link>
             <Link
-              to="/short-video-platform-for-musicians"
+              to={"/short-video-platform-for-musicians" as any}
               className="inline-block px-10 py-5 rounded-full font-bold border border-white/20 hover:bg-white/10 transition-colors text-lg"
             >
               Learn More About Javan

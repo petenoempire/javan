@@ -178,7 +178,7 @@ function EditProfile() {
       {/* Header */}
       <header className="sticky top-0 z-10 flex items-center border-b border-white/5 bg-[#020210]/95 px-2 py-3 backdrop-blur">
         <Link to="/profile" className="p-2" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
-        <h1 className="flex-1 text-center font-display text-base font-bold text-chrome" role="heading" aria-level="1">Edit Profile</h1>
+        <h1 className="flex-1 text-center font-display text-base font-bold text-chrome" role="heading" aria-level={1}>Edit Profile</h1>
         <div className="w-9">{saving && <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />}</div>
       </header>
 

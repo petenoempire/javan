@@ -267,7 +267,7 @@ function PublicProfile() {
               )}
             </div>
             <div className="mt-3 flex items-center gap-2">
-              <h1 className="font-display text-2xl font-bold text-chrome" role="heading" aria-level="1">{profile.display_name}</h1>
+              <h1 className="font-display text-2xl font-bold text-chrome" role="heading" aria-level={1}>{profile.display_name}</h1>
               {isVerified && (
                 <BadgeCheck className="h-5 w-5 fill-blue-500 text-white" aria-label="Verified" />
               )}

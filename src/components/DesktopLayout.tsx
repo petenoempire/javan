@@ -120,7 +120,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
             </Link>
           )}
           
-          <Link to="/create">
+          <Link to="/create" search={{ mode: undefined }}>
             <Button className="w-full bg-gradient-to-r from-rose-500 to-purple-600 hover:opacity-90 rounded-xl py-6 flex items-center gap-2">
               <Plus className="h-5 w-5" />
               Upload
@@ -152,7 +152,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
               <Link to="/notifications" aria-label="Notifications" className="relative p-2 text-white/60 hover:text-white transition-colors">
                 <Bell className="h-6 w-6" />
               </Link>
-              <Link to="/create">
+              <Link to="/create" search={{ mode: undefined }}>
                 <Button className="bg-gradient-primary rounded-xl px-6">
                   + Create
                 </Button>
