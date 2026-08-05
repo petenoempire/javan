@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { DesktopLayout } from "@/components/DesktopLayout";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Camera, Loader2, Copy, Check, ChevronRight, GripVertical } from "lucide-react";

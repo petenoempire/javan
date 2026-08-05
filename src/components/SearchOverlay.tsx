@@ -91,7 +91,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                 {results.map((profile) => (
                   <Link
                     key={profile.id}
-                    to={`/u/${profile.handle}`}
+                    to="/u/$handle" params={{ handle: profile.handle }}
                     onClick={onClose}
                     className="flex items-center gap-4 p-3 rounded-3xl glass border border-white/5 hover:bg-white/10 transition-colors group"
                   >
