@@ -9,6 +9,7 @@ export const Route = createFileRoute("/settings")({
       { property: "og:title", content: "Settings · Javan" },
       { property: "og:description", content: "Manage your account, privacy, security, notifications, and appearance settings on Javan." },
       { property: "og:url", content: "https://javan.lovable.app/settings" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Settings · Javan" },
       { name: "twitter:description", content: "Manage your account, privacy, security, notifications, and appearance settings on Javan." },
     ],

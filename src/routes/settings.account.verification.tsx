@@ -7,7 +7,19 @@ import { ShieldCheck, ArrowLeft, Upload, Loader2, CheckCircle2, XCircle, Clock, 
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings/account/verification")({
-  head: () => ({ meta: [{ title: "Verification · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Account Verification · Javan" },
+      { name: "description", content: "Verify your Javan account to unlock the creator badge, access monetization, and build trust with your audience." },
+      { property: "og:title", content: "Account Verification · Javan" },
+      { property: "og:description", content: "Verify your Javan account to unlock the creator badge and access monetization." },
+      { property: "og:url", content: "https://javan.lovable.app/settings/account/verification" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Account Verification · Javan" },
+      { name: "twitter:description", content: "Verify your Javan account to unlock the creator badge and access monetization." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/settings/account/verification" }],
+  }),
   component: VerificationPage,
 });
 

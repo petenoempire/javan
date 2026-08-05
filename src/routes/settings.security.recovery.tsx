@@ -6,7 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/settings/security/recovery")({
-  head: () => ({ meta: [{ title: "Account Recovery · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Account Recovery · Javan" },
+      { name: "description", content: "Set up account recovery on Javan. Add a recovery email or backup codes to protect your creator account." },
+      { property: "og:title", content: "Account Recovery · Javan" },
+      { property: "og:description", content: "Set up account recovery on Javan to protect your creator account." },
+      { property: "og:url", content: "https://javan.lovable.app/settings/security/recovery" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Account Recovery · Javan" },
+      { name: "twitter:description", content: "Set up account recovery on Javan to protect your creator account." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/settings/security/recovery" }],
+  }),
   component: AccountRecovery,
 });
 

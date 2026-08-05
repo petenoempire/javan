@@ -14,6 +14,7 @@ export const Route = createFileRoute("/followers")({
       { property: "og:title", content: "Followers · Javan" },
       { property: "og:description", content: "See who follows you on Javan and manage your community of creators and fans." },
       { property: "og:url", content: "https://javan.lovable.app/followers" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Followers · Javan" },
       { name: "twitter:description", content: "See who follows you on Javan and manage your community of creators and fans." },
     ],

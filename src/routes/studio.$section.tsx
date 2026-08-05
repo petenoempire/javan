@@ -8,7 +8,19 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/studio/$section")({
-  head: () => ({ meta: [{ title: "Monetization · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Creator Studio · Javan" },
+      { name: "description", content: "Javan Creator Studio: manage monetization, analytics, and growth tools. Learn about creator rewards, subscription programs, and performance insights." },
+      { property: "og:title", content: "Creator Studio · Javan" },
+      { property: "og:description", content: "Javan Creator Studio: manage monetization, analytics, and growth tools for your content." },
+      { property: "og:url", content: "https://javan.lovable.app/studio" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Creator Studio · Javan" },
+      { name: "twitter:description", content: "Javan Creator Studio: manage monetization, analytics, and growth tools." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/studio" }],
+  }),
   component: StudioSection,
 });
 

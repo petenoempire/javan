@@ -20,6 +20,7 @@ export const Route = createFileRoute("/wallet")({
       { property: "og:title", content: "Creator Wallet · Javan" },
       { property: "og:description", content: "Manage your Javan coin balance, purchase coins, and request creator payouts." },
       { property: "og:url", content: "https://javan.lovable.app/wallet" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Creator Wallet · Javan" },
       { name: "twitter:description", content: "Manage your Javan coin balance, purchase coins, and request creator payouts." },
     ],

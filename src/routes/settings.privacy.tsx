@@ -12,6 +12,7 @@ export const Route = createFileRoute("/settings/privacy")({
       { property: "og:title", content: "Privacy Settings · Javan" },
       { property: "og:description", content: "Control who can view your account, send you messages, and download your videos on Javan." },
       { property: "og:url", content: "https://javan.lovable.app/settings/privacy" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Privacy Settings · Javan" },
       { name: "twitter:description", content: "Control who can view your account, send you messages, and download your videos on Javan." },
     ],

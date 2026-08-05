@@ -17,6 +17,7 @@ export const Route = createFileRoute("/notifications")({
       { property: "og:title", content: "Notifications · Javan" },
       { property: "og:description", content: "See your latest likes, comments, follows, and shares on Javan." },
       { property: "og:url", content: "https://javan.lovable.app/notifications" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Notifications · Javan" },
       { name: "twitter:description", content: "See your latest likes, comments, follows, and shares on Javan." },
     ],

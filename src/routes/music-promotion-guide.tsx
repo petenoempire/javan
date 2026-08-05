@@ -22,7 +22,6 @@ import {
   Coins,
 } from "lucide-react";
 
-// @ts-expect-error - TanStack file-based route auto-registration
 export const Route = createFileRoute("/music-promotion-guide")({
   head: () => ({
     meta: [

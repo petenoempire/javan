@@ -7,6 +7,19 @@ import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/inbox/$id")({
+  head: () => ({
+    meta: [
+      { title: "Direct Message · Javan" },
+      { name: "description", content: "View and send direct messages on Javan. Chat with creators, fans, and friends in real time." },
+      { property: "og:title", content: "Direct Message · Javan" },
+      { property: "og:description", content: "View and send direct messages on Javan. Chat with creators and fans in real time." },
+      { property: "og:url", content: "https://javan.lovable.app/inbox" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Direct Message · Javan" },
+      { name: "twitter:description", content: "View and send direct messages on Javan." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/inbox" }],
+  }),
   component: Chat,
 });
 

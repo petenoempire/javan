@@ -6,7 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/profile/viewers")({
-  head: () => ({ meta: [{ title: "Profile viewers · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Profile Viewers · Javan" },
+      { name: "description", content: "See who viewed your Javan profile. Track your audience engagement and discover new followers on Javan." },
+      { property: "og:title", content: "Profile Viewers · Javan" },
+      { property: "og:description", content: "See who viewed your Javan profile. Track your audience engagement and discover new followers." },
+      { property: "og:url", content: "https://javan.lovable.app/profile/viewers" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Profile Viewers · Javan" },
+      { name: "twitter:description", content: "See who viewed your Javan profile and track your audience engagement." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/profile/viewers" }],
+  }),
   component: ProfileViewers,
 });
 

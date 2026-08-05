@@ -15,6 +15,7 @@ export const Route = createFileRoute("/inbox")({
       { property: "og:title", content: "Messages · Javan" },
       { property: "og:description", content: "View and manage your direct messages on Javan." },
       { property: "og:url", content: "https://javan.lovable.app/inbox" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Messages · Javan" },
       { name: "twitter:description", content: "View and manage your direct messages on Javan." },
     ],

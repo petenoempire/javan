@@ -4,7 +4,6 @@ import { DesktopLayout } from "@/components/DesktopLayout";
 import { Music, Mic2, Radio, Headphones, Share2, Coins, TrendingUp, Sparkles, Layers, Search, Megaphone, Target, BarChart3, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// @ts-expect-error - TanStack file-based route auto-registration
 export const Route = createFileRoute("/short-video-platform-for-musicians")({
   head: () => ({
     meta: [

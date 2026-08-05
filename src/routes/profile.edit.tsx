@@ -9,7 +9,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile/edit")({
-  head: () => ({ meta: [{ title: "Edit profile · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Edit Your Creator Profile · Javan" },
+      { name: "description", content: "Update your Javan profile: change your display name, username, bio, and avatar. Manage how fans and followers see you on Javan." },
+      { property: "og:title", content: "Edit Your Creator Profile · Javan" },
+      { property: "og:description", content: "Update your Javan profile: change your display name, username, bio, and avatar. Manage how fans and followers see you on Javan." },
+      { property: "og:url", content: "https://javan.lovable.app/profile/edit" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Edit Your Creator Profile · Javan" },
+      { name: "twitter:description", content: "Update your Javan profile: change your display name, username, bio, and avatar." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/profile/edit" }],
+  }),
   component: EditProfile,
 });
 

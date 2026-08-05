@@ -4,7 +4,6 @@ import { MobileShell } from "@/components/MobileShell";
 import { Award, DollarSign, TrendingUp, Users, Gift, Star, Zap, ChevronRight, Play } from "lucide-react";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 
-// @ts-expect-error - TanStack file-based route auto-registration
 export const Route = createFileRoute("/rewards")({
   head: () => ({
     meta: [

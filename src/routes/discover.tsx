@@ -169,7 +169,7 @@ function DiscoverPage() {
       {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
-          <h2 className="sr-only">Discover New Content & Trending Creators</h2>
+          <h1 className="sr-only">Discover Creators & Content on Javan</h1>
           <div className="relative mb-6">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <input 

@@ -80,7 +80,7 @@ function LivePage() {
       {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
-           <h2 className="text-2xl font-black text-chrome mb-6">Live</h2>
+           <h1 className="text-2xl font-black text-chrome mb-6">Live</h1>
            <div className="space-y-6">
               {liveStreams.length > 0 ? liveStreams.map((stream) => (
                 <Link key={stream.id} to="/live/$id" params={{ id: stream.id }} search={{ host: undefined }} className="relative block aspect-[9/16] rounded-3xl bg-white/5 border border-white/10 overflow-hidden">

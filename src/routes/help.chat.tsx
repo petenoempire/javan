@@ -7,7 +7,19 @@ import { ArrowLeft, Send, Loader2, Headset } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/help/chat")({
-  head: () => ({ meta: [{ title: "Chat with us · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Chat with Support · Javan" },
+      { name: "description", content: "Get real-time help from the Javan support team. Ask questions about your account, creator tools, payouts, and more." },
+      { property: "og:title", content: "Chat with Support · Javan" },
+      { property: "og:description", content: "Get real-time help from the Javan support team. Ask questions about your account, creator tools, and payouts." },
+      { property: "og:url", content: "https://javan.lovable.app/help/chat" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Chat with Support · Javan" },
+      { name: "twitter:description", content: "Get real-time help from the Javan support team." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/help/chat" }],
+  }),
   component: ChatPage,
 });
 

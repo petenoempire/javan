@@ -17,6 +17,7 @@ export const Route = createFileRoute("/settings/")({
       { property: "og:title", content: SETTINGS_TITLE },
       { property: "og:description", content: SETTINGS_DESC },
       { property: "og:url", content: "https://javan.lovable.app/settings" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: SETTINGS_TITLE },
       { name: "twitter:description", content: SETTINGS_DESC },
     ],

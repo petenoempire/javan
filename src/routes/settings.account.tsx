@@ -11,6 +11,7 @@ export const Route = createFileRoute("/settings/account")({
       { property: "og:title", content: "Account Settings · Javan" },
       { property: "og:description", content: "Manage your Javan account verification, artist status, username, and security settings." },
       { property: "og:url", content: "https://javan.lovable.app/settings/account" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Account Settings · Javan" },
       { name: "twitter:description", content: "Manage your Javan account verification, artist status, username, and security settings." },
     ],

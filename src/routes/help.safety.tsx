@@ -2,7 +2,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Flag, HeartHandshake, Lock, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/help/safety")({
-  head: () => ({ meta: [{ title: "Safety Center · Javan" }] }),
+  head: () => ({
+    meta: [
+      { title: "Safety Center · Javan" },
+      { name: "description", content: "Javan Safety Center: community protection rules, account safety guidance, how to report concerns, and creator wellbeing resources." },
+      { property: "og:title", content: "Safety Center · Javan" },
+      { property: "og:description", content: "Javan Safety Center: community protection rules, account safety guidance, and creator wellbeing resources." },
+      { property: "og:url", content: "https://javan.lovable.app/help/safety" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Safety Center · Javan" },
+      { name: "twitter:description", content: "Javan Safety Center: community protection, account safety, and creator wellbeing." },
+    ],
+    links: [{ rel: "canonical", href: "https://javan.lovable.app/help/safety" }],
+  }),
   component: SafetyCenter,
 });
 

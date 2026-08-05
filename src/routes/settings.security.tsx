@@ -13,6 +13,7 @@ export const Route = createFileRoute("/settings/security")({
       { property: "og:title", content: "Password & Security · Javan" },
       { property: "og:description", content: "Update your password, set up account recovery, and review security tips for your Javan account." },
       { property: "og:url", content: "https://javan.lovable.app/settings/security" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Password & Security · Javan" },
       { name: "twitter:description", content: "Update your password, set up account recovery, and review security tips for your Javan account." },
     ],
