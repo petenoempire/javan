@@ -181,6 +181,14 @@ function Auth() {
     if (target) setSelectedCountry(target);
   };
 
+  const getErrorMessage = (err: any) => {
+    if (!err) return "An unknown error occurred";
+    if (typeof err === "string") return err;
+    if (err.error_description) return err.error_description;
+    if (err.message) return err.message;
+    return JSON.stringify(err);
+  };
+
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -193,18 +201,21 @@ function Auth() {
         const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
         
         // Twilio-linked backend verification dispatch
-        const { error } = await supabase.functions.invoke("dispatch-dual-verification", {
+        const { error, data } = await supabase.functions.invoke("dispatch-dual-verification", {
           body: {
             email,
             phone: fullPhone,
             handle: handle.toLowerCase(),
-            name,
+            display_name: name || handle, // Match DB schema 'display_name'
             country: selectedCountry.code,
             region: selectedCountry.region,
           },
         });
 
-        if (error) throw new Error(error.message || "Failed to dispatch verification codes.");
+        if (error) {
+          console.error("Signup dispatch error:", error);
+          throw new Error(getErrorMessage(error));
+        }
         
         toast.success("Verification codes sent to SMS and email.");
         setStage("verify_signup");
@@ -214,13 +225,17 @@ function Auth() {
           body: { email, password },
         });
 
-        if (error) throw new Error(error.message || "Invalid credentials.");
+        if (error) {
+          console.error("Login challenge error:", error);
+          throw new Error(getErrorMessage(error));
+        }
         
         toast.success("Login code sent to your email.");
         setStage("verify_signin");
       }
     } catch (err: any) {
-      toast.error(err.message ?? "Authentication error.");
+      console.error("Auth submission crash prevented:", err);
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -250,7 +265,10 @@ function Auth() {
         },
       });
 
-      if (error) throw new Error(error.message || "Verification failed.");
+      if (error) {
+        console.error("Signup verification error:", error);
+        throw new Error(getErrorMessage(error));
+      }
 
       // After successful Twilio-based verification, sign in to Supabase
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
@@ -260,7 +278,8 @@ function Auth() {
       await refreshProfile();
       navigate({ to: "/" });
     } catch (err: any) {
-      toast.error(err.message ?? "Verification error.");
+      console.error("Signup challenge crash prevented:", err);
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -279,7 +298,10 @@ function Auth() {
         body: { email, "2fa_code": loginOtpInput },
       });
 
-      if (error) throw new Error(error.message || "Invalid 2FA code.");
+      if (error) {
+        console.error("2FA verification error:", error);
+        throw new Error(getErrorMessage(error));
+      }
 
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
       if (sessionError) throw sessionError;
@@ -288,7 +310,8 @@ function Auth() {
       await refreshProfile();
       navigate({ to: "/" });
     } catch (err: any) {
-      toast.error(err.message ?? "2FA error.");
+      console.error("Signin challenge crash prevented:", err);
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
