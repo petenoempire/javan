@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, posts, mediaAssets, likes, comments, follows, audioTracks, postAudio } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -35,7 +35,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     };
     const updateSet: Record<string, unknown> = {};
 
-    const textFields = ["name", "email", "loginMethod"] as const;
+    const textFields = ["name", "email", "loginMethod", "username", "bio", "avatar"] as const;
     type TextField = (typeof textFields)[number];
 
     const assignNullable = (field: TextField) => {
@@ -89,4 +89,219 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+/**
+ * Posts queries
+ */
+export async function createPost(data: typeof posts.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(posts).values(data);
+  return result;
+}
+
+export async function getPostById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getPostsByUserId(userId: number, limit = 20, offset = 0) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(posts)
+    .where(eq(posts.userId, userId))
+    .orderBy(desc(posts.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function getFeedPosts(limit = 20, offset = 0) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(posts)
+    .orderBy(desc(posts.createdAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function updatePost(id: number, data: Partial<typeof posts.$inferInsert>) {
+  const db = await getDb();
+  if (!db) return null;
+
+  await db.update(posts).set(data).where(eq(posts.id, id));
+  return getPostById(id);
+}
+
+export async function deletePost(id: number) {
+  const db = await getDb();
+  if (!db) return false;
+
+  await db.delete(posts).where(eq(posts.id, id));
+  return true;
+}
+
+/**
+ * Media Assets queries
+ */
+export async function createMediaAsset(data: typeof mediaAssets.$inferInsert) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(mediaAssets).values(data);
+  return result;
+}
+
+export async function getMediaAssetsByUserId(userId: number, type?: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const whereCondition = type 
+    ? and(eq(mediaAssets.userId, userId), eq(mediaAssets.type as any, type))
+    : eq(mediaAssets.userId, userId);
+
+  return await db.select().from(mediaAssets)
+    .where(whereCondition)
+    .orderBy(desc(mediaAssets.createdAt));
+}
+
+/**
+ * Likes queries
+ */
+export async function likePost(userId: number, postId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const post = await getPostById(postId);
+  await db.insert(likes).values({ userId, postId });
+  await db.update(posts).set({ likes: (post?.likes ?? 0) + 1 }).where(eq(posts.id, postId));
+}
+
+export async function unlikePost(userId: number, postId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const post = await getPostById(postId);
+  await db.delete(likes).where(and(eq(likes.userId, userId), eq(likes.postId, postId)));
+  await db.update(posts).set({ likes: Math.max(0, (post?.likes ?? 0) - 1) }).where(eq(posts.id, postId));
+}
+
+export async function isPostLikedByUser(userId: number, postId: number) {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db.select().from(likes)
+    .where(and(eq(likes.userId, userId), eq(likes.postId, postId)))
+    .limit(1);
+
+  return result.length > 0;
+}
+
+/**
+ * Comments queries
+ */
+export async function createComment(userId: number, postId: number, text: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const post = await getPostById(postId);
+  await db.insert(comments).values({ userId, postId, text });
+  await db.update(posts).set({ comments: (post?.comments ?? 0) + 1 }).where(eq(posts.id, postId));
+}
+
+export async function getCommentsByPostId(postId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(comments)
+    .where(eq(comments.postId, postId))
+    .orderBy(desc(comments.createdAt));
+}
+
+/**
+ * Follows queries
+ */
+export async function followUser(followerId: number, followingId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.insert(follows).values({ followerId, followingId });
+}
+
+export async function unfollowUser(followerId: number, followingId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(follows).where(and(eq(follows.followerId, followerId), eq(follows.followingId, followingId)));
+}
+
+export async function isFollowing(followerId: number, followingId: number) {
+  const db = await getDb();
+  if (!db) return false;
+
+  const result = await db.select().from(follows)
+    .where(and(eq(follows.followerId, followerId), eq(follows.followingId, followingId)))
+    .limit(1);
+
+  return result.length > 0;
+}
+
+export async function getFollowerCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const result = await db.select().from(follows)
+    .where(eq(follows.followingId, userId));
+
+  return result.length;
+}
+
+/**
+ * Audio Tracks queries
+ */
+export async function getAudioTracks(limit = 50) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(audioTracks)
+    .orderBy(desc(audioTracks.isPopular), desc(audioTracks.createdAt))
+    .limit(limit);
+}
+
+export async function getPopularAudioTracks(limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(audioTracks)
+    .where(eq(audioTracks.isPopular, true))
+    .limit(limit);
+}
+
+/**
+ * Post Audio associations
+ */
+export async function addAudioToPost(postId: number, audioId: number, startTime = 0, volume = 1) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.insert(postAudio).values({ postId, audioId, startTime, volume: volume as any });
+}
+
+export async function getPostAudio(postId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(postAudio).where(eq(postAudio.postId, postId));
+}

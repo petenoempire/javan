@@ -1,97 +1,128 @@
-// Preconfigured storage helpers for Manus WebDev templates
-// Uploads via Forge Server presigned URL to S3 (PUT direct).
-// Downloads return /manus-storage/{key} paths served via 307 redirect.
-
 import { ENV } from "./_core/env";
 
-function getForgeConfig() {
-  const forgeUrl = ENV.forgeApiUrl;
-  const forgeKey = ENV.forgeApiKey;
-
-  if (!forgeUrl || !forgeKey) {
-    throw new Error(
-      "Storage config missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY",
-    );
-  }
-
-  return { forgeUrl: forgeUrl.replace(/\/+$/, ""), forgeKey };
-}
-
-function normalizeKey(relKey: string): string {
-  return relKey.replace(/^\/+/, "");
-}
-
-function appendHashSuffix(relKey: string): string {
-  const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 8);
-  const lastDot = relKey.lastIndexOf(".");
-  if (lastDot === -1) return `${relKey}_${hash}`;
-  return `${relKey.slice(0, lastDot)}_${hash}${relKey.slice(lastDot)}`;
-}
-
-export async function storagePut(
-  relKey: string,
-  data: Buffer | Uint8Array | string,
-  contentType = "application/octet-stream",
+/**
+ * Helper to upload file to S3-compatible storage via Manus API
+ */
+export async function uploadToStorage(
+  key: string,
+  data: Buffer | Blob,
+  contentType: string
 ): Promise<{ key: string; url: string }> {
-  const { forgeUrl, forgeKey } = getForgeConfig();
-  const key = appendHashSuffix(normalizeKey(relKey));
-
-  // 1. Get presigned PUT URL from Forge
-  const presignUrl = new URL("v1/storage/presign/put", forgeUrl + "/");
-  presignUrl.searchParams.set("path", key);
-
-  const presignResp = await fetch(presignUrl, {
-    headers: { Authorization: `Bearer ${forgeKey}` },
-  });
-
-  if (!presignResp.ok) {
-    const msg = await presignResp.text().catch(() => presignResp.statusText);
-    throw new Error(`Storage presign failed (${presignResp.status}): ${msg}`);
+  if (!ENV.forgeApiUrl || !ENV.forgeApiKey) {
+    throw new Error("Storage not configured");
   }
 
-  const { url: s3Url } = (await presignResp.json()) as { url: string };
-  if (!s3Url) throw new Error("Forge returned empty presign URL");
+  try {
+    // Get presigned upload URL
+    const presignUrl = new URL(
+      "v1/storage/presign/put",
+      ENV.forgeApiUrl.replace(/\/+$/, "") + "/"
+    );
+    presignUrl.searchParams.set("path", key);
+    presignUrl.searchParams.set("contentType", contentType);
 
-  // 2. PUT file directly to S3
-  const blob =
-    typeof data === "string"
-      ? new Blob([data], { type: contentType })
-      : new Blob([data as any], { type: contentType });
+    const presignResp = await fetch(presignUrl, {
+      headers: { Authorization: `Bearer ${ENV.forgeApiKey}` },
+    });
 
-  const uploadResp = await fetch(s3Url, {
-    method: "PUT",
-    headers: { "Content-Type": contentType },
-    body: blob,
-  });
+    if (!presignResp.ok) {
+      throw new Error(`Failed to get presigned URL: ${presignResp.status}`);
+    }
 
-  if (!uploadResp.ok) {
-    throw new Error(`Storage upload to S3 failed (${uploadResp.status})`);
+    const { url: uploadUrl } = (await presignResp.json()) as { url: string };
+
+    // Upload file to presigned URL
+    let uploadBody: BodyInit;
+    if (data instanceof Blob) {
+      uploadBody = await data.arrayBuffer();
+    } else if (Buffer.isBuffer(data)) {
+      uploadBody = new Uint8Array(data);
+    } else {
+      uploadBody = data;
+    }
+
+    const uploadResp = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": contentType },
+      body: uploadBody,
+    });
+
+    if (!uploadResp.ok) {
+      throw new Error(`Upload failed: ${uploadResp.status}`);
+    }
+
+    // Return storage URL (will be served via /manus-storage proxy)
+    const storageUrl = `/manus-storage/${encodeURIComponent(key)}`;
+
+    return { key, url: storageUrl };
+  } catch (error) {
+    console.error("[Storage] Upload failed:", error);
+    throw error;
   }
-
-  return { key, url: `/manus-storage/${key}` };
 }
 
-export async function storageGet(relKey: string): Promise<{ key: string; url: string }> {
-  const key = normalizeKey(relKey);
-  return { key, url: `/manus-storage/${key}` };
+/**
+ * Upload a photo to S3
+ */
+export async function uploadPhoto(
+  userId: number,
+  blob: Blob,
+  filename: string
+): Promise<{ key: string; url: string }> {
+  const key = `photos/${userId}/${Date.now()}-${filename}`;
+  return await uploadToStorage(key, blob, "image/jpeg");
 }
 
-export async function storageGetSignedUrl(relKey: string): Promise<string> {
-  const { forgeUrl, forgeKey } = getForgeConfig();
-  const key = normalizeKey(relKey);
+/**
+ * Upload a video to S3
+ */
+export async function uploadVideo(
+  userId: number,
+  blob: Blob,
+  filename: string
+): Promise<{ key: string; url: string }> {
+  const key = `videos/${userId}/${Date.now()}-${filename}`;
+  return await uploadToStorage(key, blob, "video/webm");
+}
 
-  const getUrl = new URL("v1/storage/presign/get", forgeUrl + "/");
-  getUrl.searchParams.set("path", key);
+/**
+ * Upload a background image to S3
+ */
+export async function uploadBackground(
+  userId: number,
+  blob: Blob,
+  filename: string
+): Promise<{ key: string; url: string }> {
+  const key = `backgrounds/${userId}/${Date.now()}-${filename}`;
+  return await uploadToStorage(key, blob, "image/jpeg");
+}
 
-  const resp = await fetch(getUrl, {
-    headers: { Authorization: `Bearer ${forgeKey}` },
-  });
+/**
+ * Upload a thumbnail to S3
+ */
+export async function uploadThumbnail(
+  userId: number,
+  blob: Blob,
+  filename: string
+): Promise<{ key: string; url: string }> {
+  const key = `thumbnails/${userId}/${Date.now()}-${filename}`;
+  return await uploadToStorage(key, blob, "image/jpeg");
+}
 
-  if (!resp.ok) {
-    const msg = await resp.text().catch(() => resp.statusText);
-    throw new Error(`Storage signed URL failed (${resp.status}): ${msg}`);
-  }
+/**
+ * Get a storage URL for a key
+ */
+export function getStorageUrl(key: string): string {
+  return `/manus-storage/${encodeURIComponent(key)}`;
+}
 
-  const { url } = (await resp.json()) as { url: string };
-  return url;
+/**
+ * Generic storage put function for compatibility with existing code
+ */
+export async function storagePut(
+  key: string,
+  data: Buffer | Blob,
+  contentType: string
+): Promise<{ key: string; url: string }> {
+  return await uploadToStorage(key, data, contentType);
 }
