@@ -152,6 +152,16 @@ function Auth() {
               navigate({ to: "/discover" });
             }
           }
+        } else if (search.includes("code")) {
+          const params = new URLSearchParams(search);
+          const code = params.get("code");
+          if (code) {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            if (!error) {
+              setLoading(false);
+              navigate({ to: "/discover" });
+            }
+          }
         }
       }
     };
