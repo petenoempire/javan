@@ -8,7 +8,39 @@ import { markStoryViewed, deleteStory, getStoryViewers, type Story, type StoryAu
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/story/$userId")({
-  head: () => ({ meta: [{ title: "Story · Javan" }] }),
+  loader: async ({ params }) => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("handle, display_name, avatar_url")
+      .eq("id", params.userId)
+      .maybeSingle();
+    return { profile };
+  },
+  head: ({ params, loaderData }) => {
+    const profile = loaderData?.profile;
+    const title = profile ? `${profile.display_name}'s Story · Javan` : "Story · Javan";
+    const description = profile ? `Watch @${profile.handle}'s latest story on Javan. Catch up with your favorite creators in real-time.` : "Watch stories from creators on Javan.";
+    const url = `https://javan.lovable.app/story/${params.userId}`;
+    const image = profile?.avatar_url || "https://javan.lovable.app/logo.png";
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "video.other" },
+        { property: "og:image", content: image },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "robots", content: "noindex" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: StoryViewer,
 });
 
@@ -151,7 +183,7 @@ function StoryViewer() {
           className="absolute inset-0 h-full w-full object-contain"
         />
       ) : (
-        <img src={current.media_url} alt="" className="absolute inset-0 h-full w-full object-contain" />
+        <img src={current.media_url} alt={`Story by ${author?.display_name || 'creator'}`} className="absolute inset-0 h-full w-full object-contain" />
       )}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
 
@@ -172,7 +204,7 @@ function StoryViewer() {
         {author && (
           <Link to="/u/$handle" params={{ handle: author.handle }} className="flex items-center gap-2 active:opacity-80">
             {author.avatar_url ? (
-              <img src={author.avatar_url} alt="" className="h-8 w-8 rounded-full border border-white/40 object-cover" />
+              <img src={author.avatar_url} alt={`${author.display_name}'s avatar`} className="h-8 w-8 rounded-full border border-white/40 object-cover" />
             ) : (
               <div className="bg-gradient-primary h-8 w-8 rounded-full border border-white/40" />
             )}
@@ -257,7 +289,7 @@ function StoryViewer() {
                 {viewers.map((v: any) => (
                   <div key={v.id} className="flex items-center gap-2">
                     {v.avatar_url ? (
-                      <img src={v.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                      <img src={v.avatar_url} alt={`${v.display_name}'s avatar`} className="h-8 w-8 rounded-full object-cover" />
                     ) : (
                       <div className="bg-gradient-primary h-8 w-8 rounded-full" />
                     )}

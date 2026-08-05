@@ -6,13 +6,15 @@ import { Music as MusicIcon, Play, SkipBack, SkipForward, ListMusic, Volume2 } f
 export const Route = createFileRoute("/music")({
   head: () => ({
     meta: [
-      { title: "Music Library · Javan" },
-      { name: "description", content: "Discover trending sounds, original tracks, and background music for your streams on Javan. Find the perfect audio for your content." },
-      { property: "og:title", content: "Music Library · Javan" },
-      { property: "og:description", content: "Discover trending sounds and original tracks on Javan." },
+      { title: "Music Hub — Discover Trending Sounds & Original Tracks · Javan" },
+      { name: "description", content: "Find the perfect sound for your next video. Explore trending music, original artist tracks, and viral sounds on Javan. The ultimate music library for short video creators." },
+      { property: "og:title", content: "Music Hub — Discover Trending Sounds & Original Tracks · Javan" },
+      { property: "og:description", content: "Find the perfect sound for your next video. Explore trending music, original artist tracks, and viral sounds on Javan." },
       { property: "og:url", content: "https://javan.lovable.app/music" },
-      { name: "twitter:title", content: "Music Library · Javan" },
-      { name: "twitter:description", content: "Discover trending sounds and original tracks on Javan." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Music Hub — Discover Trending Sounds & Original Tracks · Javan" },
+      { name: "twitter:description", content: "Find trending sounds and original music for your content on Javan." },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/music" }],
   }),
@@ -29,7 +31,7 @@ function MusicPage() {
               <MusicIcon className="h-8 w-8 text-fuchsia-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Music Library</h1>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Music Hub & Sounds</h1>
               <p className="text-white/50">Discover trending sounds, original tracks, and background music for your streams.</p>
             </div>
           </div>

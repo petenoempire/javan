@@ -16,6 +16,7 @@ import { Route as CommunityRouteImport } from './routes/community'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as DramaRouteImport } from './routes/drama'
+import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FollowersRouteImport } from './routes/followers'
 import { Route as FollowingRouteImport } from './routes/following'
 import { Route as FriendsRouteImport } from './routes/friends'
@@ -48,6 +49,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminVerificationsRouteImport } from './routes/admin/verifications'
 import { Route as ArtistOnboardingRouteImport } from './routes/artist.onboarding'
 import { Route as ArtistStudioRouteImport } from './routes/artist.studio'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as HelpChatRouteImport } from './routes/help.chat'
 import { Route as HelpSafetyRouteImport } from './routes/help.safety'
 import { Route as InboxIdRouteImport } from './routes/inbox.$id'
@@ -101,6 +103,11 @@ const DiscoverRoute = DiscoverRouteImport.update({
 const DramaRoute = DramaRouteImport.update({
   id: '/drama',
   path: '/drama',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FollowersRoute = FollowersRouteImport.update({
@@ -265,6 +272,11 @@ const ArtistStudioRoute = ArtistStudioRouteImport.update({
   path: '/artist/studio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
 const HelpChatRoute = HelpChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -367,11 +379,12 @@ const SettingsSecurityRecoveryRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/community': typeof CommunityRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/drama': typeof DramaRoute
+  '/features': typeof FeaturesRoute
   '/followers': typeof FollowersRoute
   '/following': typeof FollowingRoute
   '/friends': typeof FriendsRoute
@@ -403,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/admin/verifications': typeof AdminVerificationsRoute
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/help/chat': typeof HelpChatRoute
   '/help/safety': typeof HelpSafetyRoute
   '/inbox/$id': typeof InboxIdRoute
@@ -426,11 +440,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/community': typeof CommunityRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/drama': typeof DramaRoute
+  '/features': typeof FeaturesRoute
   '/followers': typeof FollowersRoute
   '/following': typeof FollowingRoute
   '/friends': typeof FriendsRoute
@@ -461,6 +476,7 @@ export interface FileRoutesByTo {
   '/admin/verifications': typeof AdminVerificationsRoute
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/help/chat': typeof HelpChatRoute
   '/help/safety': typeof HelpSafetyRoute
   '/inbox/$id': typeof InboxIdRoute
@@ -486,11 +502,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/community': typeof CommunityRoute
   '/create': typeof CreateRoute
   '/discover': typeof DiscoverRoute
   '/drama': typeof DramaRoute
+  '/features': typeof FeaturesRoute
   '/followers': typeof FollowersRoute
   '/following': typeof FollowingRoute
   '/friends': typeof FriendsRoute
@@ -522,6 +539,7 @@ export interface FileRoutesById {
   '/admin/verifications': typeof AdminVerificationsRoute
   '/artist/onboarding': typeof ArtistOnboardingRoute
   '/artist/studio': typeof ArtistStudioRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/help/chat': typeof HelpChatRoute
   '/help/safety': typeof HelpSafetyRoute
   '/inbox/$id': typeof InboxIdRoute
@@ -553,6 +571,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/discover'
     | '/drama'
+    | '/features'
     | '/followers'
     | '/following'
     | '/friends'
@@ -584,6 +603,7 @@ export interface FileRouteTypes {
     | '/admin/verifications'
     | '/artist/onboarding'
     | '/artist/studio'
+    | '/auth/callback'
     | '/help/chat'
     | '/help/safety'
     | '/inbox/$id'
@@ -612,6 +632,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/discover'
     | '/drama'
+    | '/features'
     | '/followers'
     | '/following'
     | '/friends'
@@ -642,6 +663,7 @@ export interface FileRouteTypes {
     | '/admin/verifications'
     | '/artist/onboarding'
     | '/artist/studio'
+    | '/auth/callback'
     | '/help/chat'
     | '/help/safety'
     | '/inbox/$id'
@@ -671,6 +693,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/discover'
     | '/drama'
+    | '/features'
     | '/followers'
     | '/following'
     | '/friends'
@@ -702,6 +725,7 @@ export interface FileRouteTypes {
     | '/admin/verifications'
     | '/artist/onboarding'
     | '/artist/studio'
+    | '/auth/callback'
     | '/help/chat'
     | '/help/safety'
     | '/inbox/$id'
@@ -727,11 +751,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   CommunityRoute: typeof CommunityRoute
   CreateRoute: typeof CreateRoute
   DiscoverRoute: typeof DiscoverRoute
   DramaRoute: typeof DramaRoute
+  FeaturesRoute: typeof FeaturesRoute
   FollowersRoute: typeof FollowersRoute
   FollowingRoute: typeof FollowingRoute
   FriendsRoute: typeof FriendsRoute
@@ -811,6 +836,13 @@ declare module '@tanstack/react-router' {
       path: '/drama'
       fullPath: '/drama'
       preLoaderRoute: typeof DramaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/followers': {
@@ -1037,6 +1069,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArtistStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/help/chat': {
       id: '/help/chat'
       path: '/chat'
@@ -1197,6 +1236,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 interface HelpRouteChildren {
   HelpChatRoute: typeof HelpChatRoute
   HelpSafetyRoute: typeof HelpSafetyRoute
@@ -1301,11 +1350,12 @@ const StudioRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   CommunityRoute: CommunityRoute,
   CreateRoute: CreateRoute,
   DiscoverRoute: DiscoverRoute,
   DramaRoute: DramaRoute,
+  FeaturesRoute: FeaturesRoute,
   FollowersRoute: FollowersRoute,
   FollowingRoute: FollowingRoute,
   FriendsRoute: FriendsRoute,

@@ -164,7 +164,7 @@ function PostDetailPage() {
     <MobileShell>
       <div className="px-4 pt-4 pb-20">
         <h1 className="sr-only">
-          {`${(post.content || "Post").trim().replace(/\s+/g, " ").slice(0, 40)} — @${author?.handle ?? "javan"}`}
+          {post.content ? `Post by @${author?.handle}: ${post.content.slice(0, 60)}` : `Post by @${author?.handle}`}
         </h1>
 
         <Link to="/" aria-label="Back to feed" className="inline-flex items-center gap-1 text-white/50 mb-4">

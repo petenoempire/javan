@@ -119,7 +119,7 @@ export function NotificationBell() {
                 >
                   <div className="relative">
                     {n.actor?.avatar_url ? (
-                      <img src={n.actor.avatar_url} className="h-9 w-9 rounded-full object-cover" alt="" />
+                      <img src={n.actor.avatar_url} className="h-9 w-9 rounded-full object-cover" alt={`${n.actor.display_name || n.actor.handle}'s avatar`} />
                     ) : (
                       <div className="bg-gradient-primary h-9 w-9 rounded-full" />
                     )}

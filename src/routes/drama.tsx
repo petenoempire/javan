@@ -6,13 +6,15 @@ import { Film, Clapperboard, Star, TrendingUp } from "lucide-react";
 export const Route = createFileRoute("/drama")({
   head: () => ({
     meta: [
-      { title: "Drama & Stories · Javan" },
-      { name: "description", content: "Watch trending drama, cinematic shorts, and community stories on Javan. Discover the latest narrative content from creators." },
-      { property: "og:title", content: "Drama & Stories · Javan" },
-      { property: "og:description", content: "Watch trending drama, cinematic shorts, and community stories on Javan." },
+      { title: "Drama & Stories — The Latest Creator Updates · Javan" },
+      { name: "description", content: "Catch up on the latest creator drama, exclusive stories, and behind-the-scenes content on Javan. Discover trending cinematic shorts and community narratives." },
+      { property: "og:title", content: "Drama & Stories — The Latest Creator Updates · Javan" },
+      { property: "og:description", content: "Catch up on the latest creator drama, exclusive stories, and behind-the-scenes content on Javan." },
       { property: "og:url", content: "https://javan.lovable.app/drama" },
-      { name: "twitter:title", content: "Drama & Stories · Javan" },
-      { name: "twitter:description", content: "Watch trending drama, cinematic shorts, and community stories on Javan." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Drama & Stories — The Latest Creator Updates · Javan" },
+      { name: "twitter:description", content: "Watch the latest creator stories and drama on Javan." },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/drama" }],
   }),
@@ -29,7 +31,7 @@ function DramaPage() {
               <Film className="h-8 w-8 text-rose-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Drama & Stories</h1>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Javan Drama & Stories</h1>
               <p className="text-white/50">The latest trending stories, cinematic shorts, and community drama.</p>
             </div>
           </div>

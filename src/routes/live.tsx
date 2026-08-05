@@ -7,13 +7,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export const Route = createFileRoute("/live")({
   head: () => ({
     meta: [
-      { title: "Live Now · Javan" },
-      { name: "description", content: "Watch live streams from your favorite creators on Javan. Interact in real-time and join the community." },
-      { property: "og:title", content: "Live Now · Javan" },
-      { property: "og:description", content: "Watch live streams from your favorite creators on Javan." },
+      { title: "Watch Live Streams & Connect with Creators · Javan" },
+      { name: "description", content: "Experience real-time entertainment on Javan. Watch live streams from your favorite creators, interact in real-time, and join a global community of fans." },
+      { property: "og:title", content: "Watch Live Streams & Connect with Creators · Javan" },
+      { property: "og:description", content: "Experience real-time entertainment. Watch live streams from your favorite creators and join the conversation on Javan." },
       { property: "og:url", content: "https://javan.lovable.app/live" },
-      { name: "twitter:title", content: "Live Now · Javan" },
-      { name: "twitter:description", content: "Watch live streams from your favorite creators on Javan." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Watch Live Streams & Connect with Creators · Javan" },
+      { name: "twitter:description", content: "Watch and interact with creators in real-time on Javan." },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/live" }],
   }),
@@ -33,7 +35,7 @@ function LivePage() {
                 <Radio className="h-8 w-8 text-rose-400" />
               </div>
               <div>
-                <h1 className="text-4xl font-black text-chrome tracking-tight">Live Now</h1>
+                <h1 className="text-4xl font-black text-chrome tracking-tight">Live Now on Javan</h1>
                 <p className="text-white/50">Watch and interact with creators in real-time.</p>
               </div>
             </div>

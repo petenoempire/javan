@@ -6,13 +6,15 @@ import { Users, MessageSquare, Shield, Globe } from "lucide-react";
 export const Route = createFileRoute("/community")({
   head: () => ({
     meta: [
-      { title: "Community · Javan" },
-      { name: "description", content: "Join groups, participate in discussions, and connect with your tribe on Javan. Find your community of creators and fans." },
-      { property: "og:title", content: "Community · Javan" },
-      { property: "og:description", content: "Join groups, participate in discussions, and connect with your tribe on Javan." },
+      { title: "Javan Community — Connect, Share & Grow with Creators" },
+      { name: "description", content: "Join the conversation on Javan. Connect with other creators, join groups, and share your passion on the most interactive short video platform community." },
+      { property: "og:title", content: "Javan Community — Connect, Share & Grow with Creators" },
+      { property: "og:description", content: "Join the conversation. Connect with other creators, join groups, and share your passion on the Javan community platform." },
       { property: "og:url", content: "https://javan.lovable.app/community" },
-      { name: "twitter:title", content: "Community · Javan" },
-      { name: "twitter:description", content: "Join groups, participate in discussions, and connect with your tribe on Javan." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Javan Community — Connect, Share & Grow with Creators" },
+      { name: "twitter:description", content: "Join your tribe and connect with creators on Javan." },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/community" }],
   }),
@@ -36,7 +38,7 @@ function CommunityPage() {
               <Users className="h-8 w-8 text-cyan-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Community</h1>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Javan Community</h1>
               <p className="text-white/50">Join groups, participate in discussions, and find your tribe.</p>
             </div>
           </div>

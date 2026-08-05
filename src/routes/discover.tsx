@@ -11,13 +11,15 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/discover")({ 
   head: () => ({
     meta: [
-      { title: "Discover Creators · Javan" },
-      { name: "description", content: "Find and follow new creators on Javan. Search by name or handle to discover fresh video and live content." },
-      { property: "og:title", content: "Discover Creators · Javan" },
-      { property: "og:description", content: "Find and follow new creators on Javan. Search by name or handle to discover fresh video and live content." },
+      { title: "Discover Trending Creators & Viral Videos · Javan" },
+      { name: "description", content: "Explore the best content on Javan. Discover new creators, trending short videos, and viral stories across STEM, Drama, and more. Find your next favorite creator today." },
+      { property: "og:title", content: "Discover Trending Creators & Viral Videos · Javan" },
+      { property: "og:description", content: "Explore the best content on Javan. Discover new creators, trending short videos, and viral stories across STEM, Drama, and more." },
       { property: "og:url", content: "https://javan.lovable.app/discover" },
-      { name: "twitter:title", content: "Discover Creators · Javan" },
-      { name: "twitter:description", content: "Find and follow new creators on Javan. Search by name or handle to discover fresh video and live content." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Discover Trending Creators & Viral Videos · Javan" },
+      { name: "twitter:description", content: "Find new creators and viral short videos on Javan." },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/discover" }],
   }),
@@ -98,7 +100,7 @@ function DiscoverPage() {
               <Compass className="h-8 w-8 text-cyan-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Discover</h1>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Discover Creators</h1>
               <p className="text-white/50">Explore categories and find new creators to follow.</p>
             </div>
           </div>
@@ -164,7 +166,7 @@ function DiscoverPage() {
 
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
-          <h1 className="sr-only">Discover Creators</h1>
+          <h1 className="sr-only">Discover New Content & Trending Creators</h1>
           <div className="relative mb-6">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <input 

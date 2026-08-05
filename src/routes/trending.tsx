@@ -6,13 +6,15 @@ import { TrendingUp, Flame, Trophy, BarChart3 } from "lucide-react";
 export const Route = createFileRoute("/trending")({
   head: () => ({
     meta: [
-      { title: "Trending Now · Javan" },
-      { name: "description", content: "Discover the hottest creators, viral videos, and trending topics across Javan. See what's trending in real-time." },
-      { property: "og:title", content: "Trending Now · Javan" },
-      { property: "og:description", content: "Discover the hottest creators, viral videos, and trending topics across Javan." },
+      { title: "Trending Now on Javan — Viral Short Videos & Top Creators" },
+      { name: "description", content: "Stay updated with what's viral. See the most popular short videos, top creators, and trending topics on Javan today. Join the conversation and see what's trending in real-time." },
+      { property: "og:title", content: "Trending Now on Javan — Viral Short Videos & Top Creators" },
+      { property: "og:description", content: "Stay updated with what's viral on Javan. See popular short videos, top creators, and trending topics." },
       { property: "og:url", content: "https://javan.lovable.app/trending" },
-      { name: "twitter:title", content: "Trending Now · Javan" },
-      { name: "twitter:description", content: "Discover the hottest creators, viral videos, and trending topics across Javan." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Trending Now on Javan — Viral Short Videos & Top Creators" },
+      { name: "twitter:description", content: "Discover what's viral on Javan right now." },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/trending" }],
   }),
@@ -29,7 +31,7 @@ function TrendingPage() {
               <TrendingUp className="h-8 w-8 text-orange-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Trending Now</h1>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Trending Now on Javan</h1>
               <p className="text-white/50">The hottest creators, videos, and topics across the cosmic Javan universe.</p>
             </div>
           </div>

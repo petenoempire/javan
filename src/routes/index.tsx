@@ -12,8 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "motion/react";
 
-const HOME_TITLE = "Javan Feed — Live Videos & Creator Posts";
-const HOME_DESC = "Browse the Javan For You feed: short videos, live streams and stories from creators earning coins and payouts on Javan.";
+const HOME_TITLE = "Javan — The Ultimate Short Video Platform for Creators";
+const HOME_DESC = "Join Javan, the fastest-growing short video platform where creators share live streams, stories, and viral content to earn real rewards and payouts.";
 
 const CATEGORIES = [
   { name: 'Live', badge: 'LIVE' },
@@ -109,9 +109,11 @@ export const Route = createFileRoute("/")({
       { name: "robots", content: "index,follow" },
       { property: "og:title", content: HOME_TITLE },
       { property: "og:description", content: HOME_DESC },
+      { property: "og:url", content: "https://javan.lovable.app" },
+      { property: "og:type", content: "website" },
       { name: "twitter:title", content: HOME_TITLE },
       { name: "twitter:description", content: HOME_DESC },
-      { property: "og:url", content: "https://javan.lovable.app" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app" }],
   }),
@@ -234,9 +236,9 @@ function HomePage() {
 
               {/* Bottom Overlay */}
               <div className="absolute bottom-32 left-0 right-16 p-6 z-10">
-                <h3 className="text-lg font-black flex items-center gap-2">
+                <h2 className="text-lg font-black flex items-center gap-2">
                   {posts[0].author?.display_name}
-                </h3>
+                </h2>
                 <p className="text-sm mt-2 line-clamp-2 leading-snug font-medium">
                   {posts[0].content}
                 </p>
@@ -269,6 +271,7 @@ function HomePage() {
       {/* Desktop Version */}
       <DesktopLayout>
         <div className="space-y-8">
+          <h1 className="sr-only">Javan Home Feed — Explore Trending Short Videos</h1>
           {/* Category Navigation Bar for Desktop */}
           <CategoryScrollBar activeCategory={activeCategory} setActiveCategory={setActiveCategory} isMobile={false} />
 
@@ -287,14 +290,14 @@ function HomePage() {
                 <div className="max-w-2xl space-y-3">
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8 border border-cyan-400">
-                      <AvatarImage src={posts[0].author?.avatar_url} />
+                      <AvatarImage src={posts[0].author?.avatar_url} alt={`${posts[0].author?.display_name}'s avatar`} />
                       <AvatarFallback>{posts[0].author?.display_name?.[0]}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-bold">@{posts[0].author?.handle}</span>
                   </div>
-                  <h1 className="text-4xl font-black text-chrome leading-tight">
+                  <h2 className="text-4xl font-black text-chrome leading-tight">
                     {posts[0].content}
-                  </h1>
+                  </h2>
                   <div className="flex items-center gap-4 text-xs text-white/60">
                     <span>{posts[0].views_count} views</span>
                     <span>•</span>
@@ -339,7 +342,7 @@ function HomePage() {
                       <div className="relative aspect-video rounded-2xl overflow-hidden glass border border-white/10 mb-3">
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
                         {post.image_url ? (
-                          <img src={post.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                          <img src={post.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={`Post by ${post.author?.display_name}: ${post.content}`} />
                         ) : (
                           <div className="w-full h-full bg-white/5 flex items-center justify-center">
                             <Film className="h-12 w-12 text-white/10" />
@@ -349,7 +352,7 @@ function HomePage() {
                       <div className="flex gap-3">
                         <Link to="/u/$handle" params={{ handle: post.author?.handle || "user" }}>
                           <Avatar className="h-10 w-10 border border-white/10 hover:border-cyan-400 transition-colors">
-                            <AvatarImage src={post.author?.avatar_url} />
+                            <AvatarImage src={post.author?.avatar_url} alt={`${post.author?.display_name}'s avatar`} />
                             <AvatarFallback>{post.author?.display_name?.[0]}</AvatarFallback>
                           </Avatar>
                         </Link>

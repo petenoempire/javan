@@ -22,8 +22,9 @@ export const Route = createFileRoute("/u/$handle")({
   head: ({ params, loaderData }) => {
     const profile = loaderData?.profile;
     const title = profile ? `${profile.display_name} (@${params.handle}) · Javan` : `@${params.handle} · Javan`;
-    const description = profile?.bio || `View @${params.handle}'s profile on Javan.`;
+    const description = profile?.bio ? `${profile.bio.slice(0, 150)}...` : `Check out @${params.handle}'s profile on Javan. Join the community to watch their live streams and short videos.`;
     const url = `https://javan.lovable.app/u/${params.handle}`;
+    const image = profile?.avatar_url || "https://javan.lovable.app/logo.png";
 
     return {
       meta: [
@@ -33,8 +34,11 @@ export const Route = createFileRoute("/u/$handle")({
         { property: "og:description", content: description },
         { property: "og:url", content: url },
         { property: "og:type", content: "profile" },
+        { property: "og:image", content: image },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
       links: [{ rel: "canonical", href: url }],
     };
@@ -180,7 +184,7 @@ function PublicProfile() {
           <div className="px-12 flex items-start justify-between mb-10">
              <div className="flex-1">
                 <div className="flex items-center gap-3">
-                   <h1 className="text-4xl font-black text-chrome tracking-tight">@{profile.handle}</h1>
+                    <h1 className="text-4xl font-black text-chrome tracking-tight">{profile.display_name} (@{profile.handle})</h1>
                    {isVerified && <BadgeCheck className="h-6 w-6 text-cyan-400" />}
                    {isArtist && (
                       <span className="bg-gradient-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-glow">
@@ -260,7 +264,7 @@ function PublicProfile() {
               )}
             </div>
             <div className="mt-3 flex items-center gap-2">
-              <h1 className="font-display text-2xl font-bold text-chrome">@{profile.handle}</h1>
+              <h1 className="font-display text-2xl font-bold text-chrome">{profile.display_name}</h1>
               {isVerified && (
                 <BadgeCheck className="h-5 w-5 fill-blue-500 text-white" aria-label="Verified" />
               )}

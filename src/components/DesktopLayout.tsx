@@ -87,7 +87,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
               <div className="glass-strong rounded-2xl p-4 border border-white/10 hover:bg-white/5 transition-colors group">
                 <div className="flex items-center gap-3 mb-3">
                   <Avatar className="h-10 w-10 border border-cyan-500/50">
-                    <AvatarImage src={profile?.avatar_url || ""} />
+                    <AvatarImage src={profile?.avatar_url || ""} alt={`${profile?.display_name || 'User'}'s avatar`} />
                     <AvatarFallback>{profile?.display_name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">

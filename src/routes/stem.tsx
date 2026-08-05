@@ -6,13 +6,15 @@ import { Microscope, Brain, Rocket, Atom } from "lucide-react";
 export const Route = createFileRoute("/stem")({
   head: () => ({
     meta: [
-      { title: "STEM Hub · Javan" },
-      { name: "description", content: "Explore educational content and deep dives into science, technology, engineering, and mathematics on Javan. Learn from expert creators." },
-      { property: "og:title", content: "STEM Hub · Javan" },
-      { property: "og:description", content: "Explore educational content in science, technology, engineering, and mathematics on Javan." },
+      { title: "STEM Hub — Educational Short Videos & Insights · Javan" },
+      { name: "description", content: "Learn something new every day. Explore short videos focused on Science, Technology, Engineering, and Math from expert creators on the Javan STEM Hub." },
+      { property: "og:title", content: "STEM Hub — Educational Short Videos & Insights · Javan" },
+      { property: "og:description", content: "Learn something new every day. Explore short videos focused on Science, Technology, Engineering, and Math from expert creators." },
       { property: "og:url", content: "https://javan.lovable.app/stem" },
-      { name: "twitter:title", content: "STEM Hub · Javan" },
-      { name: "twitter:description", content: "Explore educational content in science, technology, engineering, and mathematics on Javan." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "STEM Hub — Educational Short Videos & Insights · Javan" },
+      { name: "twitter:description", content: "Explore educational science and tech content on Javan." },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/stem" }],
   }),
@@ -36,7 +38,7 @@ function StemPage() {
               <Microscope className="h-8 w-8 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">STEM Hub</h1>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Javan STEM Hub</h1>
               <p className="text-white/50">Educational content and deep dives into science and tech.</p>
             </div>
           </div>
