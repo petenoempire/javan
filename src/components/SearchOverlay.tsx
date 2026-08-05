@@ -72,12 +72,13 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
               />
             </div>
-            <button
-              onClick={onClose}
-              className="h-12 w-12 rounded-2xl glass flex items-center justify-center border border-white/10 active:scale-90 transition-transform"
-            >
-              <X className="h-6 w-6 text-white" />
-            </button>
+<button
+	              onClick={onClose}
+	              aria-label="Close search"
+	              className="h-12 w-12 rounded-2xl glass flex items-center justify-center border border-white/10 active:scale-90 transition-transform"
+	            >
+	              <X className="h-6 w-6 text-white" />
+	            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto px-6 pb-12">

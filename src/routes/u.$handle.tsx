@@ -22,7 +22,10 @@ export const Route = createFileRoute("/u/$handle")({
   head: ({ params, loaderData }) => {
     const profile = loaderData?.profile;
     const title = profile ? `${profile.display_name} (@${params.handle}) · Javan` : `@${params.handle} · Javan`;
-    const description = profile?.bio ? `${profile.bio.slice(0, 150)}...` : `Check out @${params.handle}'s profile on Javan. Join the community to watch their live streams and short videos.`;
+    let description = profile?.bio ? `${profile.bio.slice(0, 150)}` : `Check out @${params.handle}'s profile on Javan. Join the community to watch their live streams and short videos.`;
+    if (description.length < 50 && profile?.display_name) {
+      description = `Check out ${profile.display_name} (@${params.handle}) on Javan. Join the community to watch their latest live streams, original music, and viral short videos.`.slice(0, 150);
+    }
     const url = `https://javan.lovable.app/u/${params.handle}`;
     const image = profile?.avatar_url || "https://javan.lovable.app/logo.png";
 

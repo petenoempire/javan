@@ -42,7 +42,10 @@ export const Route = createFileRoute("/live/$id")({
   head: ({ params, loaderData }) => {
     const stream = loaderData?.stream as any;
     const title = stream?.title ? `${stream.title} · Live on Javan` : "Live Stream · Javan";
-    const description = stream?.description || "Watch this live stream on Javan.";
+    let description = stream?.description || "Watch this live stream on Javan.";
+    if (description.length < 50 && stream?.title) {
+      description = `Join the live conversation: ${stream.title} on Javan. Watch, interact, and send gifts to your favorite creators in real-time on the most interactive live streaming platform.`.slice(0, 150);
+    }
     const url = `https://javan.lovable.app/live/${params.id}`;
     const thumbnail: string =
       stream?.thumbnail_url ||

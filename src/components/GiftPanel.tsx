@@ -61,9 +61,9 @@ export function GiftPanel({ gifts, onClose, streamId, hostId }: GiftPanelProps) 
     <div className="w-full bg-gradient-to-t from-black via-black/95 to-black/80 rounded-t-3xl p-4 border-t border-white/10">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-black text-white">Send a Gift</h3>
-        <button onClick={onClose} className="text-white/50 hover:text-white active:scale-90">
-          <X className="h-5 w-5" />
-        </button>
+<button onClick={onClose} aria-label="Close" className="text-white/50 hover:text-white active:scale-90">
+	          <X className="h-5 w-5" />
+	        </button>
       </div>
 
       <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">

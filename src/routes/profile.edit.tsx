@@ -134,12 +134,12 @@ function EditProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
            <div className="lg:col-span-4 flex flex-col items-center">
               <div className="relative group">
-                 <button onClick={() => avatarInput.current?.click()} className="h-48 w-48 rounded-full overflow-hidden border-4 border-white/10 shadow-glow group-hover:opacity-80 transition-opacity">
-                    {form.avatar_url ? <img src={form.avatar_url} className="h-full w-full object-cover" /> : <div className="bg-gradient-primary h-full w-full" />}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                       <Camera className="h-8 w-8 text-white" />
-                    </div>
-                 </button>
+<button onClick={() => avatarInput.current?.click()} aria-label="Change profile photo" className="h-48 w-48 rounded-full overflow-hidden border-4 border-white/10 shadow-glow group-hover:opacity-80 transition-opacity">
+	                    {form.avatar_url ? <img src={form.avatar_url} alt="Profile photo preview" className="h-full w-full object-cover" /> : <div className="bg-gradient-primary h-full w-full" />}
+	                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+	                       <Camera className="h-8 w-8 text-white" />
+	                    </div>
+	                 </button>
                  {uploading && <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full"><Loader2 className="h-8 w-8 animate-spin text-cyan-400" /></div>}
               </div>
               <Button onClick={() => avatarInput.current?.click()} variant="ghost" className="mt-6 text-cyan-400 hover:text-cyan-300 font-bold">Change Photo</Button>
@@ -184,17 +184,18 @@ function EditProfile() {
 
       {/* Avatar block */}
       <div className="flex flex-col items-center pt-8 pb-6">
-        <button onClick={() => avatarInput.current?.click()}
-          className="relative h-24 w-24 overflow-hidden rounded-full ring-2 ring-background shadow-elegant active:scale-95">
-          {form.avatar_url
-            ? <img src={form.avatar_url} alt="" className="h-full w-full object-cover" />
-            : <div className="bg-gradient-primary h-full w-full" />}
-          <span className="absolute inset-0 flex items-center justify-center bg-black/30">
-            {uploading
-              ? <Loader2 className="h-5 w-5 animate-spin text-white" />
-              : <Camera className="h-5 w-5 text-white" />}
-          </span>
-        </button>
+<button onClick={() => avatarInput.current?.click()}
+	          aria-label="Change profile photo"
+	          className="relative h-24 w-24 overflow-hidden rounded-full ring-2 ring-background shadow-elegant active:scale-95">
+	          {form.avatar_url
+	            ? <img src={form.avatar_url} alt="Profile photo preview" className="h-full w-full object-cover" />
+	            : <div className="bg-gradient-primary h-full w-full" />}
+	          <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+	            {uploading
+	              ? <Loader2 className="h-5 w-5 animate-spin text-white" />
+	              : <Camera className="h-5 w-5 text-white" />}
+	          </span>
+	        </button>
         <button onClick={() => avatarInput.current?.click()}
           className="mt-3 text-sm font-semibold text-sky-500 active:opacity-70">
           Change photo

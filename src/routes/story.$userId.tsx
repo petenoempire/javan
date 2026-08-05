@@ -278,9 +278,9 @@ function StoryViewer() {
           >
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-black text-sm">Viewed by {viewers.length}</h3>
-              <button onClick={() => setShowViewers(false)} className="text-white/50">
-                <X className="h-5 w-5" />
-              </button>
+<button onClick={() => setShowViewers(false)} aria-label="Close" className="text-white/50">
+	                <X className="h-5 w-5" />
+	              </button>
             </div>
             {viewers.length === 0 ? (
               <p className="py-6 text-center text-xs text-white/40">No views yet</p>
