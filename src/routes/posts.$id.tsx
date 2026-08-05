@@ -31,7 +31,10 @@ export const Route = createFileRoute("/posts/$id")({
     const title = post
       ? `${snippet ? `“${snippet}”` : "Post"} by @${author?.handle ?? "javan"}`.slice(0, 60)
       : "Post not found · Javan";
-    const description = post?.content?.slice(0, 150) || "View this post on Javan.";
+    let description = post?.content?.slice(0, 150) || "View this post on Javan.";
+    if (description.length < 50 && post?.content) {
+      description = `${post.content} — Discover more amazing short videos, original music, and creative content from trending creators on Javan.`.slice(0, 150);
+    }
     const url = `https://javan.lovable.app/posts/${params.id}`;
     const image = post?.image_url;
 

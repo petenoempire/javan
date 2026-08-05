@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { Users, MessageSquare, Shield, Globe } from "lucide-react";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 
 export const Route = createFileRoute("/community")({
   head: () => ({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/community")({
 });
 
 function CommunityPage() {
+  const isDesktop = useIsDesktop();
   const groups = [
     { name: "Global Creators", members: "2.4M", color: "bg-blue-500" },
     { name: "Tech Pioneers", members: "850K", color: "bg-purple-500" },
@@ -82,6 +84,7 @@ function CommunityPage() {
         </div>
       </DesktopLayout>
 
+      {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
            <h1 className="text-2xl font-black text-chrome mb-6">Community</h1>
@@ -103,6 +106,7 @@ function CommunityPage() {
            </div>
         </div>
       </MobileShell>
+      )}
     </>
   );
 }

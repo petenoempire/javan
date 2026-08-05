@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserPlus, Search, Compass, TrendingUp, Music, Film, Rocket, Users } from "lucide-react";
 import { toast } from "sonner";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 
 export const Route = createFileRoute("/discover")({ 
   head: () => ({
@@ -37,6 +38,7 @@ interface Creator {
 }
 
 function DiscoverPage() {
+  const isDesktop = useIsDesktop();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
@@ -164,6 +166,7 @@ function DiscoverPage() {
         </div>
       </DesktopLayout>
 
+      {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
           <h1 className="sr-only">Discover New Content & Trending Creators</h1>
@@ -211,6 +214,7 @@ function DiscoverPage() {
           </div>
         </div>
       </MobileShell>
+      )}
     </>
   );
 }

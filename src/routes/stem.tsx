@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { Microscope, Brain, Rocket, Atom } from "lucide-react";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 
 export const Route = createFileRoute("/stem")({
   head: () => ({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/stem")({
 });
 
 function StemPage() {
+  const isDesktop = useIsDesktop();
   const categories = [
     { icon: Microscope, label: "Science", color: "text-blue-400" },
     { icon: Brain, label: "Technology", color: "text-purple-400" },
@@ -47,7 +49,7 @@ function StemPage() {
             {categories.map((cat) => (
               <div key={cat.label} className="glass p-6 rounded-3xl border border-white/5 hover:border-white/20 transition-all group cursor-pointer">
                 <cat.icon className={`h-10 w-10 ${cat.color} mb-4 group-hover:scale-110 transition-transform`} />
-                <h3 className="font-bold">{cat.label}</h3>
+                <h2 className="text-sm font-bold">{cat.label}</h2>
                 <p className="text-xs text-white/40 mt-1">1.2K creators</p>
               </div>
             ))}
@@ -61,6 +63,7 @@ function StemPage() {
         </div>
       </DesktopLayout>
 
+      {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
            <h1 className="text-2xl font-black text-chrome mb-6">STEM</h1>
@@ -77,6 +80,7 @@ function StemPage() {
 	           </div>
         </div>
       </MobileShell>
+      )}
     </>
   );
 }

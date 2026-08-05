@@ -18,6 +18,9 @@ import { makeClip, type Clip, type MusicSelection, type StudioMode, type TextOve
 import { useStudioHistory } from "@/hooks/use-studio-history";
 
 export const Route = createFileRoute("/create")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mode: (search.mode as string) || undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Create Studio · Javan" },
@@ -47,6 +50,7 @@ type Stage = "capture" | "edit" | "publish";
 function CreatePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { mode: initialMode } = Route.useSearch();
   const queryClient = useQueryClient();
 
   const {
@@ -57,7 +61,7 @@ function CreatePage() {
     canUndo,
     canRedo
   } = useStudioHistory({
-    mode: "60s",
+    mode: (initialMode as any) || "60s",
     clips: [],
     overlays: [],
     music: null,

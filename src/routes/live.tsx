@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { Radio, Eye, Users, Heart } from "lucide-react";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/live")({
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/live")({
 });
 
 function LivePage() {
+  const isDesktop = useIsDesktop();
   const liveStreams: any[] = [];
 
   return (
@@ -39,9 +41,9 @@ function LivePage() {
                 <p className="text-white/50">Watch and interact with creators in real-time.</p>
               </div>
             </div>
-            <button className="bg-gradient-live px-6 py-3 rounded-2xl text-sm font-bold shadow-glow live-pulse">
+            <Link to="/create" search={{ mode: "live" }} className="bg-gradient-live px-6 py-3 rounded-2xl text-sm font-bold shadow-glow live-pulse">
               Go Live
-            </button>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -75,6 +77,7 @@ function LivePage() {
         </div>
       </DesktopLayout>
 
+      {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
            <h1 className="text-2xl font-black text-chrome mb-6">Live</h1>
@@ -95,6 +98,7 @@ function LivePage() {
            </div>
         </div>
       </MobileShell>
+      )}
     </>
   );
 }

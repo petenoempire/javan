@@ -2,18 +2,19 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { MobileShell } from "@/components/MobileShell";
 import { Music as MusicIcon, Play, SkipBack, SkipForward, ListMusic, Volume2 } from "lucide-react";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 
 export const Route = createFileRoute("/music")({
   head: () => ({
     meta: [
-      { title: "Music Hub — Discover Trending Sounds & Original Tracks · Javan" },
-      { name: "description", content: "Find the perfect sound for your next video. Explore trending music, original artist tracks, and viral sounds on Javan. The ultimate music library for short video creators." },
-      { property: "og:title", content: "Music Hub — Discover Trending Sounds & Original Tracks · Javan" },
-      { property: "og:description", content: "Find the perfect sound for your next video. Explore trending music, original artist tracks, and viral sounds on Javan." },
+      { title: "Music Hub: Trending Sounds & Original Tracks · Javan" },
+      { name: "description", content: "Discover trending music, original artist tracks, and viral sounds on Javan. Find the perfect sound for your next video in our creator music library." },
+      { property: "og:title", content: "Music Hub: Trending Sounds & Original Tracks · Javan" },
+      { property: "og:description", content: "Discover trending music, original artist tracks, and viral sounds on Javan. Find the perfect sound for your next video in our creator music library." },
       { property: "og:url", content: "https://javan.lovable.app/music" },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "Music Hub — Discover Trending Sounds & Original Tracks · Javan" },
-      { name: "twitter:description", content: "Find trending sounds and original music for your content on Javan." },
+      { name: "twitter:title", content: "Music Hub: Trending Sounds & Original Tracks · Javan" },
+      { name: "twitter:description", content: "Discover trending music and original tracks for your content on Javan." },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/music" }],
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/music")({
 });
 
 function MusicPage() {
+  const isDesktop = useIsDesktop();
   return (
     <>
       <DesktopLayout>
@@ -62,14 +64,16 @@ function MusicPage() {
         </div>
       </DesktopLayout>
 
-	      <MobileShell>
-	        <div className="px-5 pt-4 pb-20">
-	           <h1 className="text-2xl font-black text-chrome mb-6">Music</h1>
+      {isDesktop === false && (
+      <MobileShell>
+        <div className="px-5 pt-4 pb-20">
+           <h1 className="text-2xl font-black text-chrome mb-6">Music</h1>
 	           <div className="space-y-4 text-center py-10">
 	              <p className="text-white/20 italic">No sounds found.</p>
 	           </div>
-	        </div>
-	      </MobileShell>
+        </div>
+      </MobileShell>
+      )}
     </>
   );
 }
