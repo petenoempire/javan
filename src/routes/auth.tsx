@@ -94,7 +94,7 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "CI", name: "Ivory Coast", prefix: "+225", flag: "🇨🇮", region: "GLOBAL" },
   { code: "SN", name: "Senegal", prefix: "+221", flag: "🇸🇳", region: "GLOBAL" },
   { code: "ZM", name: "Zambia", prefix: "+260", flag: "🇿🇲", region: "GLOBAL" },
-  { code: "ZW", name: Zimbabwe", prefix: "+263", flag: "🇿🇼", region: "GLOBAL" },
+  { code: "ZW", name: "Zimbabwe", prefix: "+263", flag: "🇿🇼", region: "GLOBAL" },
   { code: "NZ", name: "New Zealand", prefix: "+64", flag: "🇳🇿", region: "GLOBAL" },
   { code: "IL", name: "Israel", prefix: "+972", flag: "🇮🇱", region: "GLOBAL" },
   { code: "JO", name: "Jordan", prefix: "+962", flag: "🇯🇴", region: "GLOBAL" },
