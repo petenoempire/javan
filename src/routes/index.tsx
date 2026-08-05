@@ -204,7 +204,7 @@ function HomePage() {
               
               {/* Right Interaction Panel */}
               <div className="absolute right-4 bottom-32 flex flex-col gap-5 items-center z-10">
-                <Link to={`/u/${posts[0].author?.handle}`} aria-label={`View ${posts[0].author?.display_name}'s profile`}>
+                <Link to="/u/$handle" params={{ handle: posts[0].author?.handle ?? "user" }} aria-label={`View ${posts[0].author?.display_name}'s profile`}>
                   <Avatar className="h-12 w-12 border-2 border-white">
                     <AvatarImage src={posts[0].author?.avatar_url} />
                     <AvatarFallback>{posts[0].author?.display_name?.[0]}</AvatarFallback>
@@ -347,7 +347,7 @@ function HomePage() {
                         )}
                       </div>
                       <div className="flex gap-3">
-                        <Link to={`/u/${post.author?.handle || 'user'}`}>
+                        <Link to="/u/$handle" params={{ handle: post.author?.handle || "user" }}>
                           <Avatar className="h-10 w-10 border border-white/10 hover:border-cyan-400 transition-colors">
                             <AvatarImage src={post.author?.avatar_url} />
                             <AvatarFallback>{post.author?.display_name?.[0]}</AvatarFallback>

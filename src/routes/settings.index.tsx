@@ -1,3 +1,4 @@
+import { DesktopLayout } from "@/components/DesktopLayout";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, UserCircle, Bell, Lock, Palette, HelpCircle, ChevronRight, LogOut, KeyRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";

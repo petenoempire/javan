@@ -44,7 +44,7 @@ function LivePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {liveStreams.length > 0 ? liveStreams.map((stream) => (
-              <Link key={stream.id} to={`/live/${stream.id}`} className="group cursor-pointer">
+              <Link key={stream.id} to="/live/$id" params={{ id: stream.id }} search={{ host: undefined }} className="group cursor-pointer">
                 <div className="relative aspect-video rounded-3xl overflow-hidden glass border border-white/10 mb-4">
                    <div className="absolute top-4 left-4 z-20 flex gap-2">
                       <span className="bg-rose-600 text-[10px] font-black px-2 py-1 rounded-lg shadow-lg animate-pulse">LIVE</span>
@@ -78,7 +78,7 @@ function LivePage() {
            <h1 className="text-2xl font-black text-chrome mb-6">Live</h1>
            <div className="space-y-6">
               {liveStreams.length > 0 ? liveStreams.map((stream) => (
-                <Link key={stream.id} to={`/live/${stream.id}`} className="relative block aspect-[9/16] rounded-3xl bg-white/5 border border-white/10 overflow-hidden">
+                <Link key={stream.id} to="/live/$id" params={{ id: stream.id }} search={{ host: undefined }} className="relative block aspect-[9/16] rounded-3xl bg-white/5 border border-white/10 overflow-hidden">
                    <div className="absolute top-4 left-4 z-20 flex gap-2">
                       <span className="bg-rose-600 text-[8px] font-black px-2 py-0.5 rounded shadow-lg">LIVE</span>
                    </div>
