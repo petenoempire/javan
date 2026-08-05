@@ -6,8 +6,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+async function getGeoData(req: Request): Promise<{ ip: string; region: string }> {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "0.0.0.0";
+  try {
+    const response = await fetch(`https://ipapi.co/${ip}/json/`);
+    if (!response.ok) throw new Error(`Geo API returned ${response.status}`);
+    const data = await response.json();
+    return {
+      ip,
+      region: data.country_name || data.region || "Unknown",
+    };
+  } catch (err) {
+    console.warn("[getGeoData] Geo lookup failed:", err.message);
+    return { ip, region: "Unknown" };
+  }
 }
 
 serve(async (req) => {
@@ -18,7 +30,7 @@ serve(async (req) => {
 
     if (!email || !password) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: email, password" }),
+        JSON.stringify({ error: "Missing email or password." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -28,28 +40,36 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check if the user exists
-    const { data: users, error: userError } = await supabaseAdmin.auth.admin.listUsers({
-      filter: `email=${email}`,
-    });
+    // Capture server-side IP and Region
+    const { ip, region } = await getGeoData(req);
 
-    if (userError) {
-      console.error("[challenge-login] User lookup error:", userError.message);
+    // Verify credentials
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid credentials." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // For security, we don't reveal whether the email exists
-    // Generate a login challenge code and store it
-    const loginCode = generateOtp();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    // Update last signin info in profiles
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .update({
+        last_signin_ip: ip,
+        last_signin_region: region,
+      })
+      .eq("id", user.id);
 
-    // Store the challenge (we'll verify the password in the confirm step)
-    // For now, just signal success so the client shows the OTP screen
+    if (profileError) console.error("[challenge-login] Profile update error:", profileError.message);
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Login code sent to your email.",
-        // In production, this would send the code via email
-        // Mock mode logs it for development
+        ip,
+        region,
+        message: "Login challenge successful.",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

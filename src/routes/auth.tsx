@@ -104,6 +104,7 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
 function Auth() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [stage, setStage] = useState<"credentials" | "verify_signup" | "verify_signin">("credentials");
+  const [signupMethod, setSignupMethod] = useState<"email" | "phone">("phone");
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -210,21 +211,21 @@ function Auth() {
 
     try {
       if (mode === "signup") {
-        if (!phoneNumber) throw new Error("Phone number is required.");
+        if (signupMethod === "phone" && !phoneNumber) throw new Error("Phone number is required.");
+        if (signupMethod === "email" && !email) throw new Error("Email is required.");
         if (handle.length < 3) throw new Error("Handle must be at least 3 characters.");
         
-        const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
+        const fullPhone = phoneNumber ? `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}` : "";
         
         const { error, data } = await supabase.functions.invoke("dispatch-dual-verification", {
           body: {
-            email,
-            phone: fullPhone,
+            method: signupMethod,
+            email: signupMethod === "email" ? email : "",
+            phone: signupMethod === "phone" ? fullPhone : "",
             handle: handle.toLowerCase(),
             username: handle.toLowerCase(), 
             display_name: name || handle,
             name: name || handle,
-            country: selectedCountry.code,
-            region: selectedCountry.region,
           },
         });
 
@@ -261,8 +262,12 @@ function Auth() {
 
   const handleVerifySignupChallenge = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (smsOtpInput.length !== 6 || emailOtpInput.length !== 6) {
-      toast.error("Both verification codes must be 6 digits.");
+    if (signupMethod === "phone" && smsOtpInput.length !== 6) {
+      toast.error("SMS verification code must be 6 digits.");
+      return;
+    }
+    if (signupMethod === "email" && emailOtpInput.length !== 6) {
+      toast.error("Email verification code must be 6 digits.");
       return;
     }
     setLoading(true);
@@ -273,20 +278,18 @@ function Auth() {
     }, 10000);
 
     try {
-      const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
+      const fullPhone = phoneNumber ? `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}` : "";
       const { error, data } = await supabase.functions.invoke("confirm-dual-verification", {
         body: {
-          email,
-          phone: fullPhone,
+          email: signupMethod === "email" ? email : "",
+          phone: signupMethod === "phone" ? fullPhone : "",
           handle: handle.toLowerCase(),
           username: handle.toLowerCase(),
           display_name: name || handle,
           name: name || handle,
           password,
-          country: selectedCountry.code,
-          region: selectedCountry.region,
-          sms_code: smsOtpInput,
-          email_code: emailOtpInput,
+          sms_code: signupMethod === "phone" ? smsOtpInput : "",
+          email_code: signupMethod === "email" ? emailOtpInput : "",
         },
       });
 
@@ -444,50 +447,54 @@ function Auth() {
                       required
                       className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-cyan-500 transition-all duration-200"
                     />
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col gap-1">
-                        <label htmlFor="auth-country" className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Country</label>
-                        <select
-                          id="auth-country"
-                          value={selectedCountry.code}
-                          onChange={(e) => handleCountryChange(e.target.value)}
-                          className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-cyan-500 text-white font-semibold"
-                        >
-                          {GLOBAL_COUNTRIES.map((country) => (
-                            <option key={country.code} value={country.code} className="bg-neutral-900 text-white">
-                              {country.flag} {country.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <label htmlFor="auth-phone" className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Phone</label>
-                        <div className="relative flex items-center">
-                          <span className="absolute left-3 text-[10px] font-bold text-muted-foreground select-none">
-                            {selectedCountry.prefix}
-                          </span>
-                          <input
-                            id="auth-phone"
-                            type="tel"
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
-                            placeholder="Phone"
-                            required
-                            className="w-full rounded-2xl border border-white/10 bg-white/5 py-2 pl-12 pr-3 text-xs font-mono outline-none focus:ring-2 focus:ring-cyan-500 transition-all duration-200"
-                          />
+                    {signupMethod === "phone" && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col gap-1">
+                          <label htmlFor="auth-country" className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Country</label>
+                          <select
+                            id="auth-country"
+                            value={selectedCountry.code}
+                            onChange={(e) => handleCountryChange(e.target.value)}
+                            className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-cyan-500 text-white font-semibold"
+                          >
+                            {GLOBAL_COUNTRIES.map((country) => (
+                              <option key={country.code} value={country.code} className="bg-neutral-900 text-white">
+                                {country.flag} {country.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label htmlFor="auth-phone" className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Phone</label>
+                          <div className="relative flex items-center">
+                            <span className="absolute left-3 text-[10px] font-bold text-muted-foreground select-none">
+                              {selectedCountry.prefix}
+                            </span>
+                            <input
+                              id="auth-phone"
+                              type="tel"
+                              value={phoneNumber}
+                              onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
+                              placeholder="Phone"
+                              required
+                              className="w-full rounded-2xl border border-white/10 bg-white/5 py-2 pl-12 pr-3 text-xs font-mono outline-none focus:ring-2 focus:ring-cyan-500 transition-all duration-200"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </>
                 )}
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email Address"
-                  required
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-cyan-500 transition-all duration-200"
-                />
+                {(mode === "signin" || (mode === "signup" && signupMethod === "email")) && (
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email Address"
+                    required
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-cyan-500 transition-all duration-200"
+                  />
+                )}
                 <input
                   type="password"
                   value={password}
@@ -504,6 +511,16 @@ function Auth() {
                 >
                   {loading ? "Processing..." : mode === "signup" ? "Create Account" : "Sign In"}
                 </button>
+
+                {mode === "signup" && (
+                  <button
+                    type="button"
+                    onClick={() => setSignupMethod(signupMethod === "email" ? "phone" : "email")}
+                    className="w-full text-center text-[10px] font-bold text-primary uppercase tracking-widest hover:underline mt-4 transition-all duration-150"
+                  >
+                    {signupMethod === "email" ? "Use phone number instead" : "Use email instead"}
+                  </button>
+                )}
               </form>
             </>
           )}
@@ -511,33 +528,37 @@ function Auth() {
           {stage === "verify_signup" && (
             <form onSubmit={handleVerifySignupChallenge} className="space-y-4">
               <div className="text-center pb-2">
-                <h3 className="text-white text-lg font-black uppercase tracking-tight">Verify Email & Phone</h3>
-                <p className="text-xs text-muted-foreground mt-1">Enter the 6-digit codes sent to both your email and phone.</p>
+                <h3 className="text-white text-lg font-black uppercase tracking-tight">Verify Your {signupMethod === "email" ? "Email" : "Phone"}</h3>
+                <p className="text-xs text-muted-foreground mt-1">Enter the 6-digit code sent to your {signupMethod === "email" ? "email" : "phone"}.</p>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-amber-400 uppercase tracking-widest pl-1">SMS Code</label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={smsOtpInput}
-                  onChange={(e) => setSmsOtpInput(e.target.value.replace(/\D/g, ""))}
-                  placeholder="000000"
-                  required
-                  className="w-full rounded-2xl border border-amber-500/30 bg-background text-center py-3 text-lg font-mono tracking-[0.5em] font-black outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-150"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest pl-1">Email Code</label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={emailOtpInput}
-                  onChange={(e) => setEmailOtpInput(e.target.value.replace(/\D/g, ""))}
-                  placeholder="000000"
-                  required
-                  className="w-full rounded-2xl border border-cyan-500/30 bg-background text-center py-3 text-lg font-mono tracking-[0.5em] font-black outline-none focus:ring-2 focus:ring-cyan-500 transition-all duration-150"
-                />
-              </div>
+              {signupMethod === "phone" && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-amber-400 uppercase tracking-widest pl-1">SMS Code</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={smsOtpInput}
+                    onChange={(e) => setSmsOtpInput(e.target.value.replace(/\D/g, ""))}
+                    placeholder="000000"
+                    required
+                    className="w-full rounded-2xl border border-amber-500/30 bg-background text-center py-3 text-lg font-mono tracking-[0.5em] font-black outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-150"
+                  />
+                </div>
+              )}
+              {signupMethod === "email" && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest pl-1">Email Code</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={emailOtpInput}
+                    onChange={(e) => setEmailOtpInput(e.target.value.replace(/\D/g, ""))}
+                    placeholder="000000"
+                    required
+                    className="w-full rounded-2xl border border-cyan-500/30 bg-background text-center py-3 text-lg font-mono tracking-[0.5em] font-black outline-none focus:ring-2 focus:ring-cyan-500 transition-all duration-150"
+                  />
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={loading}
@@ -590,7 +611,6 @@ function Auth() {
             </form>
           )}
           
-          <Link to="/" className="mt-4 block text-center text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition shrink-0">← back to home</Link>
         </div>
       </div>
     </div>

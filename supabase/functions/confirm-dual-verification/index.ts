@@ -14,18 +14,12 @@ serve(async (req) => {
       email,
       phone,
       handle,
-      username,
-      display_name,
-      name,
       password,
-      country,
-      region,
       sms_code,
       email_code,
     } = await req.json();
 
-    // Validate required fields
-    if (!email || !phone || !handle || !sms_code || !email_code || !password) {
+    if (!handle || !password || (!sms_code && !email_code)) {
       return new Response(
         JSON.stringify({ error: "Missing required fields." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -37,132 +31,92 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Look up the stored OTPs
-    const { data: signupData, error: lookupError } = await supabaseAdmin
+    // Look up the stored pending signup
+    const query = supabaseAdmin
       .from("pending_signups")
       .select("*")
-      .eq("email", email)
+      .eq("handle", handle.toLowerCase())
       .order("created_at", { ascending: false })
       .limit(1)
       .single();
+    
+    const { data: signupData, error: lookupError } = await query;
 
-    let expectedSmsCode = sms_code;
-    let expectedEmailCode = email_code;
-
-    if (lookupError) {
-      // Fallback: check verification_codes table
-      const { data: codes } = await supabaseAdmin
-        .from("verification_codes")
-        .select("code_type, otp_code")
-        .in("code_type", ["sms", "email"])
-        .eq("email", email)
-        .gt("expires_at", new Date().toISOString());
-
-      if (codes) {
-        for (const c of codes) {
-          if (c.code_type === "sms") expectedSmsCode = c.otp_code;
-          if (c.code_type === "email") expectedEmailCode = c.otp_code;
-        }
-      }
-    } else if (signupData) {
-      expectedSmsCode = signupData.sms_code;
-      expectedEmailCode = signupData.email_code;
-    }
-
-    // Verify both codes
-    const smsValid = sms_code === expectedSmsCode;
-    const emailValid = email_code === expectedEmailCode;
-
-    if (!smsValid && !emailValid) {
+    if (lookupError || !signupData) {
       return new Response(
-        JSON.stringify({ error: "Both verification codes are incorrect. Please check and try again." }),
+        JSON.stringify({ error: "Verification session not found or expired." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!smsValid) {
+    // Determine verification method
+    const isPhoneMethod = !!signupData.sms_code;
+    const isEmailMethod = !!signupData.email_code;
+
+    if (isPhoneMethod && sms_code !== signupData.sms_code) {
       return new Response(
-        JSON.stringify({ error: "SMS verification code is incorrect." }),
+        JSON.stringify({ error: "Incorrect SMS verification code." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (!emailValid) {
+    if (isEmailMethod && email_code !== signupData.email_code) {
       return new Response(
-        JSON.stringify({ error: "Email verification code is incorrect." }),
+        JSON.stringify({ error: "Incorrect email verification code." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create the user account via Supabase Auth
+    // Create the user account
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
+      email: signupData.email || `${handle.toLowerCase()}@javan.internal`,
       password,
       email_confirm: true,
       phone_confirm: true,
       user_metadata: {
         handle: handle.toLowerCase(),
-        display_name: display_name || name || handle,
-        country: country || "US",
-        region: region || "",
-        phone,
+        display_name: signupData.display_name,
+        country: signupData.country,
+        region: signupData.region,
+        phone: signupData.phone,
         verified: true,
       },
     });
 
     if (authError) {
-      // If user already exists, try signing in instead
       if (authError.message?.includes("already registered")) {
         return new Response(
-          JSON.stringify({
-            error: "An account with this email already exists. Please try logging in.",
-            code: "ALREADY_EXISTS",
-          }),
+          JSON.stringify({ error: "An account with this identifier already exists.", code: "ALREADY_EXISTS" }),
           { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      console.error("[confirm-dual-verification] Auth create user error:", authError.message);
-      return new Response(
-        JSON.stringify({ error: authError.message || "Failed to create account." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      throw authError;
     }
 
-    // Create the profile row
+    // Create the profile with server-side captured IP and region
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .insert({
         id: authData.user.id,
         handle: handle.toLowerCase(),
-        username: username?.toLowerCase() || handle.toLowerCase(),
-        display_name: display_name || name || handle,
-        country: country || "US",
-        region: region || "",
+        display_name: signupData.display_name,
+        signup_ip: signupData.ip_address,
+        signup_region: signupData.region_name,
+        last_signin_ip: signupData.ip_address,
+        last_signin_region: signupData.region_name,
         is_verified: false,
       });
 
-    if (profileError) {
-      console.error("[confirm-dual-verification] Profile insert error:", profileError.message);
-      // Don't fail the whole flow — the profile can be created on first login
-    }
+    if (profileError) console.error("[confirm-dual-verification] Profile error:", profileError.message);
 
-    // Clean up pending signup data
-    await supabaseAdmin
-      .from("pending_signups")
-      .delete()
-      .eq("email", email);
-
-    // Clean up verification codes
-    await supabaseAdmin
-      .from("verification_codes")
-      .delete()
-      .eq("email", email);
+    // Clean up
+    await supabaseAdmin.from("pending_signups").delete().eq("id", signupData.id);
 
     return new Response(
       JSON.stringify({
         success: true,
         user_id: authData.user.id,
-        message: "Account created and verified successfully.",
+        message: "Account created successfully.",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
