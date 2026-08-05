@@ -43,7 +43,7 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "KE", name: "Kenya", prefix: "+254", flag: "🇰🇪", region: "GLOBAL" },
   { code: "IN", name: "India", prefix: "+91", flag: "🇮🇳", region: "GLOBAL" },
   { code: "AE", name: "United Arab Emirates", prefix: "+971", flag: "🇦🇪", region: "GLOBAL" },
-  { code: "IE", name: "Ireland", prefix: "+353", flag: "🇮", region: "GLOBAL" },
+  { code: "IE", name: "Ireland", prefix: "+353", flag: "🇮🇪", region: "GLOBAL" },
   { code: "IT", name: "Italy", prefix: "+39", flag: "🇮🇹", region: "GLOBAL" },
   { code: "ES", name: "Spain", prefix: "+34", flag: "🇪🇸", region: "GLOBAL" },
   { code: "PT", name: "Portugal", prefix: "+351", flag: "🇵🇹", region: "GLOBAL" },
@@ -62,7 +62,7 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "CZ", name: "Czech Republic", prefix: "+420", flag: "🇨🇿", region: "GLOBAL" },
   { code: "RO", name: "Romania", prefix: "+40", flag: "🇷🇴", region: "GLOBAL" },
   { code: "HU", name: "Hungary", prefix: "+36", flag: "🇭🇺", region: "GLOBAL" },
-  { code: "BR", name: "Brazil", prefix: "+55", flag: "🇧", region: "GLOBAL" },
+  { code: "BR", name: "Brazil", prefix: "+55", flag: "🇧🇷", region: "GLOBAL" },
   { code: "MX", name: "Mexico", prefix: "+52", flag: "🇲🇽", region: "GLOBAL" },
   { code: "AR", name: "Argentina", prefix: "+54", flag: "🇦🇷", region: "GLOBAL" },
   { code: "CO", name: "Colombia", prefix: "+57", flag: "🇨🇴", region: "GLOBAL" },
@@ -73,11 +73,11 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "KR", name: "South Korea", prefix: "+82", flag: "🇰🇷", region: "GLOBAL" },
   { code: "SG", name: "Singapore", prefix: "+65", flag: "🇸🇬", region: "GLOBAL" },
   { code: "MY", name: "Malaysia", prefix: "+60", flag: "🇲🇾", region: "GLOBAL" },
-  { code: "TH", name: "Thailand", prefix: "+66", flag: "🇹", region: "GLOBAL" },
+  { code: "TH", name: "Thailand", prefix: "+66", flag: "🇹🇭", region: "GLOBAL" },
   { code: "PH", name: "Philippines", prefix: "+63", flag: "🇵🇭", region: "GLOBAL" },
   { code: "ID", name: "Indonesia", prefix: "+62", flag: "🇮🇩", region: "GLOBAL" },
   { code: "VN", name: "Vietnam", prefix: "+84", flag: "🇻🇳", region: "GLOBAL" },
-  { code: "PK", name: "Pakistan", prefix: "+92", flag: "🇵", region: "GLOBAL" },
+  { code: "PK", name: "Pakistan", prefix: "+92", flag: "🇵🇰", region: "GLOBAL" },
   { code: "BD", name: "Bangladesh", prefix: "+880", flag: "🇧🇩", region: "GLOBAL" },
   { code: "SA", name: "Saudi Arabia", prefix: "+966", flag: "🇸🇦", region: "GLOBAL" },
   { code: "QA", name: "Qatar", prefix: "+974", flag: "🇶🇦", region: "GLOBAL" },
@@ -90,11 +90,11 @@ const GLOBAL_COUNTRIES: CountryConfig[] = [
   { code: "TZ", name: "Tanzania", prefix: "+255", flag: "🇹🇿", region: "GLOBAL" },
   { code: "UG", name: "Uganda", prefix: "+256", flag: "🇺🇬", region: "GLOBAL" },
   { code: "RW", name: "Rwanda", prefix: "+250", flag: "🇷🇼", region: "GLOBAL" },
-  { code: "CM", name: "Cameroon", prefix: "+237", flag: "🇨", region: "GLOBAL" },
+  { code: "CM", name: "Cameroon", prefix: "+237", flag: "🇨🇲", region: "GLOBAL" },
   { code: "CI", name: "Ivory Coast", prefix: "+225", flag: "🇨🇮", region: "GLOBAL" },
   { code: "SN", name: "Senegal", prefix: "+221", flag: "🇸🇳", region: "GLOBAL" },
   { code: "ZM", name: "Zambia", prefix: "+260", flag: "🇿🇲", region: "GLOBAL" },
-  { code: "ZW", name: "Zimbabwe", prefix: "+263", flag: "🇿🇼", region: "GLOBAL" },
+  { code: "ZW", name: Zimbabwe", prefix: "+263", flag: "🇿🇼", region: "GLOBAL" },
   { code: "NZ", name: "New Zealand", prefix: "+64", flag: "🇳🇿", region: "GLOBAL" },
   { code: "IL", name: "Israel", prefix: "+972", flag: "🇮🇱", region: "GLOBAL" },
   { code: "JO", name: "Jordan", prefix: "+962", flag: "🇯🇴", region: "GLOBAL" },
@@ -117,11 +117,14 @@ function Auth() {
   const [loginOtpInput, setLoginOtpInput] = useState("");
   
   const [loading, setLoading] = useState(false);
-  const { session } = useAuth();
+  const { session, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (session) navigate({ to: "/" });
+    if (session) {
+      // Immediate redirect on successful session detection
+      navigate({ to: "/" });
+    }
   }, [session, navigate]);
 
   const handleCountryChange = (countryCode: string) => {
@@ -140,6 +143,7 @@ function Auth() {
         
         const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
         
+        // Twilio-linked backend verification dispatch
         const { error } = await supabase.functions.invoke("dispatch-dual-verification", {
           body: {
             email,
@@ -156,6 +160,7 @@ function Auth() {
         toast.success("Verification codes sent to SMS and email.");
         setStage("verify_signup");
       } else {
+        // Twilio-linked backend login challenge
         const { error } = await supabase.functions.invoke("challenge-login", {
           body: { email, password },
         });
@@ -198,10 +203,12 @@ function Auth() {
 
       if (error) throw new Error(error.message || "Verification failed.");
 
+      // After successful Twilio-based verification, sign in to Supabase
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
       if (sessionError) throw sessionError;
 
       toast.success("Account created and verified successfully!");
+      await refreshProfile();
       navigate({ to: "/" });
     } catch (err: any) {
       toast.error(err.message ?? "Verification error.");
@@ -229,6 +236,7 @@ function Auth() {
       if (sessionError) throw sessionError;
 
       toast.success("Login verified.");
+      await refreshProfile();
       navigate({ to: "/" });
     } catch (err: any) {
       toast.error(err.message ?? "2FA error.");
@@ -238,13 +246,32 @@ function Auth() {
   };
 
   const google = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) toast.error("Google sign-in failed");
+    setLoading(true);
+    try {
+      // Correct Google OAuth trigger via Lovable integration
+      const result = await lovable.auth.signInWithOAuth("google", { 
+        redirect_uri: window.location.origin + "/auth" 
+      });
+      
+      if (result.error) throw result.error;
+      
+      // If we got tokens back immediately, set them
+      if (result.tokens) {
+        const { error } = await supabase.auth.setSession(result.tokens);
+        if (error) throw error;
+        toast.success("Authenticated with Google");
+        await refreshProfile();
+        navigate({ to: "/" });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Google sign-in failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="mx-auto flex h-[100dvh] max-w-[480px] flex-col justify-center bg-[#020210] px-6 relative overflow-hidden">
-      {/* Aurora Background */}
       <div className="aurora-bg">
         <div className="aurora-ribbon" style={{ top: '20%', opacity: 0.3 }}></div>
         <div className="aurora-ribbon" style={{ top: '60%', animationDelay: '-8s', opacity: 0.2 }}></div>
@@ -282,13 +309,14 @@ function Auth() {
               
               <button
                 onClick={google}
-                className="mb-4 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card/60 py-2.5 text-sm font-semibold transition active:scale-[0.97] hover:bg-card/80 shrink-0"
+                disabled={loading}
+                className="mb-4 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card/60 py-2.5 text-sm font-semibold transition active:scale-[0.97] hover:bg-card/80 shrink-0 disabled:opacity-50"
               >
                 <svg width="18" height="18" viewBox="0 0 48 48">
                   <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11.1 0 20-8.9 20-20 0-1.3-.1-2.5-.4-3.5z" />
                   <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16.1 19 13 24 13c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
                   <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.5 2.3-7.2 2.3-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" />
-                  <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.2 5.2c1.7-1.6 3.1-3.6 3.9-6.9.5-1.9.7-3.9.7-6z" />
+                  <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6 5c3.3-3.1 5.3-7.7 5.3-12.8 0-1.1-.1-2.2-.4-3.5z" />
                 </svg>
                 Continue with Google
               </button>
@@ -324,7 +352,7 @@ function Auth() {
                           onChange={(e) => handleCountryChange(e.target.value)}
                           className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-cyan-500 text-white font-semibold"
                         >
-                          {GLOBAL_COUNTRIES.slice(0, 10).map((country) => (
+                          {GLOBAL_COUNTRIES.map((country) => (
                             <option key={country.code} value={country.code} className="bg-neutral-900 text-white">
                               {country.flag} {country.name}
                             </option>
