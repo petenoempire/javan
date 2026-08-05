@@ -61,12 +61,12 @@
 - [x] Build UI for accepting/editing AI suggestions
 
 ## Phase 10: Polish & Testing
-- [ ] Verify all AR effects work smoothly
-- [ ] Test camera flip and filter transitions
-- [ ] Validate S3 upload and retrieval
-- [ ] Test record/photo capture flows
-- [ ] Verify audio mixing and playback
-- [ ] Test AI caption generation
-- [ ] Mobile responsiveness check
-- [ ] Performance optimization
-- [ ] Final visual polish and animations
+- [x] Verify all AR effects work smoothly
+- [x] Test camera flip and filter transitions
+- [x] Validate S3 upload and retrieval
+- [x] Test record/photo capture flows
+- [x] Verify audio mixing and playback
+- [x] Test AI caption generation
+- [x] Mobile responsiveness check
+- [x] Performance optimization
+- [x] Final visual polish and animations
