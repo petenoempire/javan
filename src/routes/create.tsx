@@ -12,6 +12,7 @@ import { AudioHub, type MixerState } from "@/components/studio/AudioHub";
 import { TemplateHub, type StudioTemplate } from "@/components/studio/TemplateHub";
 import { TimelineEditor } from "@/components/studio/TimelineEditor";
 import { LiveSuite } from "@/components/studio/LiveSuite";
+import { ModeCarousel } from "@/components/studio/ModeCarousel";
 import { exportProject, renderThumbnail } from "@/lib/studio/exporter";
 import { makeClip, type Clip, type MusicSelection, type StudioMode, type TextOverlay } from "@/lib/studio/types";
 
@@ -352,7 +353,7 @@ function CreatePage() {
           ))}
         </div>
         <div className="pb-6">
-          <ModeCarouselWrapper mode={mode} onMode={setMode} />
+          <ModeCarousel value={mode} onChange={setMode} />
         </div>
         {modals}
       </div>
@@ -376,9 +377,4 @@ function CreatePage() {
       {modals}
     </>
   );
-}
-
-function ModeCarouselWrapper({ mode, onMode }: { mode: StudioMode; onMode: (m: StudioMode) => void }) {
-  const { ModeCarousel } = require("@/components/studio/ModeCarousel");
-  return <ModeCarousel value={mode} onChange={onMode} />;
 }
