@@ -122,10 +122,17 @@ function Auth() {
 
   useEffect(() => {
     if (session) {
-      // Immediate redirect on successful session detection
+      setLoading(false);
       navigate({ to: "/" });
     }
   }, [session, navigate]);
+
+  useEffect(() => {
+    // If we have a hash, we're likely returning from OAuth
+    if (typeof window !== "undefined" && window.location.hash.includes("access_token")) {
+      setLoading(true);
+    }
+  }, []);
 
   const handleCountryChange = (countryCode: string) => {
     const target = GLOBAL_COUNTRIES.find(c => c.code === countryCode);
@@ -250,7 +257,7 @@ function Auth() {
     try {
       // Correct Google OAuth trigger via Lovable integration
       const result = await lovable.auth.signInWithOAuth("google", { 
-        redirect_uri: window.location.origin + "/auth" 
+        redirect_uri: window.location.origin + "/auth/callback" 
       });
       
       if (result.error) throw result.error;

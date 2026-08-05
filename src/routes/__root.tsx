@@ -51,7 +51,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Strict Auth Gate: If not loading, no session, and not on /auth, redirect to /auth
-    if (!loading && !session && location.pathname !== "/auth") {
+    const isAuthPath = location.pathname === "/auth" || location.pathname === "/auth/callback";
+    if (!loading && !session && !isAuthPath) {
       navigate({ to: "/auth" });
     }
   }, [loading, session, location.pathname, navigate]);
@@ -65,7 +66,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Prevent flash of content for protected routes while redirecting
-  if (!session && location.pathname !== "/auth") {
+  const isAuthPath = location.pathname === "/auth" || location.pathname === "/auth/callback";
+  if (!session && !isAuthPath) {
     return (
       <div className="flex h-[100dvh] items-center justify-center bg-[#020210]">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white"></div>

@@ -57,24 +57,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // listener first, then initial fetch
+    // Detect if we are in an OAuth callback flow via hash
+    const isCallback = typeof window !== "undefined" && 
+      (window.location.hash.includes("access_token") || window.location.hash.includes("error"));
+    
+    if (isCallback) setLoading(true);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       if (s?.user) {
-        // defer DB calls
         setTimeout(() => loadProfile(s.user.id), 0);
       } else {
         setProfile(null);
+        if (!isCallback) setLoading(false);
       }
     });
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       if (data.session?.user) {
         loadProfile(data.session.user.id);
-      } else {
+      } else if (!isCallback) {
         setLoading(false);
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
