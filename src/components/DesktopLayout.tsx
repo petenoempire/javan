@@ -9,17 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { SearchOverlay } from "./SearchOverlay";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 
 interface DesktopLayoutProps {
   children: ReactNode;
 }
 
 export function DesktopLayout({ children }: DesktopLayoutProps) {
+  const isDesktop = useIsDesktop();
   const { user, profile, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const isHomepage = location.pathname === "/";
+
+  if (isDesktop === false) return null;
 
   const navItems = [
     { icon: Home, label: "Home", href: "/" },

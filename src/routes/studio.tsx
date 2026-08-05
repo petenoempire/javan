@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, Settings, Video, Radio, TrendingUp, TrendingDown, UserPlus, Heart, Eye,
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/studio")({
 });
 
 function CreatorStudio() {
+  const isDesktop = useIsDesktop();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -126,6 +128,7 @@ function CreatorStudio() {
         </div>
       </div>
     </DesktopLayout>
+    {isDesktop === false && (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-muted/40 pb-24 dark:bg-[#020210] lg:hidden">
       <header className="sticky top-0 z-10 flex items-center border-b border-white/5 bg-[#020210]/95 px-2 py-3 backdrop-blur">
         <Link to="/profile" className="p-2" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
@@ -151,6 +154,7 @@ function CreatorStudio() {
         </Link>
       </div>
     </div>
+    )}
     </>
   );
 }

@@ -61,7 +61,7 @@ function LivePage() {
                     <AvatarFallback>{stream.host[0]}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold line-clamp-1 group-hover:text-rose-400 transition-colors">{stream.title}</h3>
+                    <h2 className="text-lg font-bold line-clamp-1 group-hover:text-rose-400 transition-colors">{stream.title}</h2>
                     <p className="text-sm text-white/50 mt-1">@{stream.host} • {stream.category}</p>
                   </div>
                 </div>
@@ -85,7 +85,7 @@ function LivePage() {
                       <span className="bg-rose-600 text-[8px] font-black px-2 py-0.5 rounded shadow-lg">LIVE</span>
                    </div>
                    <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/80 to-transparent">
-                      <p className="text-sm font-bold">{stream.title}</p>
+                      <h2 className="text-sm font-bold">{stream.title}</h2>
                       <p className="text-[10px] text-white/60 mt-1">@{stream.host}</p>
                    </div>
                 </Link>

@@ -1,6 +1,7 @@
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, UserCircle, Bell, Lock, Palette, HelpCircle, ChevronRight, LogOut, KeyRound } from "lucide-react";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { useAuth } from "@/lib/auth";
 
 const SETTINGS_TITLE = "Settings and Privacy · Javan";
@@ -49,6 +50,7 @@ const groups: { title: string; items: Item[] }[] = [
 ];
 
 function SettingsHome() {
+  const isDesktop = useIsDesktop();
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -111,9 +113,10 @@ function SettingsHome() {
         </div>
       </div>
     </DesktopLayout>
+    {isDesktop === false && (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-[#020210] pb-24 lg:hidden">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-white/5 px-4 py-3">
-        <Link to="/profile" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/profile" className="p-1" aria-label="Back to profile"><ArrowLeft className="h-5 w-5" /></Link>
         <h1 className="font-display text-lg font-bold text-chrome">Settings</h1>
       </header>
 
@@ -133,6 +136,7 @@ function SettingsHome() {
         </button>
       </div>
     </div>
+    )}
     </>
   );
 }

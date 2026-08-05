@@ -56,7 +56,7 @@ export function ReportDialog({
             className="glass-strong fixed bottom-0 left-1/2 z-50 w-[min(480px,100vw)] -translate-x-1/2 rounded-t-3xl p-5 pb-8">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-display text-lg font-black text-chrome">Report</h3>
-              <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/5 transition-colors"><X className="h-5 w-5" /></button>
+              <button onClick={onClose} aria-label="Close" className="p-2 rounded-xl hover:bg-white/5 transition-colors"><X className="h-5 w-5" /></button>
             </div>
             <div className="space-y-1.5">
               {REASONS.map((r) => (

@@ -64,7 +64,7 @@ function Chat() {
   return (
     <div className="mx-auto flex h-[100dvh] max-w-[480px] flex-col bg-background">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/inbox" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/inbox" aria-label="Back to inbox" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
         {conv?.other?.avatar_url
           ? <img src={conv.other.avatar_url} className="h-9 w-9 rounded-full" alt="" />
           : <div className="bg-gradient-primary h-9 w-9 rounded-full" />}
@@ -98,7 +98,7 @@ function Chat() {
             placeholder="Message…"
             className="flex-1 bg-transparent text-sm outline-none"
           />
-          <button onClick={send} className="bg-gradient-primary rounded-full p-2 shadow-glow active:scale-90">
+          <button onClick={send} aria-label="Send" className="bg-gradient-primary rounded-full p-2 shadow-glow active:scale-90">
             <Send className="h-4 w-4 text-primary-foreground" />
           </button>
         </div>

@@ -98,7 +98,7 @@ function VerificationPage() {
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-24">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/settings/account" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/settings/account" aria-label="Back to account settings" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
         <h1 className="font-display text-lg font-bold">Verification</h1>
       </header>
 

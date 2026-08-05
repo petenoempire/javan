@@ -2,6 +2,7 @@ import React, { ReactNode, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Users, Plus, Mail, User, Search } from "lucide-react";
 import { SearchOverlay } from "./SearchOverlay";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 
 interface MobileShellProps {
   children: ReactNode;
@@ -9,9 +10,12 @@ interface MobileShellProps {
 }
 
 export function MobileShell({ children, immersive = false }: MobileShellProps) {
+  const isDesktop = useIsDesktop();
   const location = useLocation();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const isHomepage = location.pathname === "/";
+
+  if (isDesktop === true) return null;
 
   const navItems = [
     { icon: Home, label: "Home", href: "/", glow: "rgba(0, 212, 255, 0.5)" },

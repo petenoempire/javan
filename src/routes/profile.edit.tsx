@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { ArrowLeft, Camera, Loader2, Copy, Check, ChevronRight, GripVertical } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/profile/edit")({
 type SheetKind = null | "name" | "username" | "bio" | "ai";
 
 function EditProfile() {
+  const isDesktop = useIsDesktop();
   const { profile, user, refreshProfile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -171,6 +173,7 @@ function EditProfile() {
         </div>
       </div>
     </DesktopLayout>
+    {isDesktop === false && (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-[#020210] pb-16 lg:hidden">
       {/* Header */}
       <header className="sticky top-0 z-10 flex items-center border-b border-white/5 bg-[#020210]/95 px-2 py-3 backdrop-blur">
@@ -249,6 +252,7 @@ function EditProfile() {
         onSave={(patch) => { persist(patch); setSheet(null); }}
       />
     </div>
+    )}
     </>
   );
 }

@@ -76,7 +76,7 @@ function ArtistStudio() {
     return (
       <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black text-white pb-24">
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-white/5 bg-neutral-950/80 px-4 py-3.5 backdrop-blur-md">
-          <Link to="/profile" className="text-neutral-400 p-1">
+          <Link to="/profile" aria-label="Back to profile" className="text-neutral-400 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <h1 className="font-display text-sm font-black">Artist Studio</h1>
@@ -104,7 +104,7 @@ function ArtistStudio() {
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-black text-white pb-24">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-white/5 bg-neutral-950/80 px-4 py-3.5 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <Link to="/profile" className="text-neutral-400 p-1">
+          <Link to="/profile" aria-label="Back to profile" className="text-neutral-400 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <h1 className="font-display text-sm font-black">Artist Studio</h1>
@@ -147,10 +147,10 @@ function ArtistStudio() {
                   <p className="truncate text-sm font-bold">{t.title}</p>
                   <p className="text-[10px] text-neutral-500">{t.plays_count} plays</p>
                 </div>
-                <button onClick={() => togglePlay(t)} className="rounded-full bg-white/10 p-2 active:scale-90">
+                <button onClick={() => togglePlay(t)} aria-label={playingId === t.id ? "Pause" : "Play"} className="rounded-full bg-white/10 p-2 active:scale-90">
                   {playingId === t.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </button>
-                <button onClick={() => remove(t.id)} className="p-2 text-neutral-600 hover:text-rose-400 active:scale-90">
+                <button onClick={() => remove(t.id)} aria-label="Remove track" className="p-2 text-neutral-600 hover:text-rose-400 active:scale-90">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -228,7 +228,7 @@ function AddTrackSheet({ userId, onClose }: { userId: string; onClose: () => voi
       >
         <div className="flex items-center justify-between border-b border-white/5 pb-3">
           <h3 className="text-sm font-black">Upload Track</h3>
-          <button onClick={onClose} className="text-neutral-500">
+          <button onClick={onClose} aria-label="Close" className="text-neutral-500">
             <X className="h-4 w-4" />
           </button>
         </div>

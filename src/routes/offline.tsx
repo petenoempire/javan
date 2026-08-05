@@ -28,7 +28,7 @@ function OfflinePage() {
   return (
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-20">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-border px-4 py-3">
-        <Link to="/profile" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
+        <Link to="/profile" aria-label="Back to profile" className="p-1"><ArrowLeft className="h-5 w-5" /></Link>
         <h1 className="font-display text-lg font-bold">Offline videos</h1>
       </header>
 
@@ -61,7 +61,7 @@ function OfflinePage() {
                   <div className="truncate text-sm font-semibold">{v.caption || "Untitled"}</div>
                   <div className="text-[11px] text-muted-foreground">{new Date(v.created_at).toLocaleDateString()}</div>
                 </div>
-                <button onClick={() => toast.success("Removed from offline")} className="rounded-full p-2 text-muted-foreground hover:bg-muted">
+                <button onClick={() => toast.success("Removed from offline")} aria-label="Remove from offline" className="rounded-full p-2 text-muted-foreground hover:bg-muted">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </li>
