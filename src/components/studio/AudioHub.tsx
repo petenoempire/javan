@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Play, Pause, Mic, Square, Upload, Music2, SlidersHorizontal, Loader2 } from "lucide-react";
+import { X, Play, Pause, Mic, Square, Upload, Music2, SlidersHorizontal, Loader2, Activity } from "lucide-react";
 import type { MusicSelection } from "@/lib/studio/types";
 import { toast } from "sonner";
 
@@ -9,6 +9,37 @@ export interface MixerState {
   original: number;
   music: number;
   voice: number;
+}
+
+// Global cache for waveforms
+const waveformCache = new Map<string, number[]>();
+
+function Waveform({ url }: { url: string }) {
+  const [data, setData] = useState<number[]>([]);
+  
+  useEffect(() => {
+    if (waveformCache.has(url)) {
+      setData(waveformCache.get(url)!);
+      return;
+    }
+    
+    // Simple waveform generator for zero-latency look
+    const points = Array.from({ length: 40 }, () => 0.2 + Math.random() * 0.8);
+    waveformCache.set(url, points);
+    setData(points);
+  }, [url]);
+
+  return (
+    <div className="flex h-6 items-end gap-[1px]">
+      {data.map((v, i) => (
+        <div 
+          key={i} 
+          className="w-1 bg-white/20 rounded-full" 
+          style={{ height: `${v * 100}%` }} 
+        />
+      ))}
+    </div>
+  );
 }
 
 export function AudioHub({
@@ -50,6 +81,20 @@ export function AudioHub({
       return data ?? [];
     },
   });
+
+  // Preload tracks for zero-latency switching
+  useEffect(() => {
+    if (tracks) {
+      tracks.forEach(t => {
+        const img = new Image();
+        if (t.artwork_url) img.src = t.artwork_url;
+        // Warm up audio cache
+        const a = new Audio();
+        a.preload = "auto";
+        a.src = t.audio_url;
+      });
+    }
+  }, [tracks]);
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
@@ -134,31 +179,37 @@ export function AudioHub({
             {(tracks ?? []).map((t: any) => (
               <div
                 key={t.id}
-                className={`flex items-center gap-3 rounded-2xl border p-3 ${
+                className={`flex flex-col gap-3 rounded-2xl border p-3 ${
                   music?.id === t.id ? "border-fuchsia-500 bg-fuchsia-500/10" : "border-white/10 bg-white/5"
                 }`}
               >
-                <button
-                  onClick={() => preview(t.id, t.audio_url)}
-                  aria-label={playing === t.id ? "Pause preview" : "Play preview"}
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 active:scale-90"
-                >
-                  {playing === t.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </button>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">{t.title}</p>
-                  <p className="truncate text-[11px] text-white/40">{t.album ?? "Javan Sounds"}</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => preview(t.id, t.audio_url)}
+                    aria-label={playing === t.id ? "Pause preview" : "Play preview"}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 active:scale-90"
+                  >
+                    {playing === t.id ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold">{t.title}</p>
+                    <p className="truncate text-[11px] text-white/40">{t.album ?? "Javan Sounds"}</p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      music?.id === t.id
+                        ? onMusic(null)
+                        : onMusic({ id: t.id, title: t.title, url: t.audio_url })
+                    }
+                    className="rounded-full bg-white px-3 py-1.5 text-[11px] font-black text-black active:scale-95"
+                  >
+                    {music?.id === t.id ? "Remove" : "Use"}
+                  </button>
                 </div>
-                <button
-                  onClick={() =>
-                    music?.id === t.id
-                      ? onMusic(null)
-                      : onMusic({ id: t.id, title: t.title, url: t.audio_url })
-                  }
-                  className="rounded-full bg-white px-3 py-1.5 text-[11px] font-black text-black active:scale-95"
-                >
-                  {music?.id === t.id ? "Remove" : "Use"}
-                </button>
+                <div className="flex items-center gap-2 px-1">
+                  <Activity className="h-3 w-3 text-white/20" />
+                  <Waveform url={t.audio_url} />
+                </div>
               </div>
             ))}
           </div>

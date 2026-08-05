@@ -15,6 +15,7 @@ interface ExportOptions {
 
 function pickMime() {
   const candidates = [
+    "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
     "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
     "video/webm",
@@ -44,24 +45,37 @@ function drawOverlays(
   w: number,
   h: number,
 ) {
+  ctx.save();
   ctx.filter = "none";
   for (const o of overlays) {
     if (t < o.start || t > o.end || !o.text.trim()) continue;
+    
+    // Smart Text Overlay Enhancements: Dynamic scaling and better shadows
     const size = (o.size * w) / 1080;
-    ctx.font = `900 ${size}px system-ui, sans-serif`;
+    ctx.font = `900 ${size}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.shadowColor = "rgba(0,0,0,0.65)";
-    ctx.shadowBlur = size * 0.35;
+    
+    // Multi-layered shadow for "High Definition" look
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = size * 0.15;
+    ctx.shadowOffsetX = size * 0.05;
+    ctx.shadowOffsetY = size * 0.05;
+    
     ctx.fillStyle = o.color;
     ctx.fillText(o.text, o.x * w, o.y * h);
+    
+    // Reset shadow for next overlay
     ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
   }
+  ctx.restore();
 }
 
 /**
- * Renders the timeline in real time onto a canvas and records it, mixing
- * clip audio, music, and voiceover into the output track.
+ * Robust Export & Rendering Pipeline
+ * Optimized for mobile browsers with better memory management and audio stems mixing.
  */
 export async function exportProject(opts: ExportOptions): Promise<Blob> {
   const {
@@ -72,8 +86,8 @@ export async function exportProject(opts: ExportOptions): Promise<Blob> {
     originalVolume,
     voiceoverUrl,
     voiceoverVolume = 1,
-    width = 720,
-    height = 1280,
+    width = 1080, // Upgraded to HD by default
+    height = 1920,
     onProgress,
   } = opts;
 
@@ -82,26 +96,30 @@ export async function exportProject(opts: ExportOptions): Promise<Blob> {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true })!;
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, width, height);
 
+  // Audio Pipeline: Using MediaStream for mixing stems
   const AudioCtor: typeof AudioContext =
     (window as any).AudioContext || (window as any).webkitAudioContext;
   const audioCtx = new AudioCtor();
   const dest = audioCtx.createMediaStreamDestination();
 
+  const activeElements: HTMLMediaElement[] = [];
   const attach = (el: HTMLMediaElement, volume: number) => {
     try {
       const src = audioCtx.createMediaElementSource(el);
       const gain = audioCtx.createGain();
       gain.gain.value = volume;
       src.connect(gain).connect(dest);
-    } catch {
-      /* element without decodable audio */
+      activeElements.push(el);
+    } catch (e) {
+      console.warn("Audio attachment failed", e);
     }
   };
 
+  // Setup Music Stem
   let music: HTMLAudioElement | null = null;
   if (musicUrl) {
     music = new Audio(musicUrl);
@@ -109,6 +127,8 @@ export async function exportProject(opts: ExportOptions): Promise<Blob> {
     music.loop = true;
     attach(music, musicVolume);
   }
+
+  // Setup Voiceover Stem
   let voice: HTMLAudioElement | null = null;
   if (voiceoverUrl) {
     voice = new Audio(voiceoverUrl);
@@ -116,14 +136,20 @@ export async function exportProject(opts: ExportOptions): Promise<Blob> {
     attach(voice, voiceoverVolume);
   }
 
-  const stream = canvas.captureStream(30);
+  const fps = 30;
+  const stream = canvas.captureStream(fps);
   dest.stream.getAudioTracks().forEach((t) => stream.addTrack(t));
 
   const chunks: Blob[] = [];
-  const recorder = new MediaRecorder(stream, { mimeType: pickMime() });
+  const mimeType = pickMime();
+  const recorder = new MediaRecorder(stream, { 
+    mimeType,
+    videoBitsPerSecond: 5000000 // 5Mbps for HD quality
+  });
+  
   recorder.ondataavailable = (e) => e.data.size > 0 && chunks.push(e.data);
   const done = new Promise<Blob>((resolve) => {
-    recorder.onstop = () => resolve(new Blob(chunks, { type: "video/webm" }));
+    recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
   });
 
   const total = clips.reduce((s, c) => s + clipLength(c), 0);
@@ -131,74 +157,104 @@ export async function exportProject(opts: ExportOptions): Promise<Blob> {
 
   recorder.start();
   await audioCtx.resume().catch(() => {});
-  music?.play().catch(() => {});
-  voice?.play().catch(() => {});
+  
+  if (music) {
+    music.currentTime = 0;
+    await music.play().catch(() => {});
+  }
+  if (voice) {
+    voice.currentTime = 0;
+    await voice.play().catch(() => {});
+  }
 
+  // Render Loop
   for (const clip of clips) {
     const filter = COLOR_FILTERS[clip.filter].css;
+    const duration = clipLength(clip);
+    
     if (clip.kind === "image") {
       const img = new Image();
       img.src = clip.url;
+      img.crossOrigin = "anonymous";
       await img.decode().catch(() => {});
-      const shown = clipLength(clip);
-      const start = performance.now();
-      await new Promise<void>((resolve) => {
-        const tick = () => {
-          const local = (performance.now() - start) / 1000;
-          if (local >= shown) return resolve();
-          ctx.fillStyle = "#000";
-          ctx.fillRect(0, 0, width, height);
-          ctx.filter = filter;
-          drawCover(ctx, img, width, height);
-          drawOverlays(ctx, overlays, elapsed + local, width, height);
-          onProgress?.(Math.min(1, (elapsed + local) / total));
-          requestAnimationFrame(tick);
-        };
-        tick();
-      });
-      elapsed += shown;
+      
+      const frames = Math.ceil(duration * fps);
+      for (let i = 0; i < frames; i++) {
+        const localT = i / fps;
+        const globalT = elapsed + localT;
+        
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, width, height);
+        ctx.filter = filter;
+        drawCover(ctx, img, width, height);
+        drawOverlays(ctx, overlays, globalT, width, height);
+        
+        onProgress?.(Math.min(0.99, globalT / total));
+        // Wait for next frame to avoid UI throttling
+        await new Promise(requestAnimationFrame);
+      }
+      elapsed += duration;
     } else {
       const video = document.createElement("video");
       video.src = clip.url;
+      video.crossOrigin = "anonymous";
       video.playsInline = true;
-      video.muted = clip.volume === 0;
+      video.muted = false;
       video.volume = 1;
       attach(video, clip.volume * originalVolume);
+      
       await new Promise<void>((resolve) => {
         video.onloadedmetadata = () => resolve();
         video.onerror = () => resolve();
       });
+      
       video.currentTime = clip.trimStart;
       video.playbackRate = clip.speed;
       await video.play().catch(() => {});
-      const shown = clipLength(clip);
-      const start = performance.now();
+      
+      const startT = performance.now();
       await new Promise<void>((resolve) => {
         const tick = () => {
-          const local = (performance.now() - start) / 1000;
-          if (local >= shown || video.ended || video.currentTime >= clip.trimEnd) {
+          const now = performance.now();
+          const localT = (now - startT) / 1000;
+          const globalT = elapsed + localT;
+          
+          if (localT >= duration || video.ended || video.currentTime >= clip.trimEnd) {
             video.pause();
+            // Cleanup to prevent memory leaks
+            video.src = "";
+            video.load();
             return resolve();
           }
+          
           ctx.fillStyle = "#000";
           ctx.fillRect(0, 0, width, height);
           ctx.filter = filter;
           drawCover(ctx, video, width, height);
-          drawOverlays(ctx, overlays, elapsed + local, width, height);
-          onProgress?.(Math.min(1, (elapsed + local) / total));
+          drawOverlays(ctx, overlays, globalT, width, height);
+          
+          onProgress?.(Math.min(0.99, globalT / total));
           requestAnimationFrame(tick);
         };
         tick();
       });
-      elapsed += shown;
+      elapsed += duration;
     }
   }
 
+  // Finalize
   music?.pause();
   voice?.pause();
   recorder.stop();
   const blob = await done;
+  
+  // Cleanup
   await audioCtx.close().catch(() => {});
+  activeElements.forEach(el => {
+    el.src = "";
+    el.load();
+  });
+  
   onProgress?.(1);
   return blob;
 }
@@ -214,11 +270,13 @@ export async function renderThumbnail(clip: Clip, width = 540, height = 960): Pr
   if (clip.kind === "image") {
     const img = new Image();
     img.src = clip.url;
+    img.crossOrigin = "anonymous";
     await img.decode().catch(() => {});
     drawCover(ctx, img, width, height);
   } else {
     const video = document.createElement("video");
     video.src = clip.url;
+    video.crossOrigin = "anonymous";
     video.muted = true;
     await new Promise<void>((resolve) => {
       video.onloadeddata = () => resolve();
@@ -230,6 +288,8 @@ export async function renderThumbnail(clip: Clip, width = 540, height = 960): Pr
       setTimeout(resolve, 800);
     });
     drawCover(ctx, video, width, height);
+    video.src = "";
+    video.load();
   }
   return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
 }

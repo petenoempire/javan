@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, Loader2, X } from "lucide-react";
+import { Camera, Check, Loader2, X, Undo2, Redo2 } from "lucide-react";
 import { toast } from "sonner";
 import { MobileShell } from "@/components/MobileShell";
 import { useAuth } from "@/lib/auth";
@@ -15,6 +15,7 @@ import { LiveSuite } from "@/components/studio/LiveSuite";
 import { ModeCarousel } from "@/components/studio/ModeCarousel";
 import { exportProject, renderThumbnail } from "@/lib/studio/exporter";
 import { makeClip, type Clip, type MusicSelection, type StudioMode, type TextOverlay } from "@/lib/studio/types";
+import { useStudioHistory } from "@/hooks/use-studio-history";
 
 export const Route = createFileRoute("/create")({
   head: () => ({
@@ -48,25 +49,43 @@ function CreatePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [mode, setMode] = useState<StudioMode>("60s");
-  const [stage, setStage] = useState<Stage>("capture");
-  const [clips, setClipsState] = useState<Clip[]>([]);
-  const [overlays, setOverlaysState] = useState<TextOverlay[]>([]);
-  const [music, setMusic] = useState<MusicSelection | null>(null);
-  const [mixer, setMixer] = useState<MixerState>({ original: 1, music: 0.6, voice: 1 });
-  const [voiceoverUrl, setVoiceoverUrl] = useState<string | null>(null);
-  const [caption, setCaption] = useState("");
-  const [progress, setProgress] = useState(0);
+  const {
+    state,
+    setState,
+    undo,
+    redo,
+    canUndo,
+    canRedo
+  } = useStudioHistory({
+    mode: "60s",
+    clips: [],
+    overlays: [],
+    music: null,
+    mixer: { original: 1, music: 0.6, voice: 1 },
+    voiceoverUrl: null,
+    caption: "",
+    textValue: "",
+    textBg: 0,
+  });
 
+  const { mode, clips, overlays, music, mixer, voiceoverUrl, caption, textValue, textBg } = state;
+
+  const [stage, setStage] = useState<Stage>("capture");
+  const [progress, setProgress] = useState(0);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [audioOpen, setAudioOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
 
-  const [textValue, setTextValue] = useState("");
-  const [textBg, setTextBg] = useState(0);
-
-  const setClips = (updater: (c: Clip[]) => Clip[]) => setClipsState((prev) => updater(prev));
-  const setOverlays = (updater: (o: TextOverlay[]) => TextOverlay[]) => setOverlaysState((prev) => updater(prev));
+  const setMode = (m: StudioMode) => setState(s => ({ ...s, mode: m }));
+  const setClips = (updater: (c: Clip[]) => Clip[]) => setState(s => ({ ...s, clips: updater(s.clips) }));
+  const setOverlays = (updater: (o: TextOverlay[]) => TextOverlay[]) => setState(s => ({ ...s, overlays: updater(s.overlays) }));
+  const setMusic = (m: MusicSelection | null) => setState(s => ({ ...s, music: m }));
+  const setMixer = (m: MixerState) => setState(s => ({ ...s, mixer: m }));
+  const setVoiceoverUrl = (v: string | null) => setState(s => ({ ...s, voiceoverUrl: v }));
+  const setCaption = (c: string | ((prev: string) => string)) => 
+    setState(s => ({ ...s, caption: typeof c === "function" ? c(s.caption) : c }));
+  const setTextValue = (v: string) => setState(s => ({ ...s, textValue: v }));
+  const setTextBg = (i: number) => setState(s => ({ ...s, textBg: i }));
 
   const applyTemplate = (t: StudioTemplate) => {
     setTemplatesOpen(false);
@@ -75,7 +94,7 @@ function CreatePage() {
       setCaption((c) => c || t.captionIdea);
       return;
     }
-    setClipsState((prev) =>
+    setClips((prev) =>
       prev.map((c) => ({
         ...c,
         filter: t.filter,
@@ -121,7 +140,7 @@ function CreatePage() {
     const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.92));
     if (!blob) return;
     const clip = await makeClip(blob, "image");
-    setClipsState((prev) => [...prev, clip]);
+    setClips((prev) => [...prev, clip]);
     setTextValue("");
     setStage("edit");
   };
@@ -200,6 +219,27 @@ function CreatePage() {
     },
   });
 
+  const HistoryControls = (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={undo}
+        disabled={!canUndo}
+        className="rounded-full bg-white/10 p-2 disabled:opacity-30 active:scale-90"
+        aria-label="Undo"
+      >
+        <Undo2 className="h-4 w-4" />
+      </button>
+      <button
+        onClick={redo}
+        disabled={!canRedo}
+        className="rounded-full bg-white/10 p-2 disabled:opacity-30 active:scale-90"
+        aria-label="Redo"
+      >
+        <Redo2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
   if (!user) {
     return (
       <MobileShell>
@@ -223,7 +263,7 @@ function CreatePage() {
         open={galleryOpen}
         onClose={() => setGalleryOpen(false)}
         onAdd={(added) => {
-          setClipsState((prev) => [...prev, ...added]);
+          setClips((prev) => [...prev, ...added]);
           setStage("edit");
         }}
       />
@@ -300,6 +340,9 @@ function CreatePage() {
   if (stage === "edit") {
     return (
       <>
+        <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[70]">
+          {HistoryControls}
+        </div>
         <TimelineEditor
           clips={clips}
           setClips={setClips}
@@ -333,9 +376,12 @@ function CreatePage() {
           <button onClick={() => navigate({ to: "/" })} aria-label="Close" className="rounded-full bg-black/30 p-2.5 active:scale-90">
             <X className="h-5 w-5" />
           </button>
-          <button onClick={makeTextCard} className="rounded-full bg-white px-4 py-2 text-xs font-black text-black active:scale-95">
-            Next
-          </button>
+          <div className="flex items-center gap-3">
+            {HistoryControls}
+            <button onClick={makeTextCard} className="rounded-full bg-white px-4 py-2 text-xs font-black text-black active:scale-95">
+              Next
+            </button>
+          </div>
         </header>
         <label htmlFor="text-post" className="sr-only">Text</label>
         <textarea

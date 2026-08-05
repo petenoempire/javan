@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { X, Check, Loader2, ImagePlus, Scissors } from "lucide-react";
 import { makeClip, type Clip } from "@/lib/studio/types";
 import { toast } from "sonner";
@@ -12,7 +12,11 @@ interface Item {
   trimStart: number;
   trimEnd: number;
   selected: boolean;
+  thumbnailUrl?: string;
 }
+
+// Global cache for zero-latency asset loading
+const metadataCache = new Map<string, { duration: number; thumbnailUrl?: string }>();
 
 export function GalleryPicker({
   open,
@@ -36,19 +40,52 @@ export function GalleryPicker({
     setBusy(true);
     const next: Item[] = [];
     for (const file of Array.from(files)) {
+      const cacheKey = `${file.name}-${file.size}-${file.lastModified}`;
       const kind = file.type.startsWith("video/") ? "video" : "image";
       const url = URL.createObjectURL(file);
-      const duration =
-        kind === "image"
-          ? 3
-          : await new Promise<number>((resolve) => {
-              const v = document.createElement("video");
-              v.preload = "metadata";
-              v.onloadedmetadata = () =>
-                resolve(Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 5);
-              v.onerror = () => resolve(5);
-              v.src = url;
-            });
+      
+      let duration = 3;
+      let thumbnailUrl: string | undefined;
+
+      if (kind === "video") {
+        if (metadataCache.has(cacheKey)) {
+          const cached = metadataCache.get(cacheKey)!;
+          duration = cached.duration;
+          thumbnailUrl = cached.thumbnailUrl;
+        } else {
+          duration = await new Promise<number>((resolve) => {
+            const v = document.createElement("video");
+            v.preload = "metadata";
+            v.onloadedmetadata = () =>
+              resolve(Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 5);
+            v.onerror = () => resolve(5);
+            v.src = url;
+          });
+          
+          // Generate a quick thumbnail for the picker
+          thumbnailUrl = await new Promise<string | undefined>((resolve) => {
+            const v = document.createElement("video");
+            v.src = url;
+            v.muted = true;
+            v.currentTime = 0.1;
+            v.onseeked = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = 160;
+              canvas.height = 160;
+              const ctx = canvas.getContext("2d");
+              if (ctx) {
+                const s = Math.min(v.videoWidth, v.videoHeight);
+                ctx.drawImage(v, (v.videoWidth - s) / 2, (v.videoHeight - s) / 2, s, s, 0, 0, 160, 160);
+                resolve(canvas.toDataURL("image/jpeg", 0.7));
+              } else resolve(undefined);
+            };
+            v.onerror = () => resolve(undefined);
+          });
+
+          metadataCache.set(cacheKey, { duration, thumbnailUrl });
+        }
+      }
+
       next.push({
         id: Math.random().toString(36).slice(2),
         file,
@@ -58,6 +95,7 @@ export function GalleryPicker({
         trimStart: 0,
         trimEnd: duration,
         selected: true,
+        thumbnailUrl,
       });
     }
     setItems((prev) => [...prev, ...next]);
@@ -179,7 +217,9 @@ export function GalleryPicker({
               i.selected ? "border-fuchsia-500" : "border-white/15"
             }`}
           >
-            {i.kind === "video" ? (
+            {i.thumbnailUrl ? (
+              <img src={i.thumbnailUrl} alt="" className="h-full w-full object-cover" />
+            ) : i.kind === "video" ? (
               <video src={i.url} muted className="h-full w-full object-cover" />
             ) : (
               <img src={i.url} alt="" className="h-full w-full object-cover" />
