@@ -271,7 +271,7 @@ function HomePage() {
       {/* Desktop Version */}
       <DesktopLayout>
         <div className="space-y-8">
-          <h2 className="sr-only">Javan Home Feed — Explore Trending Short Videos</h2>
+          <h1 className="sr-only">Javan Home Feed — Explore Trending Short Videos and Live Creators</h1>
           {/* Category Navigation Bar for Desktop */}
           <CategoryScrollBar activeCategory={activeCategory} setActiveCategory={setActiveCategory} isMobile={false} />
 
@@ -379,7 +379,7 @@ function HomePage() {
 
       {/* Mobile Version - TikTok Style */}
       <MobileShell>
-        <h2 className="sr-only">Javan Home Feed</h2>
+        <h1 className="sr-only">Javan Home Feed — Explore Trending Short Videos</h1>
         <div className="fixed inset-0 z-0 overflow-hidden bg-black">
           {/* Category Tabs - Smooth Scrollable Bar */}
           <CategoryScrollBar activeCategory={activeCategory} setActiveCategory={setActiveCategory} isMobile={true} />

@@ -37,7 +37,7 @@ function LivePage() {
                 <Radio className="h-8 w-8 text-rose-400" />
               </div>
               <div>
-                <h2 className="text-4xl font-black text-chrome tracking-tight">Live Now on Javan</h2>
+                <h1 className="text-4xl font-black text-chrome tracking-tight">Live Now on Javan</h1>
                 <p className="text-white/50">Watch and interact with creators in real-time.</p>
               </div>
             </div>

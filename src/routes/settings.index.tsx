@@ -78,7 +78,7 @@ function SettingsHome() {
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
-        <h2 className="text-4xl font-black text-chrome mb-8 tracking-tight">Settings & Privacy</h2>
+        <h1 className="text-4xl font-black text-chrome mb-8 tracking-tight">Settings & Privacy</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
            {groups.map(g => (
              <div key={g.title}>

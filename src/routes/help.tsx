@@ -88,7 +88,7 @@ function HelpCenterPage() {
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
-        <h2 className="text-4xl font-black text-chrome mb-8 tracking-tight">Help Center</h2>
+        <h1 className="text-4xl font-black text-chrome mb-8 tracking-tight">Help Center</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
            <div className="lg:col-span-4 space-y-6">

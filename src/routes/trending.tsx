@@ -31,7 +31,7 @@ function TrendingPage() {
               <TrendingUp className="h-8 w-8 text-orange-400" />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-chrome tracking-tight">Trending Now on Javan</h2>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Trending Now on Javan</h1>
               <p className="text-white/50">The hottest creators, videos, and topics across the cosmic Javan universe.</p>
             </div>
           </div>

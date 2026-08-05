@@ -31,7 +31,7 @@ function DramaPage() {
               <Film className="h-8 w-8 text-rose-400" />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-chrome tracking-tight">Javan Drama & Stories</h2>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Javan Drama & Stories</h1>
               <p className="text-white/50">The latest trending stories, cinematic shorts, and community drama.</p>
             </div>
           </div>

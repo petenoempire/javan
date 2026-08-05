@@ -403,7 +403,7 @@ function PolicyModal({ onClose }: { onClose: () => void }) {
             <li>• Community Guidelines violations</li>
             <li>• Security violations</li>
           </ul>
-          <button onClick={() => toast.info("Subscription policy details shown above")} className="mt-3 text-sm font-bold text-sky-500">Learn more</button>
+          <button onClick={() => toast.info("Subscription policy details shown above")} aria-label="View full subscription policy details" className="mt-3 text-sm font-bold text-sky-500">Read full subscription policy</button>
         </div>
         <button onClick={onClose} className="bg-gradient-live mt-5 w-full rounded-full py-3.5 text-sm font-bold text-primary-foreground shadow-glow">Got it</button>
       </div>

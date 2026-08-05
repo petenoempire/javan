@@ -180,8 +180,8 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
           <div className="space-y-4">
             <p className="text-xs text-white/20 italic">No trending creators yet.</p>
           </div>
-          <Link to="/discover" className="w-full mt-6 py-2 text-xs text-white/40 hover:text-white flex items-center justify-center gap-1 transition-colors">
-            Explore More <ChevronRight className="h-3 w-3" />
+          <Link to="/discover" className="w-full mt-6 py-2 text-xs text-white/40 hover:text-white flex items-center justify-center gap-1 transition-colors" aria-label="Explore trending creators and videos">
+            Explore Trending Creators <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
       </aside>

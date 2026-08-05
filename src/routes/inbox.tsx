@@ -59,7 +59,7 @@ function InboxPage() {
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
-        <h2 className="text-4xl font-black text-chrome mb-8">Messages</h2>
+        <h1 className="text-4xl font-black text-chrome mb-8">Messages</h1>
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>

@@ -46,7 +46,7 @@ function FollowingPage() {
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
-        <h2 className="text-4xl font-black text-chrome mb-8 tracking-tight">Following</h2>
+        <h1 className="text-4xl font-black text-chrome mb-8 tracking-tight">Following</h1>
         {data.length === 0 ? (
           <div className="glass p-20 rounded-[2.5rem] border border-white/5 text-center">
             <Users className="mx-auto h-12 w-12 text-white/10 mb-6" />

@@ -7,15 +7,15 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/short-video-platform-for-musicians")({
   head: () => ({
     meta: [
-      { title: "Javan: #1 Music Marketing Platform for Independent Musicians & Artists" },
-      { name: "description", content: "Javan is the leading music marketing platform for independent artists. Grow your fanbase, promote your music, earn direct payouts, and discover the best music marketing strategies for musicians in 2024." },
+      { title: "Music Marketing Platform for Artists | Javan" },
+      { name: "description", content: "Javan is a music marketing platform for independent artists. Promote your music, grow your fanbase, and earn direct payouts." },
       { name: "keywords", content: "music marketing platform, music marketing for independent artists, promote music online, musician promotion tools, artist marketing strategy, music distribution platform, grow music fans, musician monetization, short video platform for musicians, music social media, artist monetization, viral music videos, musician tools, Javan app, music promotion strategy, digital music marketing" },
-      { property: "og:title", content: "Music Marketing Platform for Musicians | Javan" },
-      { property: "og:description", content: "The #1 music marketing platform for independent musicians. Promote your music, grow your audience, and earn direct payouts. Built specifically for artists who want to market their music effectively." },
+      { property: "og:title", content: "Music Marketing Platform for Artists | Javan" },
+      { property: "og:description", content: "Promote your music, grow your fanbase, and earn direct payouts with Javan's music marketing platform for independent artists." },
       { property: "og:url", content: "https://javan.lovable.app/short-video-platform-for-musicians" },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "Javan: #1 Music Marketing Platform for Musicians" },
-      { name: "twitter:description", content: "The music marketing platform built for artists. Promote your sound, grow your fanbase, and earn real rewards from your music." },
+      { name: "twitter:title", content: "Music Marketing Platform for Artists | Javan" },
+      { name: "twitter:description", content: "The music marketing platform for independent artists. Promote your sound and earn real rewards." },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/short-video-platform-for-musicians" }],

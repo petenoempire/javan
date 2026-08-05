@@ -33,7 +33,7 @@ function MusicPage() {
               <MusicIcon className="h-8 w-8 text-fuchsia-400" />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-chrome tracking-tight">Music Hub & Sounds</h2>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Music Hub & Sounds</h1>
               <p className="text-white/50">Discover trending sounds, original tracks, and background music for your streams.</p>
             </div>
           </div>

@@ -40,7 +40,7 @@ function StemPage() {
               <Microscope className="h-8 w-8 text-blue-400" />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-chrome tracking-tight">Javan STEM Hub</h2>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Javan STEM Hub</h1>
               <p className="text-white/50">Educational content and deep dives into science and tech.</p>
             </div>
           </div>

@@ -82,8 +82,9 @@ function RewardsPage() {
                 <p className="text-white/60 leading-relaxed mb-6">
                   {p.description}
                 </p>
-                <Link to="/studio" className="flex items-center gap-2 text-sm font-bold text-cyan-400 hover:text-cyan-300">
-                  Learn more <ChevronRight className="h-4 w-4" />
+                <Link to="/studio" className="flex items-center gap-2 text-sm font-bold text-cyan-400 hover:text-cyan-300" aria-label={`Learn how to earn ${p.title}`}
+                  
+                  Explore {p.title} rewards <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
             ))}

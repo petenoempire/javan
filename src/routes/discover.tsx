@@ -102,7 +102,7 @@ function DiscoverPage() {
               <Compass className="h-8 w-8 text-cyan-400" />
             </div>
             <div>
-              <h2 className="text-4xl font-black text-chrome tracking-tight">Discover Creators</h2>
+              <h1 className="text-4xl font-black text-chrome tracking-tight">Discover Creators</h1>
               <p className="text-white/50">Explore categories and find new creators to follow.</p>
             </div>
           </div>
@@ -169,7 +169,7 @@ function DiscoverPage() {
       {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
-          <h1 className="sr-only">Discover New Content & Trending Creators</h1>
+          <h2 className="sr-only">Discover New Content & Trending Creators</h2>
           <div className="relative mb-6">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <input 
