@@ -185,61 +185,76 @@ function Auth() {
   };
 
   const getErrorMessage = (err: any) => {
-    if (!err) return "An unknown error occurred";
-    if (typeof err === "string") return err;
-    if (err.error_description) return err.error_description;
-    if (err.message) return err.message;
-    return JSON.stringify(err);
+    try {
+      if (!err) return "An unknown error occurred";
+      if (typeof err === "string") return err;
+      if (err.error_description) return err.error_description;
+      if (err.message) return err.message;
+      if (err.error && typeof err.error === 'string') return err.error;
+      return JSON.stringify(err);
+    } catch (e) {
+      return "An unreadable error occurred";
+    }
   };
 
   const handleInitialSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+    
     setLoading(true);
     
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false);
+      toast.error("Submission timed out. The request is taking too long.");
+    }, 10000);
+
     try {
       if (mode === "signup") {
-        if (!phoneNumber) throw new Error("Phone number is required for secure verification.");
+        if (!phoneNumber) throw new Error("Phone number is required.");
         if (handle.length < 3) throw new Error("Handle must be at least 3 characters.");
         
         const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
         
-        // Twilio-linked backend verification dispatch
         const { error, data } = await supabase.functions.invoke("dispatch-dual-verification", {
           body: {
             email,
             phone: fullPhone,
             handle: handle.toLowerCase(),
-            display_name: name || handle, // Match DB schema 'display_name'
+            username: handle.toLowerCase(), 
+            display_name: name || handle,
+            name: name || handle,
             country: selectedCountry.code,
             region: selectedCountry.region,
           },
         });
 
-        if (error) {
-          console.error("Signup dispatch error:", error);
-          throw new Error(getErrorMessage(error));
-        }
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
         
-        toast.success("Verification codes sent to SMS and email.");
+        toast.success("Verification codes sent.");
         setStage("verify_signup");
       } else {
-        // Twilio-linked backend login challenge
-        const { error } = await supabase.functions.invoke("challenge-login", {
+        const { error, data } = await supabase.functions.invoke("challenge-login", {
           body: { email, password },
         });
 
-        if (error) {
-          console.error("Login challenge error:", error);
-          throw new Error(getErrorMessage(error));
-        }
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
         
-        toast.success("Login code sent to your email.");
+        toast.success("Login code sent.");
         setStage("verify_signin");
       }
     } catch (err: any) {
-      console.error("Auth submission crash prevented:", err);
-      toast.error(getErrorMessage(err));
+      console.error("Auth submission error:", err);
+      const msg = getErrorMessage(err);
+      try {
+        toast.error(msg);
+      } catch (tErr) {
+        console.error("Toast failed:", tErr);
+        alert(msg); // Ultimate fallback
+      }
     } finally {
+      clearTimeout(safetyTimeout);
       setLoading(false);
     }
   };
@@ -252,14 +267,21 @@ function Auth() {
     }
     setLoading(true);
 
+    const timeout = setTimeout(() => {
+      setLoading(false);
+      toast.error("Verification timed out.");
+    }, 10000);
+
     try {
       const fullPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
-      const { error } = await supabase.functions.invoke("confirm-dual-verification", {
+      const { error, data } = await supabase.functions.invoke("confirm-dual-verification", {
         body: {
           email,
           phone: fullPhone,
           handle: handle.toLowerCase(),
+          username: handle.toLowerCase(),
           display_name: name || handle,
+          name: name || handle,
           password,
           country: selectedCountry.code,
           region: selectedCountry.region,
@@ -268,22 +290,21 @@ function Auth() {
         },
       });
 
-      if (error) {
-        console.error("Signup verification error:", error);
-        throw new Error(getErrorMessage(error));
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      // After successful Twilio-based verification, sign in to Supabase
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
       if (sessionError) throw sessionError;
 
-      toast.success("Account created and verified successfully!");
+      toast.success("Account verified!");
       await refreshProfile();
-      navigate({ to: "/" });
+      navigate({ to: "/discover" });
     } catch (err: any) {
-      console.error("Signup challenge crash prevented:", err);
+      console.error("Signup verify error:", err);
       toast.error(getErrorMessage(err));
+      setLoading(false);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
@@ -291,31 +312,36 @@ function Auth() {
   const handleVerifySigninChallenge = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loginOtpInput.length !== 5) {
-      toast.error("2FA code must be exactly 5 digits.");
+      toast.error("2FA code must be 5 digits.");
       return;
     }
     setLoading(true);
 
+    const timeout = setTimeout(() => {
+      setLoading(false);
+      toast.error("2FA timed out.");
+    }, 10000);
+
     try {
-      const { error } = await supabase.functions.invoke("verify-login-2fa", {
+      const { error, data } = await supabase.functions.invoke("verify-login-2fa", {
         body: { email, "2fa_code": loginOtpInput },
       });
 
-      if (error) {
-        console.error("2FA verification error:", error);
-        throw new Error(getErrorMessage(error));
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
       if (sessionError) throw sessionError;
 
-      toast.success("Login verified.");
+      toast.success("Login verified!");
       await refreshProfile();
-      navigate({ to: "/" });
+      navigate({ to: "/discover" });
     } catch (err: any) {
-      console.error("Signin challenge crash prevented:", err);
+      console.error("2FA error:", err);
       toast.error(getErrorMessage(err));
+      setLoading(false);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
