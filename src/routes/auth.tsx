@@ -136,32 +136,35 @@ function Auth() {
       
       if (hash.includes("access_token") || search.includes("code")) {
         setLoading(true);
-        
-        if (hash.includes("access_token")) {
-          const params = new URLSearchParams(hash.substring(1));
-          const accessToken = params.get("access_token");
-          const refreshToken = params.get("refresh_token");
-          
-          if (accessToken && refreshToken) {
-            const { error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-            if (!error) {
+        try {
+          if (hash.includes("access_token")) {
+            const params = new URLSearchParams(hash.substring(1));
+            const accessToken = params.get("access_token");
+            const refreshToken = params.get("refresh_token");
+            
+            if (accessToken && refreshToken) {
+              const { error } = await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken,
+              });
+              if (error) throw error;
+              setLoading(false);
+              navigate({ to: "/discover" });
+            }
+          } else if (search.includes("code")) {
+            const params = new URLSearchParams(search);
+            const code = params.get("code");
+            if (code) {
+              const { error } = await supabase.auth.exchangeCodeForSession(code);
+              if (error) throw error;
               setLoading(false);
               navigate({ to: "/discover" });
             }
           }
-        } else if (search.includes("code")) {
-          const params = new URLSearchParams(search);
-          const code = params.get("code");
-          if (code) {
-            const { error } = await supabase.auth.exchangeCodeForSession(code);
-            if (!error) {
-              setLoading(false);
-              navigate({ to: "/discover" });
-            }
-          }
+        } catch (err) {
+          console.error("OAuth callback error:", err);
+          toast.error("Authentication failed. Please try again.");
+          setLoading(false);
         }
       }
     };
