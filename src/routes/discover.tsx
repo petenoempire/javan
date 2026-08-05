@@ -12,9 +12,9 @@ export const Route = createFileRoute("/discover")({
   head: () => ({
     meta: [
       { title: "Discover Trending Creators & Viral Videos · Javan" },
-      { name: "description", content: "Explore the best content on Javan. Discover new creators, trending short videos, and viral stories across STEM, Drama, and more. Find your next favorite creator today." },
+      { name: "description", content: "Discover trending creators and viral short videos on Javan. Explore new content across STEM, Drama, and more categories." },
       { property: "og:title", content: "Discover Trending Creators & Viral Videos · Javan" },
-      { property: "og:description", content: "Explore the best content on Javan. Discover new creators, trending short videos, and viral stories across STEM, Drama, and more." },
+      { property: "og:description", content: "Discover trending creators and viral short videos on Javan across all categories." },
       { property: "og:url", content: "https://javan.lovable.app/discover" },
       { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Discover Trending Creators & Viral Videos · Javan" },

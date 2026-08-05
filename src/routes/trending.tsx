@@ -7,7 +7,7 @@ export const Route = createFileRoute("/trending")({
   head: () => ({
     meta: [
       { title: "Trending Now on Javan — Viral Short Videos & Top Creators" },
-      { name: "description", content: "Stay updated with what's viral. See the most popular short videos, top creators, and trending topics on Javan today. Join the conversation and see what's trending in real-time." },
+      { name: "description", content: "See what's trending on Javan. Discover viral short videos, top creators, and trending topics in real-time." },
       { property: "og:title", content: "Trending Now on Javan — Viral Short Videos & Top Creators" },
       { property: "og:description", content: "Stay updated with what's viral on Javan. See popular short videos, top creators, and trending topics." },
       { property: "og:url", content: "https://javan.lovable.app/trending" },
