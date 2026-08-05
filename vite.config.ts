@@ -20,7 +20,17 @@ export default defineConfig({
     ssr: {
       // Bundle the server routing stack so the deployed worker never tries to
       // resolve these transitive packages at runtime.
-      noExternal: true,
+      noExternal: [
+        '@tanstack/react-start',
+        '@tanstack/react-router',
+        '@tanstack/router-core',
+        '@tanstack/react-store',
+        '@tanstack/history',
+        'h3-v2',
+        'h3',
+        'rou3',
+        'srvx',
+      ],
     },
   },
 });
