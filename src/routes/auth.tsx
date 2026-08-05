@@ -121,18 +121,50 @@ function Auth() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 1. Explicit Session Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === "SIGNED_IN" && s) {
+        setLoading(false);
+        navigate({ to: "/discover" });
+      }
+    });
+
+    // 2. Manual Redirect Safeguard
+    const handleCallback = async () => {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      
+      if (hash.includes("access_token") || search.includes("code")) {
+        setLoading(true);
+        
+        if (hash.includes("access_token")) {
+          const params = new URLSearchParams(hash.substring(1));
+          const accessToken = params.get("access_token");
+          const refreshToken = params.get("refresh_token");
+          
+          if (accessToken && refreshToken) {
+            const { error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            if (!error) {
+              setLoading(false);
+              navigate({ to: "/discover" });
+            }
+          }
+        }
+      }
+    };
+
+    handleCallback();
+
     if (session) {
       setLoading(false);
-      navigate({ to: "/" });
+      navigate({ to: "/discover" });
     }
-  }, [session, navigate]);
 
-  useEffect(() => {
-    // If we have a hash, we're likely returning from OAuth
-    if (typeof window !== "undefined" && window.location.hash.includes("access_token")) {
-      setLoading(true);
-    }
-  }, []);
+    return () => subscription.unsubscribe();
+  }, [session, navigate]);
 
   const handleCountryChange = (countryCode: string) => {
     const target = GLOBAL_COUNTRIES.find(c => c.code === countryCode);
