@@ -5,6 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { generateCaptionSuggestions, generateCaptionVariations } from "./ai-captions";
 
 export const appRouter = router({
   system: systemRouter,
@@ -250,6 +251,28 @@ export const appRouter = router({
       .input(z.object({ limit: z.number().default(20) }))
       .query(async ({ input }) => {
         return await db.getPopularAudioTracks(input.limit);
+      }),
+  }),
+  /**
+   * AI Captions router
+   */
+  ai: router({
+    generateCaption: publicProcedure
+      .input(z.object({
+        mediaType: z.enum(["photo", "video"]),
+        context: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        return await generateCaptionSuggestions(input.mediaType, input.context);
+      }),
+
+    generateCaptions: publicProcedure
+      .input(z.object({
+        mediaType: z.enum(["photo", "video"]),
+        count: z.number().optional(),
+      }))
+      .query(async ({ input }) => {
+        return await generateCaptionVariations(input.mediaType, input.count || 3);
       }),
   }),
 });
