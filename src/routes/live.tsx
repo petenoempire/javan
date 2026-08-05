@@ -37,7 +37,7 @@ function LivePage() {
                 <Radio className="h-8 w-8 text-rose-400" />
               </div>
               <div>
-                <h1 className="text-4xl font-black text-chrome tracking-tight">Live Now on Javan</h1>
+                <h2 className="text-4xl font-black text-chrome tracking-tight">Live Now on Javan</h2>
                 <p className="text-white/50">Watch and interact with creators in real-time.</p>
               </div>
             </div>
@@ -80,7 +80,7 @@ function LivePage() {
       {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
-           <h1 className="text-2xl font-black text-chrome mb-6">Live</h1>
+           <h2 className="text-2xl font-black text-chrome mb-6">Live</h2>
            <div className="space-y-6">
               {liveStreams.length > 0 ? liveStreams.map((stream) => (
                 <Link key={stream.id} to="/live/$id" params={{ id: stream.id }} search={{ host: undefined }} className="relative block aspect-[9/16] rounded-3xl bg-white/5 border border-white/10 overflow-hidden">

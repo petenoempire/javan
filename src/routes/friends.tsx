@@ -97,7 +97,7 @@ function FriendsFeed() {
     <>
     <DesktopLayout>
        <div className="max-w-6xl mx-auto py-10">
-          <h1 className="text-4xl font-black text-chrome mb-8">Friends Feed</h1>
+          <h2 className="text-4xl font-black text-chrome mb-8">Friends Feed</h2>
           {isLoading ? (
             <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div></div>
           ) : videos.length === 0 ? (
@@ -124,7 +124,7 @@ function FriendsFeed() {
        </div>
     </DesktopLayout>
     <MobileShell immersive>
-      <h1 className="sr-only">Friends</h1>
+      <h2 className="sr-only">Friends</h2>
       <div className="pointer-events-none absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-black/55 via-black/15 to-transparent pb-3 pt-3">
         <div className="pointer-events-auto flex items-center justify-center gap-2">
           <div className="glass-strong inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold text-white">

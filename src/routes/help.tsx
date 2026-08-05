@@ -88,7 +88,7 @@ function HelpCenterPage() {
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
-        <h1 className="text-4xl font-black text-chrome mb-8 tracking-tight">Help Center</h1>
+        <h2 className="text-4xl font-black text-chrome mb-8 tracking-tight">Help Center</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
            <div className="lg:col-span-4 space-y-6">
@@ -151,7 +151,7 @@ function HelpCenterPage() {
           <Link to="/profile" aria-label="Back to profile" className="text-white/50 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <h1 className="font-display text-lg font-black text-chrome">Help Center</h1>
+          <h2 className="font-display text-lg font-black text-chrome">Help Center</h2>
         </div>
 
         {/* Search */}

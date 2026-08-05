@@ -40,14 +40,14 @@ function CommunityPage() {
               <Users className="h-8 w-8 text-cyan-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Javan Community</h1>
+              <h2 className="text-4xl font-black text-chrome tracking-tight">Javan Community</h2>
               <p className="text-white/50">Join groups, participate in discussions, and find your tribe.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {groups.map((group) => (
-              <div key={group.name} className="glass p-6 rounded-3xl border border-white/5 flex items-center justify-between hover:bg-white/5 transition-all cursor-pointer">
+              <div key={group.name} role="button" aria-label={`Join ${group.name} group`} tabIndex={0} className="glass p-6 rounded-3xl border border-white/5 flex items-center justify-between hover:bg-white/5 transition-all cursor-pointer">
                 <div className="flex items-center gap-4">
                   <div className={`h-12 w-12 rounded-2xl ${group.color} flex items-center justify-center shadow-lg`}>
                     <Globe className="h-6 w-6 text-white" />
@@ -87,7 +87,7 @@ function CommunityPage() {
       {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
-           <h1 className="text-2xl font-black text-chrome mb-6">Community</h1>
+           <h2 className="text-2xl font-black text-chrome mb-6">Community</h2>
            <div className="space-y-4">
               {groups.map((group) => (
                 <div key={group.name} className="glass p-4 rounded-2xl border border-white/5 flex items-center justify-between">

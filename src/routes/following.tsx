@@ -46,7 +46,7 @@ function FollowingPage() {
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
-        <h1 className="text-4xl font-black text-chrome mb-8 tracking-tight">Following</h1>
+        <h2 className="text-4xl font-black text-chrome mb-8 tracking-tight">Following</h2>
         {data.length === 0 ? (
           <div className="glass p-20 rounded-[2.5rem] border border-white/5 text-center">
             <Users className="mx-auto h-12 w-12 text-white/10 mb-6" />
@@ -77,7 +77,7 @@ function FollowingPage() {
     <MobileShell>
       <header className="glass-strong sticky top-0 z-20 flex items-center gap-3 border-b border-white/5 px-4 py-3">
         <button onClick={() => nav({ to: "/profile" })} aria-label="Back to profile" className="p-1"><ArrowLeft className="h-5 w-5" /></button>
-        <h1 className="font-display text-lg font-bold text-chrome">Following</h1>
+        <h2 className="font-display text-lg font-bold text-chrome">Following</h2>
       </header>
       <div className="px-3 py-3">
         {data.length === 0 ? (

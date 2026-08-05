@@ -141,7 +141,7 @@ function ProfilePage() {
         {/* Profile Info */}
         <div className="px-8 flex items-start justify-between mb-8">
           <div>
-            <h1 className="font-display text-4xl font-black text-chrome">{profile.display_name}</h1>
+            <h2 className="font-display text-4xl font-black text-chrome">{profile.display_name}</h2>
             <p className="text-lg text-white/50">@{profile.handle}</p>
             {profile.bio && <p className="text-base text-white/80 mt-4 max-w-xl leading-relaxed">{profile.bio}</p>}
           </div>
@@ -231,7 +231,7 @@ function ProfilePage() {
         <div className="px-4 pt-14 pb-4">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="font-display text-2xl font-black">{profile.display_name}</h1>
+              <h1 className="font-display text-2xl font-black" role="heading" aria-level="1">{profile.display_name}</h1>
               <p className="text-sm text-white/50">@{profile.handle}</p>
             </div>
             <button

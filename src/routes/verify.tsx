@@ -132,7 +132,7 @@ function VerifyPage() {
           <Link to="/profile" aria-label="Back to profile" className="text-white/50 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <h1 className="font-display text-lg font-black">Get Verified</h1>
+          <h2 className="font-display text-lg font-black">Get Verified</h2>
         </div>
 
         {existing?.status === "rejected" && (

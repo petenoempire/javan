@@ -129,7 +129,7 @@ function ArtistOnboarding() {
         <Link to="/profile" aria-label="Back to profile" className="text-neutral-400 p-1">
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <h1 className="font-display text-sm font-black">Become an Artist</h1>
+        <h2 className="font-display text-sm font-black">Become an Artist</h2>
       </header>
 
       <div className="px-4 pt-5">

@@ -270,7 +270,7 @@ function WalletPage() {
     <MobileShell>
       <div className="px-5 pt-6 pb-24">
         <div className="flex items-center justify-between">
-          <h1 className="font-display text-3xl font-black tracking-tight">Wallet</h1>
+          <h2 className="font-display text-3xl font-black tracking-tight">Wallet</h2>
           <label htmlFor="wallet-currency" className="sr-only">Select display currency</label>
           <select
             id="wallet-currency"

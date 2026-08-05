@@ -271,13 +271,14 @@ function HomePage() {
       {/* Desktop Version */}
       <DesktopLayout>
         <div className="space-y-8">
-          <h1 className="sr-only">Javan Home Feed — Explore Trending Short Videos</h1>
+          <h2 className="sr-only">Javan Home Feed — Explore Trending Short Videos</h2>
           {/* Category Navigation Bar for Desktop */}
           <CategoryScrollBar activeCategory={activeCategory} setActiveCategory={setActiveCategory} isMobile={false} />
 
           {/* Featured Banner - Only show if there are posts and on For You/Following */}
           {(activeCategory === 'For You' || activeCategory === 'Following') && posts.length > 0 ? (
-            <div className="relative aspect-[21/9] rounded-3xl overflow-hidden glass border border-white/10 group cursor-pointer">
+            <Link to="/posts/$id" params={{ id: posts[0]?.id }} className="block">
+              <div className="relative aspect-[21/9] rounded-3xl overflow-hidden glass border border-white/10 group">
               <div className="absolute inset-0 bg-gradient-to-t from-[#020210] via-transparent to-transparent z-10"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-[#020210]/80 via-transparent to-transparent z-10"></div>
               {posts[0].image_url ? (
@@ -321,6 +322,7 @@ function HomePage() {
                 </div>
               </div>
             </div>
+              </Link>
           ) : activeCategory !== 'For You' && activeCategory !== 'Following' ? (
             <div className="py-20 text-center glass rounded-3xl border border-white/5">
               <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 mx-auto">
@@ -338,7 +340,7 @@ function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {posts.length > 0 ? (
                   posts.map((post) => (
-                    <div key={post.id} className="group cursor-pointer">
+                    <Link key={post.id} to="/posts/$id" params={{ id: post.id }} className="group cursor-pointer block">
                       <div className="relative aspect-video rounded-2xl overflow-hidden glass border border-white/10 mb-3">
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
                         {post.image_url ? (
@@ -361,7 +363,7 @@ function HomePage() {
                           <p className="text-xs text-white/50 mt-1">{post.author?.display_name} • {post.views_count} views</p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <div className="col-span-full py-20 text-center glass rounded-3xl border border-white/5">
@@ -377,7 +379,7 @@ function HomePage() {
 
       {/* Mobile Version - TikTok Style */}
       <MobileShell>
-        <h1 className="sr-only">Javan Home Feed</h1>
+        <h2 className="sr-only">Javan Home Feed</h2>
         <div className="fixed inset-0 z-0 overflow-hidden bg-black">
           {/* Category Tabs - Smooth Scrollable Bar */}
           <CategoryScrollBar activeCategory={activeCategory} setActiveCategory={setActiveCategory} isMobile={true} />

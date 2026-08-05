@@ -31,7 +31,7 @@ function DramaPage() {
               <Film className="h-8 w-8 text-rose-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Javan Drama & Stories</h1>
+              <h2 className="text-4xl font-black text-chrome tracking-tight">Javan Drama & Stories</h2>
               <p className="text-white/50">The latest trending stories, cinematic shorts, and community drama.</p>
             </div>
           </div>
@@ -46,7 +46,7 @@ function DramaPage() {
 
 	      <MobileShell>
 	        <div className="px-5 pt-4 pb-20">
-	           <h1 className="text-2xl font-black text-chrome mb-6">Drama</h1>
+	           <h2 className="text-2xl font-black text-chrome mb-6">Drama</h2>
 	           <div className="space-y-4 text-center py-10">
 	              <p className="text-white/20 italic">No content found.</p>
 	           </div>

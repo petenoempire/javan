@@ -62,7 +62,7 @@ function CreatorStudio() {
     <DesktopLayout>
       <div className="max-w-6xl mx-auto py-10">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-4xl font-black text-chrome tracking-tight">Creator Studio</h1>
+          <h2 className="text-4xl font-black text-chrome tracking-tight">Creator Studio</h2>
           <div className="flex gap-4">
              <Link to="/settings"><Button variant="outline" className="rounded-xl border-white/10"><Settings className="h-4 w-4 mr-2" /> Settings</Button></Link>
              <Link to="/create"><Button className="bg-gradient-primary rounded-xl"><Plus className="h-4 w-4 mr-2" /> New Post</Button></Link>
@@ -115,7 +115,7 @@ function CreatorStudio() {
                  <h3 className="font-bold mb-4">Academy</h3>
                  <div className="space-y-4">
                     {["Hooks that hold", "Lighting like a pro", "Caption strategy"].map(title => (
-                       <div key={title} className="flex items-center gap-3 group cursor-pointer">
+                       <div key={title} role="button" aria-label={`${title} academy course`} tabIndex={0} className="flex items-center gap-3 group cursor-pointer">
                           <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
                              <GraduationCap className="h-5 w-5 text-white/40" />
                           </div>
@@ -132,7 +132,7 @@ function CreatorStudio() {
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-muted/40 pb-24 dark:bg-[#020210] lg:hidden">
       <header className="sticky top-0 z-10 flex items-center border-b border-white/5 bg-[#020210]/95 px-2 py-3 backdrop-blur">
         <Link to="/profile" className="p-2" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
-        <h1 className="flex-1 text-center font-display text-base font-bold text-chrome">Creator Studio</h1>
+        <h2 className="flex-1 text-center font-display text-base font-bold text-chrome">Creator Studio</h2>
         <Link to="/settings" className="p-2" aria-label="Settings"><Settings className="h-5 w-5" /></Link>
       </header>
 

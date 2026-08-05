@@ -102,7 +102,7 @@ function DiscoverPage() {
               <Compass className="h-8 w-8 text-cyan-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Discover Creators</h1>
+              <h2 className="text-4xl font-black text-chrome tracking-tight">Discover Creators</h2>
               <p className="text-white/50">Explore categories and find new creators to follow.</p>
             </div>
           </div>

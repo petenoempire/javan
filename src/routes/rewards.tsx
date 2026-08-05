@@ -133,7 +133,7 @@ function RewardsPage() {
       {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-24">
-          <h1 className="text-3xl font-black text-chrome mb-4">Creator Rewards</h1>
+          <h2 className="text-3xl font-black text-chrome mb-4">Creator Rewards</h2>
           <p className="text-sm text-white/50 mb-8">
             Get rewarded for your creativity on Javan.
           </p>

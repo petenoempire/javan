@@ -78,7 +78,7 @@ function SettingsHome() {
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
-        <h1 className="text-4xl font-black text-chrome mb-8 tracking-tight">Settings & Privacy</h1>
+        <h2 className="text-4xl font-black text-chrome mb-8 tracking-tight">Settings & Privacy</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
            {groups.map(g => (
              <div key={g.title}>
@@ -117,7 +117,7 @@ function SettingsHome() {
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-[#020210] pb-24 lg:hidden">
       <header className="glass-strong sticky top-0 z-10 flex items-center gap-3 border-b border-white/5 px-4 py-3">
         <Link to="/profile" className="p-1" aria-label="Back to profile"><ArrowLeft className="h-5 w-5" /></Link>
-        <h1 className="font-display text-lg font-bold text-chrome">Settings</h1>
+        <h2 className="font-display text-lg font-bold text-chrome">Settings</h2>
       </header>
 
       <div className="space-y-6 px-4 pt-5">

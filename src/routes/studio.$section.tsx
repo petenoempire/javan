@@ -209,7 +209,7 @@ function SubscriptionHub() {
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-muted/30 pb-24">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-background/95 px-2 py-3 backdrop-blur">
         <Link to="/studio" className="p-2" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
-        <h1 className="font-display text-base font-bold">Subscription</h1>
+        <h2 className="font-display text-base font-bold">Subscription</h2>
         <button className="p-2" aria-label="Menu" onClick={() => setPolicyOpen(true)}>
           <div className="flex flex-col gap-1"><span className="h-0.5 w-4 bg-foreground" /><span className="h-0.5 w-4 bg-foreground" /><span className="h-0.5 w-4 bg-foreground" /></div>
         </button>
@@ -434,7 +434,7 @@ function GenericSection({ section }: { section: string }) {
     <div className="mx-auto min-h-[100dvh] max-w-[480px] bg-background pb-24">
       <header className="glass-strong sticky top-0 z-20 flex items-center gap-3 border-b border-border px-4 py-3">
         <Link to="/studio" className="p-1" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
-        <h1 className="font-display text-lg font-bold">{cfg.title}</h1>
+        <h2 className="font-display text-lg font-bold">{cfg.title}</h2>
       </header>
 
       <div className="space-y-5 px-4 pt-5">

@@ -59,7 +59,7 @@ function InboxPage() {
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
-        <h1 className="text-4xl font-black text-chrome mb-8">Messages</h1>
+        <h2 className="text-4xl font-black text-chrome mb-8">Messages</h2>
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
@@ -94,7 +94,7 @@ function InboxPage() {
     </DesktopLayout>
     <MobileShell>
       <div className="px-4 pt-4 pb-20">
-        <h1 className="font-display text-2xl font-black mb-4 text-chrome">Messages</h1>
+        <h2 className="font-display text-2xl font-black mb-4 text-chrome">Messages</h2>
 
         {isLoading ? (
           <div className="flex justify-center py-12">

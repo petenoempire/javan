@@ -33,7 +33,7 @@ function MusicPage() {
               <MusicIcon className="h-8 w-8 text-fuchsia-400" />
             </div>
             <div>
-              <h1 className="text-4xl font-black text-chrome tracking-tight">Music Hub & Sounds</h1>
+              <h2 className="text-4xl font-black text-chrome tracking-tight">Music Hub & Sounds</h2>
               <p className="text-white/50">Discover trending sounds, original tracks, and background music for your streams.</p>
             </div>
           </div>
@@ -67,7 +67,7 @@ function MusicPage() {
       {isDesktop === false && (
       <MobileShell>
         <div className="px-5 pt-4 pb-20">
-           <h1 className="text-2xl font-black text-chrome mb-6">Music</h1>
+           <h2 className="text-2xl font-black text-chrome mb-6">Music</h2>
 	           <div className="space-y-4 text-center py-10">
 	              <p className="text-white/20 italic">No sounds found.</p>
 	           </div>

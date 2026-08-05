@@ -107,7 +107,7 @@ function ArtistStudio() {
           <Link to="/profile" aria-label="Back to profile" className="text-neutral-400 p-1">
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <h1 className="font-display text-sm font-black">Artist Studio</h1>
+          <h2 className="font-display text-sm font-black">Artist Studio</h2>
         </div>
         <button
           onClick={() => setAdding(true)}

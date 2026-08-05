@@ -127,7 +127,7 @@ function EditProfile() {
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
         <div className="flex items-center justify-between mb-8">
-           <h1 className="text-4xl font-black text-chrome tracking-tight">Edit Profile</h1>
+           <h2 className="text-4xl font-black text-chrome tracking-tight">Edit Profile</h2>
            {saving && <div className="flex items-center gap-2 text-cyan-400 text-sm font-bold"><Loader2 className="h-4 w-4 animate-spin" /> Saving...</div>}
         </div>
         
@@ -149,21 +149,21 @@ function EditProfile() {
               <div className="glass p-8 rounded-[2.5rem] border border-white/5 space-y-6">
                  <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-white/30 ml-2">Display Name</label>
-                    <div onClick={() => setSheet("name")} className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer flex justify-between items-center">
+                    <div role="button" aria-label="Edit display name" tabIndex={0} onClick={() => setSheet("name")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSheet("name"); }} className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer flex justify-between items-center">
                        <span className="font-bold text-white">{form.display_name || "Set Name"}</span>
                        <ChevronRight className="h-4 w-4 text-white/20" />
                     </div>
                  </div>
                  <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-white/30 ml-2">Username</label>
-                    <div onClick={() => setSheet("username")} className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer flex justify-between items-center">
+                    <div role="button" aria-label="Edit username" tabIndex={0} onClick={() => setSheet("username")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSheet("username"); }} className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer flex justify-between items-center">
                        <span className="font-bold text-cyan-400">@{form.handle || "set_username"}</span>
                        <ChevronRight className="h-4 w-4 text-white/20" />
                     </div>
                  </div>
                  <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-white/30 ml-2">Bio</label>
-                    <div onClick={() => setSheet("bio")} className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer flex justify-between items-center min-h-[100px] items-start">
+                    <div role="button" aria-label="Edit bio" tabIndex={0} onClick={() => setSheet("bio")} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSheet("bio"); }} className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer flex justify-between items-center min-h-[100px] items-start">
                        <span className="text-sm text-white/70 leading-relaxed">{form.bio || "Tell the world about yourself..."}</span>
                        <ChevronRight className="h-4 w-4 text-white/20 mt-1" />
                     </div>
@@ -178,7 +178,7 @@ function EditProfile() {
       {/* Header */}
       <header className="sticky top-0 z-10 flex items-center border-b border-white/5 bg-[#020210]/95 px-2 py-3 backdrop-blur">
         <Link to="/profile" className="p-2" aria-label="Back"><ArrowLeft className="h-5 w-5" /></Link>
-        <h1 className="flex-1 text-center font-display text-base font-bold text-chrome">Edit Profile</h1>
+        <h1 className="flex-1 text-center font-display text-base font-bold text-chrome" role="heading" aria-level="1">Edit Profile</h1>
         <div className="w-9">{saving && <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />}</div>
       </header>
 

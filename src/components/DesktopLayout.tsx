@@ -135,7 +135,11 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
         {isHomepage && (
           <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 bg-[#020210]/50 backdrop-blur-md">
             <div 
+              role="button"
+              aria-label="Open search"
+              tabIndex={0}
               onClick={() => setIsSearchOpen(true)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsSearchOpen(true); }}
               className="flex-1 max-w-2xl relative group cursor-pointer"
             >
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-hover:text-cyan-400 transition-colors" aria-hidden="true" />

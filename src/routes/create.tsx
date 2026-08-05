@@ -288,7 +288,7 @@ function CreatePage() {
   if (stage === "publish") {
     return (
       <div className="fixed inset-0 z-[75] flex flex-col bg-black text-white">
-        <h1 className="sr-only">Publish your post</h1>
+        <h2 className="sr-only">Publish your post</h2>
         <header className="flex items-center justify-between px-4 py-3">
           <button onClick={() => setStage("edit")} aria-label="Back to editor" className="rounded-full bg-white/10 p-2 active:scale-90">
             <X className="h-5 w-5" />
@@ -375,7 +375,7 @@ function CreatePage() {
   if (mode === "text") {
     return (
       <div className="fixed inset-0 z-[60] flex flex-col text-white" style={{ background: `linear-gradient(135deg, ${TEXT_BACKGROUNDS[textBg][0]}, ${TEXT_BACKGROUNDS[textBg][1]})` }}>
-        <h1 className="sr-only">Create a text post</h1>
+        <h2 className="sr-only">Create a text post</h2>
         <header className="flex items-center justify-between px-4 pt-5">
           <button onClick={() => navigate({ to: "/" })} aria-label="Close" className="rounded-full bg-black/30 p-2.5 active:scale-90">
             <X className="h-5 w-5" />
