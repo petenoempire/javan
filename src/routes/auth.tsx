@@ -120,6 +120,11 @@ function Auth() {
   const [challengeExpiresAt, setChallengeExpiresAt] = useState<number | null>(null);
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null);
+  const [signupChallenge, setSignupChallenge] = useState<{
+    sessionId: string;
+    method: "email" | "phone";
+    identifier: string;
+  } | null>(null);
   
   const [loading, setLoading] = useState(false);
   const { session, refreshProfile } = useAuth();
@@ -247,8 +252,15 @@ function Auth() {
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
         
-        toast.success("Verification codes sent.");
+        if (!data?.success || !data?.session_id) {
+          throw new Error("The verification challenge was not created. Please try again.");
+        }
+        const identifier = signupMethod === "phone" ? fullPhone : email.trim().toLowerCase();
+        setSignupChallenge({ sessionId: data.session_id, method: signupMethod, identifier });
+        setSmsOtpInput("");
+        setEmailOtpInput("");
         setStage("verify_signup");
+        toast.success("Verification codes sent.");
       } else {
         const { error, data } = await supabase.functions.invoke("challenge-login", {
           body: { email, password },
@@ -297,18 +309,20 @@ function Auth() {
     }, 10000);
 
     try {
-      const fullPhone = phoneNumber ? `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}` : "";
+      const challenge = signupChallenge;
+      if (!challenge) throw new Error("Your signup session has expired. Please request a new code.");
       const { error, data } = await supabase.functions.invoke("confirm-dual-verification", {
         body: {
-          email: signupMethod === "email" ? email : "",
-          phone: signupMethod === "phone" ? fullPhone : "",
+          session_id: challenge.sessionId,
+          email: challenge.method === "email" ? challenge.identifier : "",
+          phone: challenge.method === "phone" ? challenge.identifier : "",
           handle: handle.toLowerCase(),
           username: handle.toLowerCase(),
           display_name: name || handle,
           name: name || handle,
           password,
-          sms_code: signupMethod === "phone" ? smsOtpInput : "",
-          email_code: signupMethod === "email" ? emailOtpInput : "",
+          sms_code: challenge.method === "phone" ? smsOtpInput : "",
+          email_code: challenge.method === "email" ? emailOtpInput : "",
         },
       });
 
@@ -584,10 +598,11 @@ function Auth() {
           {stage === "verify_signup" && (
             <form onSubmit={handleVerifySignupChallenge} className="space-y-4">
               <div className="text-center pb-2">
-                <h3 className="text-white text-lg font-black uppercase tracking-tight">Verify Your {signupMethod === "email" ? "Email" : "Phone"}</h3>
-                <p className="text-xs text-muted-foreground mt-1">Enter the 6-digit code sent to your {signupMethod === "email" ? "email" : "phone"}.</p>
+                <h3 className="text-white text-lg font-black uppercase tracking-tight">Verify Your {signupChallenge?.method === "email" ? "Email" : "Phone"}</h3>
+                <p className="text-xs text-muted-foreground mt-1">Enter the 6-digit code sent to your {signupChallenge?.method === "email" ? "email" : "phone"}.</p>
+                {signupChallenge?.identifier && <p className="text-[11px] text-white/50 mt-1 break-all">Code sent to {signupChallenge.identifier}</p>}
               </div>
-              {signupMethod === "phone" && (
+              {signupChallenge?.method === "phone" && (
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-amber-400 uppercase tracking-widest pl-1">SMS Code</label>
                   <input
@@ -601,7 +616,7 @@ function Auth() {
                   />
                 </div>
               )}
-              {signupMethod === "email" && (
+              {signupChallenge?.method === "email" && (
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest pl-1">Email Code</label>
                   <input
@@ -624,7 +639,7 @@ function Auth() {
               </button>
               <button
                 type="button"
-                onClick={() => setStage("credentials")}
+                onClick={() => { setStage("credentials"); setSignupChallenge(null); setSmsOtpInput(""); setEmailOtpInput(""); }}
                 className="w-full text-center text-xs text-neutral-500 hover:text-neutral-300 transition underline pt-2"
               >
                 Back to Credentials
