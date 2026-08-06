@@ -100,7 +100,7 @@ function ProfilePage() {
 
   const { loading: authLoading } = useAuth();
 
-  if (authLoading || (user && !profile)) {
+  if (authLoading) {
     return (
       <MobileShell>
         <div className="flex min-h-[60dvh] flex-col items-center justify-center text-center">
@@ -116,16 +116,19 @@ function ProfilePage() {
     return null;
   }
 
-  if (!profile) {
-    return (
-      <MobileShell>
-        <div className="flex min-h-[60dvh] flex-col items-center justify-center text-center px-8">
-          <p className="text-sm text-white/50 mb-4">Profile not found. Please try signing in again.</p>
-          <Button onClick={() => navigate({ to: "/auth" })} className="bg-gradient-primary rounded-xl">Go to Sign In</Button>
-        </div>
-      </MobileShell>
-    );
-  }
+  const currentProfile = profile || {
+    id: user.id,
+    handle: user.email?.split('@')[0] || 'user',
+    display_name: user.user_metadata?.full_name || 'Creator',
+    bio: 'Welcome to my Javan profile!',
+    avatar_url: user.user_metadata?.avatar_url || null,
+    cover_url: null,
+    location: null,
+    website: null,
+    is_verified: false,
+    coins: 0,
+    earned_coins: 0,
+  };
 
   const visiblePosts = activeTab === "posts" ? userPosts : activeTab === "likes" ? likedPosts : [];
 
@@ -141,9 +144,9 @@ function ProfilePage() {
         {/* Profile Info */}
         <div className="px-8 flex items-start justify-between mb-8">
           <div>
-            <h2 className="font-display text-4xl font-black text-chrome">{profile.display_name}</h2>
-            <p className="text-lg text-white/50">@{profile.handle}</p>
-            {profile.bio && <p className="text-base text-white/80 mt-4 max-w-xl leading-relaxed">{profile.bio}</p>}
+            <h2 className="font-display text-4xl font-black text-chrome">{currentProfile.display_name}</h2>
+            <p className="text-lg text-white/50">@{currentProfile.handle}</p>
+            {currentProfile.bio && <p className="text-base text-white/80 mt-4 max-w-xl leading-relaxed">{currentProfile.bio}</p>}
           </div>
           <div className="flex gap-3">
             <Link to="/profile/edit">
@@ -168,7 +171,7 @@ function ProfilePage() {
             <p className="text-xs text-white/40 uppercase mt-2 tracking-widest">Followers</p>
           </div>
           <div className="glass p-6 rounded-3xl border border-white/5 text-center">
-            <p className="text-3xl font-black text-amber-400">${(profile.coins / 100).toFixed(2)}</p>
+            <p className="text-3xl font-black text-amber-400">${(currentProfile.coins / 100).toFixed(2)}</p>
             <p className="text-xs text-white/40 uppercase mt-2 tracking-widest">Balance</p>
           </div>
         </div>
@@ -231,8 +234,8 @@ function ProfilePage() {
         <div className="px-4 pt-14 pb-4">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="font-display text-2xl font-black" role="heading" aria-level={1}>{profile.display_name}</h1>
-              <p className="text-sm text-white/50">@{profile.handle}</p>
+              <h1 className="font-display text-2xl font-black" role="heading" aria-level={1}>{currentProfile.display_name}</h1>
+              <p className="text-sm text-white/50">@{currentProfile.handle}</p>
             </div>
             <button
               onClick={handleSignOut}
@@ -254,13 +257,13 @@ function ProfilePage() {
               <p className="text-[10px] text-white/50 uppercase mt-1">Followers</p>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-center">
-              <p className="text-lg font-black text-amber-400">${(profile.coins / 100).toFixed(2)}</p>
+              <p className="text-lg font-black text-amber-400">${(currentProfile.coins / 100).toFixed(2)}</p>
               <p className="text-[10px] text-white/50 uppercase mt-1">Balance</p>
             </div>
           </div>
 
           {/* Bio */}
-          {profile.bio && <p className="text-sm text-white/80 mb-4 leading-relaxed">{profile.bio}</p>}
+          {currentProfile.bio && <p className="text-sm text-white/80 mb-4 leading-relaxed">{currentProfile.bio}</p>}
 
           {/* Action Buttons */}
           <div className="flex gap-2">

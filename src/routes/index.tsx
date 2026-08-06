@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { MobileShell } from "@/components/MobileShell";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { StoryTray } from "@/components/StoryTray";
@@ -48,6 +49,7 @@ interface CategoryScrollBarProps {
 
 function CategoryScrollBar({ activeCategory, setActiveCategory, isMobile = false }: CategoryScrollBarProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // On mount, scroll to the end (For You) as it's the default
@@ -74,7 +76,13 @@ function CategoryScrollBar({ activeCategory, setActiveCategory, isMobile = false
             return (
               <button
                 key={category.name}
-                onClick={() => setActiveCategory(category.name)}
+                onClick={() => {
+                  if (category.name === "Live") {
+                    navigate({ to: "/create", search: { mode: "live" } });
+                  } else {
+                    setActiveCategory(category.name);
+                  }
+                }}
                 className={`relative whitespace-nowrap px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-1.5 ${
                   isActive
                     ? 'text-white'

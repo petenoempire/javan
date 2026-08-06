@@ -28,7 +28,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
   const navItems = [
     { icon: Home, label: "Home", href: "/" },
     { icon: Compass, label: "Explore", href: "/discover" },
-    { icon: Radio, label: "Live", href: "/live", badge: "LIVE" },
+    { icon: Radio, label: "Live", href: "/create", search: { mode: "live" }, badge: "LIVE" },
     { icon: BookOpen, label: "STEM", href: "/stem" },
     { icon: Film, label: "Drama", href: "/drama" },
     { icon: Users, label: "Community", href: "/community" },
@@ -65,6 +65,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
               <Link
                 key={item.label}
                 to={item.href as any}
+                search={item.search}
                 aria-label={item.label}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${
                   isActive 

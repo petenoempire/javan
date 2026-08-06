@@ -348,7 +348,23 @@ export function CameraStudio({
       {/* Full-bleed camera */}
       <div className="absolute inset-0">
         {error ? (
-          <div className="flex h-full items-center justify-center px-10 text-center text-sm text-white/60">{error}</div>
+          <div className="flex flex-col h-full items-center justify-center px-10 text-center text-sm text-white/60 gap-4">
+            <p className="max-w-md">{error}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={startCamera}
+                className="px-5 py-2.5 rounded-full bg-white text-black font-bold text-xs active:scale-95 transition-transform shadow-lg"
+              >
+                Retry Camera
+              </button>
+              <button
+                onClick={onOpenGallery}
+                className="px-5 py-2.5 rounded-full bg-white/15 text-white font-bold text-xs active:scale-95 transition-transform border border-white/20"
+              >
+                Upload from Gallery
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             <video ref={videoRef} autoPlay playsInline muted className="hidden" />
