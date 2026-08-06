@@ -87,34 +87,26 @@ serve(async (req) => {
     // Create the user account using only the verified identifier. In particular,
     // phone signup must not send an email field, because Supabase will then attempt
     // to create or reconcile an email identity and can report a misleading duplicate email error.
-    const authPayload = isPhoneMethod
-      ? {
-          phone: signupData.phone,
-          password,
-          phone_confirm: true,
-          user_metadata: {
-            handle: handle.toLowerCase(),
-            display_name: signupData.display_name,
-            country: signupData.country,
-            region: signupData.region,
-            phone: signupData.phone,
-            verified: true,
-          },
-        }
-      : {
-          email: signupData.email,
-          password,
-          email_confirm: true,
-          user_metadata: {
-            handle: handle.toLowerCase(),
-            display_name: signupData.display_name,
-            country: signupData.country,
-            region: signupData.region,
-            phone: signupData.phone,
-            verified: true,
-          },
-        };
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser(authPayload);
+    const baseHandle = handle.toLowerCase();
+    const metadataFor = (profileHandle: string) => ({
+      handle: profileHandle,
+      display_name: signupData.display_name,
+      country: signupData.country,
+      region: signupData.region,
+      phone: signupData.phone,
+      verified: true,
+    });
+    const buildAuthPayload = (profileHandle: string) => isPhoneMethod
+      ? { phone: signupData.phone, password, phone_confirm: true, user_metadata: metadataFor(profileHandle) }
+      : { email: signupData.email, password, email_confirm: true, user_metadata: metadataFor(profileHandle) };
+
+    let authData;
+    let authError;
+    ({ data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser(buildAuthPayload(baseHandle)));
+    if (authError && /profiles_handle_key|duplicate key.*handle/i.test(authError.message || "")) {
+      const retryHandle = `${baseHandle}_${crypto.randomUUID().slice(0, 6)}`;
+      ({ data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser(buildAuthPayload(retryHandle)));
+    }
     if (authError) {
       const duplicate = /already registered|already exists|already been registered/i.test(authError.message || "");
       if (duplicate) {
@@ -135,21 +127,25 @@ serve(async (req) => {
       throw authError;
     }
 
-    // Create the profile with server-side captured IP and region
+    // The database trigger on auth.users creates the profile row and resolves any
+    // handle collision. Update that row by ID; do not insert a second profile.
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
-      .insert({
-        id: authData.user.id,
-        handle: handle.toLowerCase(),
+      .update({
         display_name: signupData.display_name,
         signup_ip: signupData.ip_address,
         signup_region: signupData.region_name,
         last_signin_ip: signupData.ip_address,
         last_signin_region: signupData.region_name,
         is_verified: false,
-      });
+      })
+      .eq("id", authData.user.id);
 
-    if (profileError) console.error("[confirm-dual-verification] Profile error:", profileError.message);
+    if (profileError) {
+      console.error("[confirm-dual-verification] Profile update error:", profileError.message);
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      throw new Error("Database error finalizing user profile");
+    }
 
     // Clean up
     await supabaseAdmin.from("pending_signups").delete().eq("id", signupData.id);
