@@ -646,6 +646,57 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_signups: {
+        Row: {
+          country: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          email_code: string | null
+          expires_at: string
+          handle: string
+          id: string
+          ip_address: string | null
+          phone: string
+          region: string | null
+          region_name: string | null
+          sms_code: string | null
+          username: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          email_code?: string | null
+          expires_at?: string
+          handle: string
+          id?: string
+          ip_address?: string | null
+          phone?: string
+          region?: string | null
+          region_name?: string | null
+          sms_code?: string | null
+          username?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          email_code?: string | null
+          expires_at?: string
+          handle?: string
+          id?: string
+          ip_address?: string | null
+          phone?: string
+          region?: string | null
+          region_name?: string | null
+          sms_code?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       platform_config: {
         Row: {
           coin_to_usd_cents: number
@@ -971,6 +1022,33 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      verification_codes: {
+        Row: {
+          code_type: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          otp_code: string
+        }
+        Insert: {
+          code_type: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          otp_code: string
+        }
+        Update: {
+          code_type?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          otp_code?: string
         }
         Relationships: []
       }
