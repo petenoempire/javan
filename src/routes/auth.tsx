@@ -338,6 +338,7 @@ function Auth() {
       const { error, data } = await supabase.functions.invoke("confirm-dual-verification", {
         body: {
           session_id: challenge.sessionId,
+          method: challenge.method,
           email: challenge.method === "email" ? challenge.identifier : "",
           phone: challenge.method === "phone" ? challenge.identifier : "",
           handle: handle.toLowerCase(),
@@ -359,7 +360,7 @@ function Auth() {
       const { error: sessionError } = await supabase.auth.signInWithPassword(credentials);
       if (sessionError) throw sessionError;
 
-      toast.success("Account verified!");
+      toast.success(data?.already_exists ? "This account already exists. You are signed in." : "Account verified!");
       await refreshProfile();
       navigate({ to: "/discover" });
     } catch (err: any) {

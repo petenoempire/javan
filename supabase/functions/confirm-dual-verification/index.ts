@@ -12,6 +12,7 @@ serve(async (req) => {
 
   try {
     const {
+      method,
       email,
       phone,
       handle,
@@ -50,9 +51,16 @@ serve(async (req) => {
       );
     }
 
-    // Determine verification method
-    const isPhoneMethod = !!signupData.sms_code;
-    const isEmailMethod = !!signupData.email_code;
+    // Determine the method from the client and stored challenge. Phone signup must never
+    // fall back to the email field, which may contain stale data from a previous attempt.
+    const isPhoneMethod = method === "phone" || (!method && !!signupData.sms_code);
+    const isEmailMethod = !isPhoneMethod && (method === "email" || !!signupData.email_code);
+    if (!isPhoneMethod && !isEmailMethod) {
+      return new Response(
+        JSON.stringify({ error: "Invalid verification method." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const twilioConfigured = Boolean(
       Deno.env.get("TWILIO_ACCOUNT_SID") &&
@@ -76,28 +84,52 @@ serve(async (req) => {
       );
     }
 
-    // Create the user account
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: signupData.email || `${handle.toLowerCase()}@javan.internal`,
-      phone: signupData.phone || undefined,
-      password,
-      email_confirm: true,
-      phone_confirm: true,
-      user_metadata: {
-        handle: handle.toLowerCase(),
-        display_name: signupData.display_name,
-        country: signupData.country,
-        region: signupData.region,
-        phone: signupData.phone,
-        verified: true,
-      },
-    });
-
+    // Create the user account using only the verified identifier. In particular,
+    // phone signup must not send an email field, because Supabase will then attempt
+    // to create or reconcile an email identity and can report a misleading duplicate email error.
+    const authPayload = isPhoneMethod
+      ? {
+          phone: signupData.phone,
+          password,
+          phone_confirm: true,
+          user_metadata: {
+            handle: handle.toLowerCase(),
+            display_name: signupData.display_name,
+            country: signupData.country,
+            region: signupData.region,
+            phone: signupData.phone,
+            verified: true,
+          },
+        }
+      : {
+          email: signupData.email,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            handle: handle.toLowerCase(),
+            display_name: signupData.display_name,
+            country: signupData.country,
+            region: signupData.region,
+            phone: signupData.phone,
+            verified: true,
+          },
+        };
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser(authPayload);
     if (authError) {
-      if (authError.message?.includes("already registered")) {
+      const duplicate = /already registered|already exists|already been registered/i.test(authError.message || "");
+      if (duplicate) {
+        // OTP possession has already been verified. Return a normal response so the
+        // client can attempt to sign in with the credentials just supplied instead
+        // of surfacing the provider's email-oriented error as an unhandled failure.
+        await supabaseAdmin.from("pending_signups").delete().eq("id", signupData.id);
         return new Response(
-          JSON.stringify({ error: "An account with this identifier already exists.", code: "ALREADY_EXISTS" }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: true,
+            already_exists: true,
+            method: isPhoneMethod ? "phone" : "email",
+            message: `This ${isPhoneMethod ? "phone number" : "email address"} is already registered. Continuing to sign you in.`,
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       throw authError;
@@ -125,6 +157,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        already_exists: false,
+        method: isPhoneMethod ? "phone" : "email",
         user_id: authData.user.id,
         message: "Account created successfully.",
       }),
