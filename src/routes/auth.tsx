@@ -116,10 +116,25 @@ function Auth() {
   const [smsOtpInput, setSmsOtpInput] = useState("");
   const [emailOtpInput, setEmailOtpInput] = useState("");
   const [loginOtpInput, setLoginOtpInput] = useState("");
+  const [resendAt, setResendAt] = useState<number | null>(null);
+  const [challengeExpiresAt, setChallengeExpiresAt] = useState<number | null>(null);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null);
   
   const [loading, setLoading] = useState(false);
   const { session, refreshProfile } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!resendAt && !challengeExpiresAt && !lockedUntil) return;
+    const timer = window.setInterval(() => {
+      const now = Date.now();
+      if (lockedUntil && now >= lockedUntil) setLockedUntil(null);
+      if (challengeExpiresAt && now >= challengeExpiresAt) setChallengeExpiresAt(null);
+      if (resendAt && now >= resendAt) setResendAt(null);
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [resendAt, challengeExpiresAt, lockedUntil]);
 
   useEffect(() => {
     // 1. Explicit Session Listener
@@ -243,6 +258,10 @@ function Auth() {
         if (data?.error) throw new Error(data.error);
         
         toast.success("Login code sent.");
+        setChallengeExpiresAt(data?.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 10 * 60 * 1000);
+        setResendAt(data?.resendAfter ? new Date(data.resendAfter).getTime() : Date.now() + 60 * 1000);
+        setLockedUntil(null);
+        setAttemptsRemaining(null);
         setStage("verify_signin");
       }
     } catch (err: any) {
@@ -312,8 +331,35 @@ function Auth() {
     }
   };
 
+  const handleResendLoginCode = async () => {
+    if (loading || lockedUntil || (resendAt && Date.now() < resendAt)) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("challenge-login", { body: { email, password } });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setChallengeExpiresAt(data?.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 10 * 60 * 1000);
+      setResendAt(data?.resendAfter ? new Date(data.resendAfter).getTime() : Date.now() + 60 * 1000);
+      setLoginOtpInput("");
+      setAttemptsRemaining(null);
+      toast.success("A new code was sent.");
+    } catch (err: any) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVerifySigninChallenge = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (lockedUntil && Date.now() < lockedUntil) {
+      toast.error("Too many incorrect attempts. Please try again later.");
+      return;
+    }
+    if (challengeExpiresAt && Date.now() >= challengeExpiresAt) {
+      toast.error("This code has expired. Request a new code.");
+      return;
+    }
     if (loginOtpInput.length !== 5) {
       toast.error("2FA code must be 5 digits.");
       return;
@@ -330,7 +376,17 @@ function Auth() {
         body: { step: "verify", email, code: loginOtpInput },
       });
 
-      if (error) throw error;
+      if (error) {
+        const payload = error.context?.body;
+        const locked = payload?.lockedUntil;
+        if (locked) {
+          setLockedUntil(new Date(locked).getTime());
+          setLoginOtpInput("");
+        }
+        const match = payload?.error?.match?.(/(\d+) attempts remaining/);
+        if (match) setAttemptsRemaining(Number(match[1]));
+        throw error;
+      }
       if (data?.error) throw new Error(data.error);
 
       const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
@@ -581,6 +637,9 @@ function Auth() {
               <div className="text-center pb-2">
                 <h3 className="text-white text-lg font-black uppercase tracking-tight">Two-Factor Authentication</h3>
                 <p className="text-xs text-muted-foreground mt-1">Enter the 5-digit code sent to your email.</p>
+                {challengeExpiresAt && <p className="text-[11px] text-white/50 mt-1">Code expires in {Math.ceil(Math.max(0, challengeExpiresAt - Date.now()) / 60000)} min</p>}
+                {attemptsRemaining !== null && <p className="text-[11px] text-amber-300 mt-1">{attemptsRemaining} attempts remaining</p>}
+                {lockedUntil && <p className="text-[11px] text-rose-300 mt-1">Too many attempts. Try again in {Math.ceil(Math.max(0, lockedUntil - Date.now()) / 60000)} min.</p>}
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest pl-1">2FA Code</label>
@@ -603,7 +662,15 @@ function Auth() {
               </button>
               <button
                 type="button"
-                onClick={() => setStage("credentials")}
+                onClick={handleResendLoginCode}
+                disabled={loading || !!lockedUntil || (!!resendAt && Date.now() < resendAt)}
+                className="w-full text-center text-xs text-emerald-300 hover:text-emerald-200 transition underline pt-2 disabled:opacity-40 disabled:no-underline"
+              >
+                {resendAt && Date.now() < resendAt ? `Resend available in ${Math.ceil((resendAt - Date.now()) / 1000)}s` : "Resend code"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setStage("credentials"); setLoginOtpInput(""); setLockedUntil(null); }}
                 className="w-full text-center text-xs text-neutral-500 hover:text-neutral-300 transition underline pt-2"
               >
                 Back to Sign In

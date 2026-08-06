@@ -1,132 +1,156 @@
-import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.1";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": Deno.env.get("APP_ORIGIN") ?? "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+const CODE_TTL_MS = 10 * 60 * 1000;
+const RESEND_COOLDOWN_MS = 60 * 1000;
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
 
-const json = (body: unknown, status = 200) =>
+type Json = Record<string, unknown>;
+const json = (body: Json, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
 
-// 5-digit login 2FA code (client input expects 5 digits)
-function generate2fa(): string {
-  return Math.floor(10000 + Math.random() * 90000).toString();
-}
-
-async function getGeoData(req: Request): Promise<{ ip: string; region: string }> {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "0.0.0.0";
-  try {
-    const response = await fetch(`https://ipapi.co/${ip}/json/`);
-    if (!response.ok) throw new Error(`Geo API returned ${response.status}`);
-    const data = await response.json();
-    return { ip, region: data.country_name || data.region || "Unknown" };
-  } catch (err) {
-    console.warn("[challenge-login] Geo lookup failed:", (err as Error).message);
-    return { ip, region: "Unknown" };
-  }
-}
-
 function admin() {
-  return createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    { auth: { persistSession: false } },
-  );
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) throw new Error("2FA service is not configured");
+  return createClient(url, key, { auth: { persistSession: false } });
+}
+
+function anon() {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!url || !key) throw new Error("2FA service is not configured");
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+function generateCode() {
+  const bytes = new Uint32Array(1);
+  crypto.getRandomValues(bytes);
+  return String(10000 + (bytes[0] % 90000));
+}
+
+async function digest(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function deliverCode(email: string, code: string) {
-  try {
-    const { error } = await admin().auth.admin.generateLink({ type: "magiclink", email });
-    if (error) throw error;
-    console.log("[challenge-login] Login code email dispatched.");
-  } catch (err) {
-    console.warn(`[challenge-login] Email delivery failed: ${(err as Error).message}. Using mock.`);
-    console.warn(`[MOCK LOGIN 2FA] To: ${email}, Code: ${code}`);
-  }
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  const from = Deno.env.get("LOGIN_2FA_FROM");
+  if (!apiKey || !from) throw new Error("2FA email delivery is not configured");
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from,
+      to: [email],
+      subject: "Your Javan sign-in code",
+      text: `Your Javan sign-in code is ${code}. It expires in 10 minutes. If you did not request this, you can ignore this email.`,
+    }),
+  });
+  if (!response.ok) throw new Error("Unable to send the sign-in code");
 }
 
-serve(async (req) => {
+function genericFailure() {
+  return json({ error: "Invalid credentials." }, 400);
+}
+
+async function verifyCode(supabaseAdmin: ReturnType<typeof admin>, email: string, code: string) {
+  if (!/^\d{5}$/.test(code)) return json({ error: "Enter the 5-digit code." }, 400);
+  const { data: row, error } = await supabaseAdmin
+    .from("verification_codes")
+    .select("id,login_code,login_code_hash,expires_at,failed_attempts,locked_until,purpose")
+    .eq("email", email)
+    .eq("purpose", "login")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!row) return json({ error: "This code is invalid or expired. Request a new code." }, 400);
+
+  const lockedUntil = row.locked_until ? new Date(row.locked_until).getTime() : 0;
+  if (lockedUntil > Date.now()) {
+    return json({ error: "Too many incorrect attempts. Try again later.", lockedUntil: row.locked_until }, 423);
+  }
+  if (new Date(row.expires_at).getTime() <= Date.now()) {
+    return json({ error: "This code has expired. Request a new code." }, 400);
+  }
+
+  const codeHash = await digest(code);
+  const valid = row.login_code_hash ? codeHash === row.login_code_hash : row.login_code === code;
+  if (!valid) {
+    const attempts = Number(row.failed_attempts ?? 0) + 1;
+    const nextLock = attempts >= MAX_ATTEMPTS ? new Date(Date.now() + LOCKOUT_MS).toISOString() : null;
+    await supabaseAdmin.from("verification_codes").update({ failed_attempts: attempts, locked_until: nextLock }).eq("id", row.id);
+    if (nextLock) return json({ error: "Too many incorrect attempts. Try again in 15 minutes.", lockedUntil: nextLock }, 423);
+    return json({ error: `Incorrect code. ${MAX_ATTEMPTS - attempts} attempts remaining.` }, 400);
+  }
+
+  const { error: deleteError } = await supabaseAdmin.from("verification_codes").delete().eq("id", row.id);
+  if (deleteError) throw deleteError;
+  return json({ success: true, message: "2FA verified." });
+}
+
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    const body = await req.json();
-    const step: string = body.step === "verify" ? "verify" : "challenge";
-    const email: string = (body.email || "").trim().toLowerCase();
+    const body = await req.json() as Json;
+    const email = String(body.email ?? "").trim().toLowerCase();
+    const step = body.step === "verify" ? "verify" : "challenge";
+    if (!email || email.length > 320) return json({ error: "Enter a valid email address." }, 400);
     const supabaseAdmin = admin();
 
-    // ---- Step 2: verify the 2FA code ----
-    if (step === "verify") {
-      const code: string = String(body.code ?? body["2fa_code"] ?? "").trim();
-      if (!email || !code) return json({ error: "Missing email or code." }, 400);
+    if (step === "verify") return await verifyCode(supabaseAdmin, email, String(body.code ?? "").trim());
 
-      const { data: row, error } = await supabaseAdmin
-        .from("verification_codes")
-        .select("otp_code, expires_at")
-        .eq("email", email)
-        .eq("code_type", "login_2fa")
-        .maybeSingle();
+    const password = String(body.password ?? "");
+    if (!password || password.length > 512) return genericFailure();
+    const { data: signIn, error: signInError } = await anon().auth.signInWithPassword({ email, password });
+    if (signInError || !signIn.user) return genericFailure();
+    await anon().auth.signOut();
 
-      if (error) throw error;
-      if (!row) return json({ error: "No pending login challenge. Please sign in again." }, 400);
-      if (new Date(row.expires_at).getTime() < Date.now()) {
-        return json({ error: "Code expired. Please sign in again." }, 400);
-      }
-      if (row.otp_code !== code) return json({ error: "Incorrect code." }, 400);
-
-      await supabaseAdmin
-        .from("verification_codes")
-        .delete()
-        .eq("email", email)
-        .eq("code_type", "login_2fa");
-
-      return json({ success: true, message: "2FA verified." });
+    const { data: previous } = await supabaseAdmin
+      .from("verification_codes")
+      .select("last_sent_at,locked_until")
+      .eq("email", email)
+      .eq("purpose", "login")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (previous?.locked_until && new Date(previous.locked_until).getTime() > Date.now()) {
+      return json({ error: "Too many incorrect attempts. Try again later.", lockedUntil: previous.locked_until }, 423);
+    }
+    if (previous?.last_sent_at && Date.now() - new Date(previous.last_sent_at).getTime() < RESEND_COOLDOWN_MS) {
+      return json({ error: "A code was sent recently. Please wait before requesting another.", retryAfter: RESEND_COOLDOWN_MS - (Date.now() - new Date(previous.last_sent_at).getTime()) }, 429);
     }
 
-    // ---- Step 1: validate credentials and issue a code ----
-    const password: string = body.password || "";
-    if (!email || !password) return json({ error: "Missing email or password." }, 400);
-
-    const anonClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
-    );
-
-    const { data: signIn, error: signInError } = await anonClient.auth.signInWithPassword({
+    const code = generateCode();
+    const now = new Date().toISOString();
+    const { error: upsertError } = await supabaseAdmin.from("verification_codes").upsert({
       email,
-      password,
-    });
-    if (signInError || !signIn?.user) return json({ error: "Invalid credentials." }, 400);
-    await anonClient.auth.signOut();
-
-    const { ip, region } = await getGeoData(req);
-    const code = generate2fa();
-
-    const { error: upsertError } = await supabaseAdmin.from("verification_codes").upsert(
-      {
-        email,
-        code_type: "login_2fa",
-        otp_code: code,
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-      },
-      { onConflict: "email,code_type" },
-    );
+      purpose: "login",
+      login_code: null,
+      login_code_hash: await digest(code),
+      expires_at: new Date(Date.now() + CODE_TTL_MS).toISOString(),
+      failed_attempts: 0,
+      locked_until: null,
+      last_sent_at: now,
+    }, { onConflict: "email,purpose" });
     if (upsertError) throw upsertError;
-
     await deliverCode(email, code);
-
-    return json({
-      success: true,
-      ip,
-      region,
-      message: "Login verification code sent.",
-    });
-  } catch (err) {
-    console.error("[challenge-login] Unexpected error:", (err as Error).message);
-    return json({ error: (err as Error).message || "Internal server error" }, 400);
+    return json({ success: true, message: "Login verification code sent.", expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString(), resendAfter: new Date(Date.now() + RESEND_COOLDOWN_MS).toISOString() });
+  } catch (error) {
+    console.error("[challenge-login]", error instanceof Error ? error.message : "unexpected error");
+    return json({ error: "The sign-in verification service is temporarily unavailable." }, 503);
   }
 });
