@@ -326,8 +326,8 @@ function Auth() {
     }, 10000);
 
     try {
-      const { error, data } = await supabase.functions.invoke("verify-login-2fa", {
-        body: { email, "2fa_code": loginOtpInput },
+      const { error, data } = await supabase.functions.invoke("challenge-login", {
+        body: { step: "verify", email, code: loginOtpInput },
       });
 
       if (error) throw error;
