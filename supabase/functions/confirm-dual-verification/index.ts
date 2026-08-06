@@ -133,10 +133,6 @@ serve(async (req) => {
       .from("profiles")
       .update({
         display_name: signupData.display_name,
-        signup_ip: signupData.ip_address,
-        signup_region: signupData.region_name,
-        last_signin_ip: signupData.ip_address,
-        last_signin_region: signupData.region_name,
         is_verified: false,
       })
       .eq("id", authData.user.id);
