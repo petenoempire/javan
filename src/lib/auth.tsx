@@ -58,8 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Detect if we are in an OAuth callback flow via hash
-    const isCallback = typeof window !== "undefined" && 
-      (window.location.hash.includes("access_token") || window.location.hash.includes("error"));
+    const isCallback = typeof window !== "undefined" &&
+      (window.location.hash.includes("access_token") ||
+        window.location.hash.includes("error") ||
+        new URLSearchParams(window.location.search).has("code") ||
+        new URLSearchParams(window.location.search).has("error"));
     
     if (isCallback) setLoading(true);
 
@@ -77,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       if (data.session?.user) {
         loadProfile(data.session.user.id);
-      } else if (!isCallback) {
+      } else {
         setLoading(false);
       }
     });
