@@ -124,6 +124,7 @@ function Auth() {
     sessionId: string;
     method: "email" | "phone";
     identifier: string;
+    testCode?: string;
   } | null>(null);
   
   const [loading, setLoading] = useState(false);
@@ -256,7 +257,12 @@ function Auth() {
           throw new Error("The verification challenge was not created. Please try again.");
         }
         const identifier = signupMethod === "phone" ? fullPhone : email.trim().toLowerCase();
-        setSignupChallenge({ sessionId: data.session_id, method: signupMethod, identifier });
+        setSignupChallenge({
+          sessionId: data.session_id,
+          method: signupMethod,
+          identifier,
+          testCode: data.mock && data.test_code ? String(data.test_code) : undefined,
+        });
         setSmsOtpInput("");
         setEmailOtpInput("");
         setStage("verify_signup");
@@ -601,6 +607,7 @@ function Auth() {
                 <h3 className="text-white text-lg font-black uppercase tracking-tight">Verify Your {signupChallenge?.method === "email" ? "Email" : "Phone"}</h3>
                 <p className="text-xs text-muted-foreground mt-1">Enter the 6-digit code sent to your {signupChallenge?.method === "email" ? "email" : "phone"}.</p>
                 {signupChallenge?.identifier && <p className="text-[11px] text-white/50 mt-1 break-all">Code sent to {signupChallenge.identifier}</p>}
+                {signupChallenge?.testCode && <p className="text-[11px] text-amber-300 mt-1">Test mode code: <span className="font-mono font-bold">{signupChallenge.testCode}</span></p>}
               </div>
               {signupChallenge?.method === "phone" && (
                 <div className="space-y-1">

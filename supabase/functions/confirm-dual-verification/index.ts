@@ -15,6 +15,7 @@ serve(async (req) => {
       email,
       phone,
       handle,
+      session_id,
       password,
       sms_code,
       email_code,
@@ -33,13 +34,12 @@ serve(async (req) => {
     );
 
     // Look up the stored pending signup
-    const query = supabaseAdmin
+    let query = supabaseAdmin
       .from("pending_signups")
-      .select("*")
-      .eq("handle", handle.toLowerCase())
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+      .select("*");
+    query = session_id
+      ? query.eq("id", session_id).single()
+      : query.eq("handle", handle.toLowerCase()).order("created_at", { ascending: false }).limit(1).single();
     
     const { data: signupData, error: lookupError } = await query;
 
@@ -54,7 +54,15 @@ serve(async (req) => {
     const isPhoneMethod = !!signupData.sms_code;
     const isEmailMethod = !!signupData.email_code;
 
-    if (isPhoneMethod && sms_code !== signupData.sms_code) {
+    const twilioConfigured = Boolean(
+      Deno.env.get("TWILIO_ACCOUNT_SID") &&
+      Deno.env.get("TWILIO_AUTH_TOKEN") &&
+      Deno.env.get("TWILIO_FROM_NUMBER")
+    );
+    const mockCodeAllowed = Deno.env.get("TWILIO_MOCK_MODE") === "true" || !twilioConfigured;
+    const validMockCode = mockCodeAllowed && sms_code === (Deno.env.get("TWILIO_MOCK_CODE") || "123456");
+
+    if (isPhoneMethod && sms_code !== signupData.sms_code && !validMockCode) {
       return new Response(
         JSON.stringify({ error: "Incorrect SMS verification code." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }

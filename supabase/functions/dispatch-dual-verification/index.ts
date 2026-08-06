@@ -35,8 +35,9 @@ async function sendTwilioSms(to: string, code: string): Promise<{ success: boole
   const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
   const fromNumber = Deno.env.get("TWILIO_FROM_NUMBER");
 
-  if (!accountSid || !authToken || !fromNumber) {
-    console.warn("[dispatch-dual-verification] Twilio credentials missing — using mock SMS mode.");
+  const explicitMockMode = Deno.env.get("TWILIO_MOCK_MODE") === "true";
+  if (explicitMockMode || !accountSid || !authToken || !fromNumber) {
+    console.warn("[dispatch-dual-verification] Using mock SMS mode.");
     console.warn(`[MOCK SMS] To: ${to}, Code: ${code}`);
     return { success: true, mock: true };
   }
@@ -196,6 +197,8 @@ serve(async (req) => {
         method: chosen,
         ip,
         region,
+        mock: Boolean(deliveryResult?.mock),
+        ...(chosen === "phone" && deliveryResult?.mock ? { test_code: smsCode } : {}),
         message: `Verification code sent via ${chosen}.`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
