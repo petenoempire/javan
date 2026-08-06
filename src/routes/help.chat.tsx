@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { chatSupport } from "@/lib/support.functions";
 import { MobileShell } from "@/components/MobileShell";
 import { ArrowLeft, Send, Loader2, Headset } from "lucide-react";
 import { toast } from "sonner";
@@ -41,6 +43,7 @@ function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [escalating, setEscalating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const askSupport = useServerFn(chatSupport);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,10 +58,7 @@ function ChatPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("chat-support", {
-        body: { messages: newMessages },
-      });
-      if (error) throw error;
+      const data = await askSupport({ data: { messages: newMessages } });
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
     } catch (err: any) {
       toast.error("Failed to get a response. Try again.");
@@ -80,16 +80,23 @@ function ChatPage() {
       const { data: ticket, error: ticketError } = await supabase
         .from("support_tickets")
         .insert({
-          ticket_number: ticketNumber,
           user_id: user.id,
           category: "other",
-          subject: "Escalated from chat",
-          description: transcript,
+          status: "open",
+          subject: `Escalated from chat (${ticketNumber})`,
         })
         .select()
         .single();
 
       if (ticketError) throw ticketError;
+
+      const { error: msgError } = await supabase.from("support_messages").insert({
+        ticket_id: ticket.id,
+        sender_id: user.id,
+        is_agent: false,
+        body: transcript,
+      });
+      if (msgError) throw msgError;
 
       toast.success(`Ticket ${ticketNumber} created. Our team will follow up by email.`);
       setMessages((prev) => [
