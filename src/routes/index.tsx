@@ -133,7 +133,25 @@ function HomePage() {
   const { user } = useAuth();
   const [activeCategory, setActiveCategory] = useState('For You');
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(1);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const isNew = localStorage.getItem("javan_new_user_onboarding") === "true";
+    if (isNew) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleNextOnboarding = () => {
+    if (onboardingStep < 3) {
+      setOnboardingStep(prev => prev + 1);
+    } else {
+      localStorage.removeItem("javan_new_user_onboarding");
+      setShowOnboarding(false);
+    }
+  };
 
   const { data: liveStreams = [], isLoading: isLoadingLive } = useQuery({
     queryKey: ["homepage-active-live-streams"],
@@ -499,6 +517,66 @@ function HomePage() {
           {renderMobileContent()}
         </div>
       </MobileShell>
+
+      {/* New User Onboarding Tutorial Overlay with Animated Blinking Arrows */}
+      {showOnboarding && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-between p-6 pointer-events-auto">
+          <div className="w-full max-w-sm flex items-center justify-between pt-4">
+            <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">Step {onboardingStep} of 3</span>
+            <button 
+              onClick={() => {
+                localStorage.removeItem("javan_new_user_onboarding");
+                setShowOnboarding(false);
+              }}
+              className="text-xs text-white/60 hover:text-white transition-colors"
+            >
+              Skip Tutorial
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center text-center max-w-sm my-auto relative">
+            {onboardingStep === 1 && (
+              <div className="absolute -top-20 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce">
+                <span className="text-cyan-400 text-3xl font-black">⬆</span>
+                <div className="w-3 h-3 bg-cyan-400 rounded-full animate-ping"></div>
+              </div>
+            )}
+            {onboardingStep === 2 && (
+              <div className="absolute right-[-40px] top-1/2 -translate-y-1/2 flex items-center animate-pulse">
+                <span className="text-cyan-400 text-3xl font-black">⬅</span>
+              </div>
+            )}
+            {onboardingStep === 3 && (
+              <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce">
+                <div className="w-3 h-3 bg-cyan-400 rounded-full animate-ping mb-1"></div>
+                <span className="text-cyan-400 text-3xl font-black">⬇</span>
+              </div>
+            )}
+
+            <div className="glass-strong rounded-3xl p-6 border border-white/20 shadow-glow relative z-10">
+              <h3 className="text-lg font-black text-chrome uppercase tracking-wide mb-2">
+                {onboardingStep === 1 && "Discover 'For You' Feed"}
+                {onboardingStep === 2 && "Interact & Engage"}
+                {onboardingStep === 3 && "Create & Go Live"}
+              </h3>
+              <p className="text-xs text-white/70 leading-relaxed">
+                {onboardingStep === 1 && "Welcome to Javan! Explore the 'For You' feed right here to discover trending short videos and live creators."}
+                {onboardingStep === 2 && "Tap the like, comment, and share buttons on the right side of any video to interact with creators."}
+                {onboardingStep === 3 && "Ready to share your talent? Use the bottom navigation to record your own videos or go live instantly!"}
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full max-w-sm pb-6">
+            <button
+              onClick={handleNextOnboarding}
+              className="bg-gradient-primary w-full rounded-full py-3.5 text-xs font-bold text-white shadow-glow tracking-widest uppercase hover:opacity-95 transition-all"
+            >
+              {onboardingStep === 3 ? "Start Exploring Javan" : "Next Step →"}
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -75,7 +75,7 @@ function AuthCallback() {
   }, [navigate, session]);
 
   useEffect(() => {
-    if (session) navigate({ to: "/discover", replace: true });
+    if (session) navigate({ to: "/", replace: true });
   }, [navigate, session]);
 
   useEffect(() => {

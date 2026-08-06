@@ -151,7 +151,7 @@ function Auth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       if (event === "SIGNED_IN" && s) {
         setLoading(false);
-        navigate({ to: "/discover" });
+        navigate({ to: "/" });
       }
     });
 
@@ -168,14 +168,14 @@ function Auth() {
             const accessToken = params.get("access_token");
             const refreshToken = params.get("refresh_token");
             
-            if (accessToken && refreshToken) {
+              if (accessToken && refreshToken) {
               const { error } = await supabase.auth.setSession({
                 access_token: accessToken,
                 refresh_token: refreshToken,
               });
               if (error) throw error;
               setLoading(false);
-              navigate({ to: "/discover" });
+              navigate({ to: "/" });
             }
           } else if (search.includes("code")) {
             const params = new URLSearchParams(search);
@@ -184,7 +184,7 @@ function Auth() {
               const { error } = await supabase.auth.exchangeCodeForSession(code);
               if (error) throw error;
               setLoading(false);
-              navigate({ to: "/discover" });
+              navigate({ to: "/" });
             }
           }
         } catch (err) {
@@ -199,7 +199,7 @@ function Auth() {
 
     if (session) {
       setLoading(false);
-      navigate({ to: "/discover" });
+      navigate({ to: "/" });
     }
 
     return () => subscription.unsubscribe();
@@ -378,7 +378,8 @@ function Auth() {
 
       toast.success(data?.already_exists ? "This account already exists. You are signed in." : "Account verified!");
       await refreshProfile();
-      navigate({ to: "/discover" });
+      localStorage.setItem("javan_new_user_onboarding", "true");
+      navigate({ to: "/" });
     } catch (err: any) {
       console.error("Signup verify error:", err);
       toast.error(getErrorMessage(err));
@@ -473,7 +474,7 @@ function Auth() {
 
       toast.success("Login verified!");
       await refreshProfile();
-      navigate({ to: "/discover" });
+      navigate({ to: "/" });
     } catch (err: any) {
       console.error("2FA error:", err);
       toast.error(getErrorMessage(err));
