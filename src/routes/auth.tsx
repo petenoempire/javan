@@ -105,6 +105,7 @@ function Auth() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
   const [stage, setStage] = useState<"credentials" | "verify_signup" | "verify_signin">("credentials");
   const [signupMethod, setSignupMethod] = useState<"email" | "phone">("phone");
+  const [signinMethod, setSigninMethod] = useState<"email" | "phone">("email");
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -120,6 +121,9 @@ function Auth() {
   const [challengeExpiresAt, setChallengeExpiresAt] = useState<number | null>(null);
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null);
+  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
+  const [loginIdentifier, setLoginIdentifier] = useState("");
+  const [loginTestCode, setLoginTestCode] = useState<string | null>(null);
   const [signupChallenge, setSignupChallenge] = useState<{
     sessionId: string;
     method: "email" | "phone";
@@ -268,14 +272,28 @@ function Auth() {
         setStage("verify_signup");
         toast.success("Verification codes sent.");
       } else {
+        if (signinMethod === "phone" && !phoneNumber) throw new Error("Phone number is required.");
+        if (signinMethod === "email" && !email.trim()) throw new Error("Email is required.");
+
+        const normalizedPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
+        const identifier = signinMethod === "phone" ? normalizedPhone : email.trim().toLowerCase();
         const { error, data } = await supabase.functions.invoke("challenge-login", {
-          body: { email, password },
+          body: {
+            method: signinMethod,
+            identifier,
+            email: signinMethod === "email" ? identifier : "",
+            phone: signinMethod === "phone" ? identifier : "",
+            password,
+          },
         });
 
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
         
-        toast.success("Login code sent.");
+        setLoginMethod(signinMethod);
+        setLoginIdentifier(identifier);
+        setLoginTestCode(data?.mock && data?.test_code ? String(data.test_code) : null);
+        toast.success(`${signinMethod === "phone" ? "SMS" : "Login"} code sent.`);
         setChallengeExpiresAt(data?.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 10 * 60 * 1000);
         setResendAt(data?.resendAfter ? new Date(data.resendAfter).getTime() : Date.now() + 60 * 1000);
         setLockedUntil(null);
@@ -358,14 +376,25 @@ function Auth() {
     if (loading || lockedUntil || (resendAt && Date.now() < resendAt)) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("challenge-login", { body: { email, password } });
+      const normalizedPhone = `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`;
+      const identifier = loginMethod === "phone" ? (loginIdentifier || normalizedPhone) : (loginIdentifier || email.trim().toLowerCase());
+      const { data, error } = await supabase.functions.invoke("challenge-login", {
+        body: {
+          method: loginMethod,
+          identifier,
+          email: loginMethod === "email" ? identifier : "",
+          phone: loginMethod === "phone" ? identifier : "",
+          password,
+        },
+      });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setChallengeExpiresAt(data?.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 10 * 60 * 1000);
       setResendAt(data?.resendAfter ? new Date(data.resendAfter).getTime() : Date.now() + 60 * 1000);
       setLoginOtpInput("");
+      setLoginTestCode(data?.mock && data?.test_code ? String(data.test_code) : null);
       setAttemptsRemaining(null);
-      toast.success("A new code was sent.");
+      toast.success(`A new ${loginMethod === "phone" ? "SMS" : "login"} code was sent.`);
     } catch (err: any) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -395,8 +424,18 @@ function Auth() {
     }, 10000);
 
     try {
+      const identifier = loginIdentifier || (loginMethod === "phone"
+        ? `${selectedCountry.prefix}${phoneNumber.replace(/\D/g, "")}`
+        : email.trim().toLowerCase());
       const { error, data } = await supabase.functions.invoke("challenge-login", {
-        body: { step: "verify", email, code: loginOtpInput },
+        body: {
+          step: "verify",
+          method: loginMethod,
+          identifier,
+          email: loginMethod === "email" ? identifier : "",
+          phone: loginMethod === "phone" ? identifier : "",
+          code: loginOtpInput,
+        },
       });
 
       if (error) {
@@ -412,7 +451,10 @@ function Auth() {
       }
       if (data?.error) throw new Error(data.error);
 
-      const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
+      const credentials = loginMethod === "phone"
+        ? { phone: identifier, password }
+        : { email: identifier, password };
+      const { error: sessionError } = await supabase.auth.signInWithPassword(credentials);
       if (sessionError) throw sessionError;
 
       toast.success("Login verified!");
@@ -564,7 +606,50 @@ function Auth() {
                     )}
                   </>
                 )}
-                {(mode === "signin" || (mode === "signup" && signupMethod === "email")) && (
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={() => setSigninMethod(signinMethod === "email" ? "phone" : "email")}
+                    className="w-full text-center text-[10px] font-bold text-primary uppercase tracking-widest hover:underline transition-all duration-150"
+                  >
+                    {signinMethod === "email" ? "Use phone number instead" : "Use email instead"}
+                  </button>
+                )}
+                {mode === "signin" && signinMethod === "phone" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="signin-country" className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Country</label>
+                      <select
+                        id="signin-country"
+                        value={selectedCountry.code}
+                        onChange={(e) => handleCountryChange(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs outline-none focus:ring-2 focus:ring-cyan-500 text-white font-semibold"
+                      >
+                        {GLOBAL_COUNTRIES.map((country) => (
+                          <option key={country.code} value={country.code} className="bg-neutral-900 text-white">
+                            {country.flag} {country.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label htmlFor="signin-phone" className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider pl-1">Phone</label>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-3 text-[10px] font-bold text-muted-foreground select-none">{selectedCountry.prefix}</span>
+                        <input
+                          id="signin-phone"
+                          type="tel"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
+                          placeholder="Phone"
+                          required
+                          className="w-full rounded-2xl border border-white/10 bg-white/5 py-2.5 pl-12 pr-3 text-xs font-mono outline-none focus:ring-2 focus:ring-cyan-500 transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {((mode === "signin" && signinMethod === "email") || (mode === "signup" && signupMethod === "email")) && (
                   <input
                     type="email"
                     value={email}
@@ -661,7 +746,9 @@ function Auth() {
             <form onSubmit={handleVerifySigninChallenge} className="space-y-4">
               <div className="text-center pb-2">
                 <h3 className="text-white text-lg font-black uppercase tracking-tight">Two-Factor Authentication</h3>
-                <p className="text-xs text-muted-foreground mt-1">Enter the 5-digit code sent to your email.</p>
+                <p className="text-xs text-muted-foreground mt-1">Enter the 5-digit code sent to your {loginMethod === "phone" ? "phone" : "email"}.</p>
+                {loginIdentifier && <p className="text-[11px] text-white/50 mt-1 break-all">Code sent to {loginIdentifier}</p>}
+                {loginTestCode && <p className="text-[11px] text-amber-300 mt-1">Test mode code: <span className="font-mono font-bold">{loginTestCode}</span></p>}
                 {challengeExpiresAt && <p className="text-[11px] text-white/50 mt-1">Code expires in {Math.ceil(Math.max(0, challengeExpiresAt - Date.now()) / 60000)} min</p>}
                 {attemptsRemaining !== null && <p className="text-[11px] text-amber-300 mt-1">{attemptsRemaining} attempts remaining</p>}
                 {lockedUntil && <p className="text-[11px] text-rose-300 mt-1">Too many attempts. Try again in {Math.ceil(Math.max(0, lockedUntil - Date.now()) / 60000)} min.</p>}
@@ -695,7 +782,7 @@ function Auth() {
               </button>
               <button
                 type="button"
-                onClick={() => { setStage("credentials"); setLoginOtpInput(""); setLockedUntil(null); }}
+                  onClick={() => { setStage("credentials"); setLoginOtpInput(""); setLoginTestCode(null); setLoginIdentifier(""); setLockedUntil(null); }}
                 className="w-full text-center text-xs text-neutral-500 hover:text-neutral-300 transition underline pt-2"
               >
                 Back to Sign In

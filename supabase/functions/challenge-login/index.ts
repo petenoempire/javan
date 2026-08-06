@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("APP_ORIGIN") ?? "*",
@@ -43,7 +43,35 @@ async function digest(value: string) {
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function deliverCode(email: string, code: string) {
+async function deliverSms(phone: string, code: string): Promise<{ mock: boolean }> {
+  const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+  const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+  const fromNumber = Deno.env.get("TWILIO_FROM_NUMBER");
+  const mockMode = Deno.env.get("TWILIO_MOCK_MODE") === "true";
+
+  if (mockMode || !accountSid || !authToken || !fromNumber) {
+    console.warn(`[challenge-login] Mock SMS mode for ${phone}; code is not sent externally.`);
+    return { mock: true };
+  }
+
+  const body = new URLSearchParams({
+    To: phone,
+    From: fromNumber,
+    Body: `Your Javan sign-in code is ${code}. It expires in 10 minutes.`,
+  });
+  const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+    method: "POST",
+    headers: {
+      Authorization: "Basic " + btoa(`${accountSid}:${authToken}`),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: body.toString(),
+  });
+  if (!response.ok) throw new Error("Unable to send the sign-in code");
+  return { mock: false };
+}
+
+async function deliverEmail(email: string, code: string) {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   const from = Deno.env.get("LOGIN_2FA_FROM");
   if (!apiKey || !from) throw new Error("2FA email delivery is not configured");
@@ -64,12 +92,12 @@ function genericFailure() {
   return json({ error: "Invalid credentials." }, 400);
 }
 
-async function verifyCode(supabaseAdmin: ReturnType<typeof admin>, email: string, code: string) {
+async function verifyCode(supabaseAdmin: ReturnType<typeof admin>, identifier: string, code: string) {
   if (!/^\d{5}$/.test(code)) return json({ error: "Enter the 5-digit code." }, 400);
   const { data: row, error } = await supabaseAdmin
     .from("verification_codes")
     .select("id,login_code,login_code_hash,expires_at,failed_attempts,locked_until,purpose")
-    .eq("email", email)
+    .eq("email", identifier)
     .eq("purpose", "login")
     .order("created_at", { ascending: false })
     .limit(1)
@@ -106,23 +134,33 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json() as Json;
-    const email = String(body.email ?? "").trim().toLowerCase();
+    const method = body.method === "phone" ? "phone" : "email";
+    const identifier = String(body.identifier ?? (method === "phone" ? body.phone : body.email) ?? "").trim();
+    const email = method === "email" ? identifier.toLowerCase() : "";
+    const phone = method === "phone" ? identifier : "";
     const step = body.step === "verify" ? "verify" : "challenge";
-    if (!email || email.length > 320) return json({ error: "Enter a valid email address." }, 400);
-    const supabaseAdmin = admin();
 
-    if (step === "verify") return await verifyCode(supabaseAdmin, email, String(body.code ?? "").trim());
+    if (method === "email" && (!email || email.length > 320 || !/^\S+@\S+\.\S+$/.test(email))) {
+      return json({ error: "Enter a valid email address." }, 400);
+    }
+    if (method === "phone" && !/^\+[1-9]\d{7,14}$/.test(phone)) {
+      return json({ error: "Enter a valid phone number in international format." }, 400);
+    }
+
+    const supabaseAdmin = admin();
+    if (step === "verify") return await verifyCode(supabaseAdmin, identifier, String(body.code ?? "").trim());
 
     const password = String(body.password ?? "");
     if (!password || password.length > 512) return genericFailure();
-    const { data: signIn, error: signInError } = await anon().auth.signInWithPassword({ email, password });
+    const credentials = method === "phone" ? { phone, password } : { email, password };
+    const { data: signIn, error: signInError } = await anon().auth.signInWithPassword(credentials);
     if (signInError || !signIn.user) return genericFailure();
     await anon().auth.signOut();
 
     const { data: previous } = await supabaseAdmin
       .from("verification_codes")
       .select("last_sent_at,locked_until")
-      .eq("email", email)
+      .eq("email", identifier)
       .eq("purpose", "login")
       .order("created_at", { ascending: false })
       .limit(1)
@@ -137,7 +175,7 @@ Deno.serve(async (req) => {
     const code = generateCode();
     const now = new Date().toISOString();
     const { error: upsertError } = await supabaseAdmin.from("verification_codes").upsert({
-      email,
+      email: identifier,
       purpose: "login",
       login_code: null,
       login_code_hash: await digest(code),
@@ -147,8 +185,19 @@ Deno.serve(async (req) => {
       last_sent_at: now,
     }, { onConflict: "email,purpose" });
     if (upsertError) throw upsertError;
-    await deliverCode(email, code);
-    return json({ success: true, message: "Login verification code sent.", expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString(), resendAfter: new Date(Date.now() + RESEND_COOLDOWN_MS).toISOString() });
+
+    const delivery = method === "phone"
+      ? await deliverSms(phone, code)
+      : await deliverEmail(email, code).then(() => ({ mock: false }));
+    return json({
+      success: true,
+      message: `${method === "phone" ? "SMS" : "Login"} verification code sent.`,
+      method,
+      mock: delivery.mock,
+      ...(method === "phone" && delivery.mock ? { test_code: code } : {}),
+      expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString(),
+      resendAfter: new Date(Date.now() + RESEND_COOLDOWN_MS).toISOString(),
+    });
   } catch (error) {
     console.error("[challenge-login]", error instanceof Error ? error.message : "unexpected error");
     return json({ error: "The sign-in verification service is temporarily unavailable." }, 503);
