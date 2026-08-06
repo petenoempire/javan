@@ -335,7 +335,10 @@ function Auth() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      const { error: sessionError } = await supabase.auth.signInWithPassword({ email, password });
+      const credentials = challenge.method === "phone"
+        ? { phone: challenge.identifier, password }
+        : { email: challenge.identifier, password };
+      const { error: sessionError } = await supabase.auth.signInWithPassword(credentials);
       if (sessionError) throw sessionError;
 
       toast.success("Account verified!");

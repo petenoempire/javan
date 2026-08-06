@@ -79,6 +79,7 @@ serve(async (req) => {
     // Create the user account
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: signupData.email || `${handle.toLowerCase()}@javan.internal`,
+      phone: signupData.phone || undefined,
       password,
       email_confirm: true,
       phone_confirm: true,
