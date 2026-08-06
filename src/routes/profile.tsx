@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +5,8 @@ import { MobileShell } from "@/components/MobileShell";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { Play, Upload, Edit2, LogOut, Heart, MessageCircle, Bookmark } from "lucide-react";
+import { Play, Upload, Edit2, LogOut, Heart, MessageCircle, Bookmark, Menu } from "lucide-react";
+import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { toast } from "sonner";
 
 const PROFILE_TITLE = "Your Creator Profile · Javan";
@@ -47,6 +47,7 @@ function ProfilePage() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const { data: userPosts = [] } = useQuery({
     queryKey: ["user-posts", user?.id],
@@ -62,20 +63,6 @@ function ProfilePage() {
     },
   });
 
-  const { data: likedPosts = [] } = useQuery({
-    queryKey: ["liked-posts", user?.id],
-    enabled: !!user && activeTab === "likes",
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("post_likes")
-        .select("post:post_id(*)")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false })
-        .limit(12);
-      return ((data as any[]) ?? []).map((row) => row.post).filter(Boolean) as UserPost[];
-    },
-  });
-
   const { data: followerCount = 0 } = useQuery({
     queryKey: ["follower-count", user?.id],
     enabled: !!user,
@@ -88,54 +75,59 @@ function ProfilePage() {
     },
   });
 
+  const queryClient = useQueryClient();
+
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast.success("Signed out");
+      queryClient.clear();
+      toast.success("Signed out successfully");
       navigate({ to: "/auth" });
-    } catch (err) {
+    } catch {
       toast.error("Failed to sign out");
     }
   };
 
-  const { loading: authLoading } = useAuth();
-
-  if (authLoading) {
+  if (!user) {
     return (
       <MobileShell>
-        <div className="flex min-h-[60dvh] flex-col items-center justify-center text-center">
-          <p className="text-sm text-white/50 mb-4">Loading profile...</p>
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+        <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center">
+          <h2 className="font-display text-xl font-bold">Please sign in to view your profile</h2>
+          <Link
+            to="/auth"
+            className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-5 rounded-full px-6 py-2.5 text-sm font-semibold text-white shadow-glow"
+          >
+            Sign in
+          </Link>
         </div>
       </MobileShell>
     );
   }
 
-  if (!user) {
-    navigate({ to: "/auth" });
-    return null;
-  }
-
-  const currentProfile = profile || {
-    id: user.id,
-    handle: user.email?.split('@')[0] || 'user',
-    display_name: user.user_metadata?.full_name || 'Creator',
-    bio: 'Welcome to my Javan profile!',
-    avatar_url: user.user_metadata?.avatar_url || null,
-    cover_url: null,
-    location: null,
-    website: null,
-    is_verified: false,
+  const currentProfile = profile ?? {
+    display_name: user.email?.split("@")[0] ?? "Creator",
+    handle: user.email?.split("@")[0] ?? "creator",
+    bio: "Welcome to my Javan creator profile!",
     coins: 0,
     earned_coins: 0,
   };
 
-  const visiblePosts = activeTab === "posts" ? userPosts : activeTab === "likes" ? likedPosts : [];
+  const visiblePosts = activeTab === "likes" ? [] : userPosts;
 
   return (
     <>
+    <ProfileDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
     <DesktopLayout>
-      <div className="max-w-4xl mx-auto py-10">
+      <div className="max-w-4xl mx-auto py-10 relative">
+        {/* Top-Right Hamburger Menu Button */}
+        <button
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+          className="absolute top-10 right-0 z-20 flex h-12 w-12 items-center justify-center rounded-2xl glass border border-white/20 bg-black/40 hover:bg-black/60 active:scale-95 transition-all shadow-glow"
+        >
+          <Menu className="h-6 w-6 text-white" />
+        </button>
+
         {/* Header */}
         <div className="relative h-48 rounded-3xl overflow-hidden bg-gradient-to-r from-fuchsia-600 to-rose-600 shadow-glow mb-16">
           <div className="absolute -bottom-12 left-8 h-32 w-32 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 border-4 border-[#020210] shadow-glow" />
@@ -150,13 +142,13 @@ function ProfilePage() {
           </div>
           <div className="flex gap-3">
             <Link to="/profile/edit">
-              <Button variant="outline" className="rounded-xl border-white/10 hover:bg-white/5">
-                <Edit2 className="h-4 w-4 mr-2" /> Edit Profile
-              </Button>
+              <button className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold hover:bg-white/10 transition-all">
+                <Edit2 className="h-4 w-4" /> Edit Profile
+              </button>
             </Link>
-            <Button onClick={handleSignOut} variant="destructive" className="rounded-xl">
-              <LogOut className="h-4 w-4 mr-2" /> Sign Out
-            </Button>
+            <button onClick={handleSignOut} className="flex items-center gap-2 rounded-xl bg-rose-600/20 border border-rose-500/30 px-4 py-2.5 text-sm font-bold text-rose-400 hover:bg-rose-600/30 transition-all">
+              <LogOut className="h-4 w-4" /> Sign Out
+            </button>
           </div>
         </div>
 
@@ -224,7 +216,16 @@ function ProfilePage() {
       </div>
     </DesktopLayout>
     <MobileShell>
-      <div className="pb-20">
+      <div className="pb-20 relative">
+        {/* Top-Right Hamburger Menu Button */}
+        <button
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+          className="absolute top-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full glass border border-white/20 bg-black/40 hover:bg-black/60 active:scale-95 transition-all shadow-glow"
+        >
+          <Menu className="h-5 w-5 text-white" />
+        </button>
+
         {/* Header */}
         <div className="relative h-32 bg-gradient-to-r from-fuchsia-600 to-rose-600">
           <div className="absolute -bottom-10 left-4 h-20 w-20 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 border-4 border-black" />

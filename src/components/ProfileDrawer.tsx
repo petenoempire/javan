@@ -101,9 +101,9 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
           />
           <motion.aside
             key="drawer"
-            initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+            initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 280 }}
-            className="fixed left-0 top-0 z-[81] h-[100dvh] w-[86vw] max-w-[360px] overflow-y-auto bg-background"
+            className="fixed right-0 top-0 z-[81] h-[100dvh] w-[80vw] max-w-[360px] overflow-y-auto bg-background shadow-2xl border-l border-white/10"
           >
             <div className="relative">
               <div className="bg-gradient-primary h-32 opacity-90" />
@@ -111,7 +111,7 @@ export function ProfileDrawer({ open, onClose }: { open: boolean; onClose: () =>
               <button
                 onClick={onClose}
                 aria-label="Close menu"
-                className="glass absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full"
+                className="glass absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full"
               >
                 <X className="h-4 w-4" />
               </button>
