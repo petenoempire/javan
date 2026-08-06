@@ -130,9 +130,15 @@ serve(async (req) => {
       // Ignore client-reported country/region for security
     } = await req.json();
 
-    if (!handle || (!email && method === "email") || (!phone && method === "phone")) {
+    const chosen = method === "email" || method === "phone" ? method : (email ? "email" : "phone");
+    const missing: string[] = [];
+    if (!handle) missing.push("handle");
+    if (chosen === "email" && !email) missing.push("email");
+    if (chosen === "phone" && !phone) missing.push("phone");
+
+    if (missing.length > 0) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields." }),
+        JSON.stringify({ error: `Missing required fields: ${missing.join(", ")}` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
