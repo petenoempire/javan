@@ -58,3 +58,19 @@ export async function endStream(streamId: string) {
     .single();
   return data;
 }
+
+export async function fetchActiveLiveStreams() {
+  const { data, error } = await supabase
+    .from('live_streams')
+    .select('*, host:profiles!host_id(handle, display_name, avatar_url)')
+    .eq('status', 'live')
+    .is('ended_at', null)
+    .order('viewer_count', { ascending: false })
+    .order('started_at', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching active live streams:", error);
+    return [];
+  }
+  return data ?? [];
+}

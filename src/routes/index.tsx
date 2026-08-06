@@ -7,11 +7,12 @@ import { StoryTray } from "@/components/StoryTray";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, MessageCircle, Share2, Eye, MoreHorizontal, Trash2, Bookmark, Plus, Film } from "lucide-react";
+import { Heart, MessageCircle, Share2, Eye, MoreHorizontal, Trash2, Bookmark, Plus, Film, Radio } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "motion/react";
+import { fetchActiveLiveStreams } from "@/lib/live";
 
 const HOME_TITLE = "Javan — The Ultimate Short Video Platform for Creators";
 const HOME_DESC = "Join Javan, the fastest-growing short video platform where creators share live streams, stories, and viral content to earn real rewards and payouts.";
@@ -134,6 +135,12 @@ function HomePage() {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
+  const { data: liveStreams = [], isLoading: isLoadingLive } = useQuery({
+    queryKey: ["homepage-active-live-streams"],
+    queryFn: fetchActiveLiveStreams,
+    refetchInterval: 10000,
+  });
+
   const { data: posts = [], isLoading } = useQuery<Post[]>({
     queryKey: ["feed", activeCategory],
     queryFn: async () => {
@@ -199,6 +206,52 @@ function HomePage() {
   }
 
   const renderMobileContent = () => {
+    if (activeCategory === 'Live') {
+      return (
+        <div className="h-full w-full overflow-y-auto px-4 py-6 space-y-4 pb-28">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-black text-chrome">Live Now</h2>
+            <Link to="/create" search={{ mode: "live" }} className="bg-gradient-live px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-glow">
+              Go Live
+            </Link>
+          </div>
+          {liveStreams.length > 0 ? (
+            liveStreams.map((stream: any) => (
+              <Link key={stream.id} to="/live/$id" params={{ id: stream.id }} search={{ host: undefined }} className="relative block aspect-[9/16] rounded-3xl bg-black/50 border border-white/10 overflow-hidden shadow-xl mb-4">
+                 <div className="absolute top-4 left-4 z-20 flex gap-2">
+                    <span className="bg-rose-600 text-[9px] font-black px-2.5 py-1 rounded-md shadow-lg animate-pulse text-white">LIVE</span>
+                    <span className="bg-black/60 backdrop-blur-md text-[9px] font-bold px-2 py-1 rounded-md flex items-center gap-1 text-white">
+                      <Eye className="h-3 w-3 text-rose-400" /> {stream.viewer_count || 1}
+                    </span>
+                 </div>
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10"></div>
+                 <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Avatar className="h-10 w-10 border-2 border-rose-500">
+                        <AvatarImage src={stream.host?.avatar_url} />
+                        <AvatarFallback>{stream.host?.display_name?.[0] || "C"}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold text-white/70 truncate">@{stream.host?.handle || "creator"}</p>
+                        <h3 className="text-base font-black line-clamp-1 text-white">{stream.title || "Live Stream"}</h3>
+                      </div>
+                    </div>
+                 </div>
+              </Link>
+            ))
+          ) : (
+            <div className="py-20 text-center glass rounded-3xl border border-white/5 px-6">
+              <Radio className="h-10 w-10 text-rose-500/30 mx-auto mb-3 animate-pulse" />
+              <p className="text-white/60 font-bold mb-1">No active live streams</p>
+              <p className="text-white/40 text-xs mb-6">Start broadcasting to connect with fans!</p>
+              <Link to="/create" search={{ mode: "live" }} className="inline-block bg-gradient-live px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-glow">
+                Go Live
+              </Link>
+            </div>
+          )}
+        </div>
+      );
+    }
     if (activeCategory === 'For You' || activeCategory === 'Following') {
       return (
         <div className="h-full w-full relative">
@@ -283,8 +336,58 @@ function HomePage() {
           {/* Category Navigation Bar for Desktop */}
           <CategoryScrollBar activeCategory={activeCategory} setActiveCategory={setActiveCategory} isMobile={false} />
 
-          {/* Featured Banner - Only show if there are posts and on For You/Following */}
-          {(activeCategory === 'For You' || activeCategory === 'Following') && posts.length > 0 ? (
+          {/* Live Streams Feed on Desktop */}
+          {activeCategory === 'Live' ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-black text-chrome">Active Live Streams</h2>
+                  <p className="text-white/50 text-sm">Watch creators live right now</p>
+                </div>
+                <Link to="/create" search={{ mode: "live" }} className="bg-gradient-live px-6 py-2.5 rounded-2xl text-sm font-bold shadow-glow text-white">
+                  Go Live
+                </Link>
+              </div>
+              {liveStreams.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {liveStreams.map((stream: any) => (
+                    <Link key={stream.id} to="/live/$id" params={{ id: stream.id }} search={{ host: undefined }} className="group cursor-pointer">
+                      <div className="relative aspect-[9/16] rounded-3xl overflow-hidden glass border border-white/10 mb-4 bg-black/60 shadow-lg">
+                         <div className="absolute top-4 left-4 z-20 flex gap-2">
+                            <span className="bg-rose-600 text-[10px] font-black px-2.5 py-1 rounded-lg shadow-lg animate-pulse text-white">LIVE</span>
+                            <span className="bg-black/60 backdrop-blur-md text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 text-white">
+                              <Eye className="h-3 w-3 text-rose-400" /> {stream.viewer_count || 1}
+                            </span>
+                         </div>
+                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity z-10"></div>
+                         <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Avatar className="h-10 w-10 border-2 border-rose-500 shadow-glow">
+                                <AvatarImage src={stream.host?.avatar_url} />
+                                <AvatarFallback>{stream.host?.display_name?.[0] || "C"}</AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-white/70 truncate">@{stream.host?.handle || "creator"}</p>
+                                <h3 className="text-sm font-black line-clamp-1 text-white group-hover:text-rose-400 transition-colors">{stream.title || "Live Stream"}</h3>
+                              </div>
+                            </div>
+                         </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-24 text-center glass rounded-3xl border border-white/5 flex flex-col items-center justify-center">
+                  <Radio className="h-12 w-12 text-rose-500/30 mb-4 animate-pulse" />
+                  <p className="text-white/60 font-bold text-lg mb-2">No active live streams right now</p>
+                  <p className="text-white/40 text-sm mb-6 max-w-sm">Be the first to start a live broadcast and connect with your audience in real-time!</p>
+                  <Link to="/create" search={{ mode: "live" }} className="bg-gradient-live px-6 py-3 rounded-2xl text-sm font-bold shadow-glow text-white">
+                    Start Broadcasting
+                  </Link>
+                </div>
+              )}
+            </div>
+          ) : (activeCategory === 'For You' || activeCategory === 'Following') && posts.length > 0 ? (
             <Link to="/posts/$id" params={{ id: posts[0]?.id }} className="block">
               <div className="relative aspect-[21/9] rounded-3xl overflow-hidden glass border border-white/10 group">
               <div className="absolute inset-0 bg-gradient-to-t from-[#020210] via-transparent to-transparent z-10"></div>
