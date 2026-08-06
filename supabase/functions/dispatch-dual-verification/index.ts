@@ -146,8 +146,8 @@ serve(async (req) => {
     // Capture server-side IP and Region
     const { ip, region } = await getGeoData(req);
 
-    const emailCode = method === "email" ? generateOtp() : "";
-    const smsCode = method === "phone" ? generateOtp() : "";
+    const emailCode = chosen === "email" ? generateOtp() : "";
+    const smsCode = chosen === "phone" ? generateOtp() : "";
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -182,7 +182,7 @@ serve(async (req) => {
     if (sessionError) throw sessionError;
 
     let deliveryResult;
-    if (method === "phone") {
+    if (chosen === "phone") {
       deliveryResult = await sendTwilioSms(phone, smsCode);
     } else {
       deliveryResult = await sendEmailOtp(email, emailCode);
@@ -192,10 +192,10 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         session_id: sessionId,
-        method,
+        method: chosen,
         ip,
         region,
-        message: `Verification code sent via ${method}.`,
+        message: `Verification code sent via ${chosen}.`,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
