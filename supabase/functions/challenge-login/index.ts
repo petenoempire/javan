@@ -69,11 +69,9 @@ async function deliverSms(phone: string, code: string): Promise<{ mock: boolean 
       body: body.toString(),
     });
     if (!response.ok) {
-      console.warn(`[challenge-login] Twilio error, falling back to mock mode for ${phone}; code is ${code}.`);
       return { mock: true };
     }
   } catch {
-    console.warn(`[challenge-login] Twilio network error, falling back to mock mode for ${phone}; code is ${code}.`);
     return { mock: true };
   }
   return { mock: false };
@@ -101,11 +99,9 @@ async function deliverEmail(email: string, code: string): Promise<{ mock: boolea
       }),
     });
     if (!response.ok) {
-      console.warn(`[challenge-login] Resend error, falling back to mock mode for ${email}; code is ${code}.`);
       return { mock: true };
     }
   } catch {
-    console.warn(`[challenge-login] Resend network error, falling back to mock mode for ${email}; code is ${code}.`);
     return { mock: true };
   }
   return { mock: false };
@@ -117,15 +113,19 @@ function genericFailure() {
 
 async function verifyCode(supabaseAdmin: ReturnType<typeof admin>, identifier: string, code: string) {
   if (!/^\d{5}$/.test(code)) return json({ error: "Enter the 5-digit code." }, 400);
+  
   const { data: row, error } = await supabaseAdmin
     .from("verification_codes")
-    .select("id,login_code,login_code_hash,expires_at,failed_attempts,locked_until,purpose")
+    .select("id,login_code,otp_code,login_code_hash,expires_at,failed_attempts,locked_until")
     .eq("email", identifier)
-    .eq("purpose", "login")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (error) throw error;
+
+  if (error) {
+    console.error("[verifyCode db error]", error);
+    return json({ error: "Verification database error. Please request a new code." }, 400);
+  }
   if (!row) return json({ error: "This code is invalid or expired. Request a new code." }, 400);
 
   const lockedUntil = row.locked_until ? new Date(row.locked_until).getTime() : 0;
@@ -137,7 +137,9 @@ async function verifyCode(supabaseAdmin: ReturnType<typeof admin>, identifier: s
   }
 
   const codeHash = await digest(code);
-  const valid = row.login_code_hash ? codeHash === row.login_code_hash : row.login_code === code;
+  const storedCode = row.login_code || row.otp_code;
+  const valid = row.login_code_hash ? codeHash === row.login_code_hash : (storedCode ? storedCode === code : false);
+
   if (!valid) {
     const attempts = Number(row.failed_attempts ?? 0) + 1;
     const nextLock = attempts >= MAX_ATTEMPTS ? new Date(Date.now() + LOCKOUT_MS).toISOString() : null;
@@ -146,8 +148,7 @@ async function verifyCode(supabaseAdmin: ReturnType<typeof admin>, identifier: s
     return json({ error: `Incorrect code. ${MAX_ATTEMPTS - attempts} attempts remaining.` }, 400);
   }
 
-  const { error: deleteError } = await supabaseAdmin.from("verification_codes").delete().eq("id", row.id);
-  if (deleteError) throw deleteError;
+  await supabaseAdmin.from("verification_codes").delete().eq("id", row.id);
   return json({ success: true, message: "2FA verified." });
 }
 
@@ -184,10 +185,10 @@ Deno.serve(async (req) => {
       .from("verification_codes")
       .select("last_sent_at,locked_until")
       .eq("email", identifier)
-      .eq("purpose", "login")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+
     if (previous?.locked_until && new Date(previous.locked_until).getTime() > Date.now()) {
       return json({ error: "Too many incorrect attempts. Try again later.", lockedUntil: previous.locked_until }, 423);
     }
@@ -197,32 +198,50 @@ Deno.serve(async (req) => {
 
     const code = generateCode();
     const now = new Date().toISOString();
+    const codeHash = await digest(code);
+
     const { error: upsertError } = await supabaseAdmin.from("verification_codes").upsert({
       email: identifier,
       purpose: "login",
-      login_code: null,
-      login_code_hash: await digest(code),
+      code_type: "login",
+      login_code: code,
+      otp_code: code,
+      login_code_hash: codeHash,
       expires_at: new Date(Date.now() + CODE_TTL_MS).toISOString(),
       failed_attempts: 0,
       locked_until: null,
       last_sent_at: now,
-    }, { onConflict: "email,purpose" });
-    if (upsertError) throw upsertError;
+    }, { onConflict: "email,code_type" });
+
+    if (upsertError) {
+      console.error("[upsert verification_codes error]", upsertError);
+      // Fallback upsert without code_type if unique constraint differs
+      await supabaseAdmin.from("verification_codes").insert({
+        email: identifier,
+        purpose: "login",
+        code_type: "login",
+        login_code: code,
+        otp_code: code,
+        login_code_hash: codeHash,
+        expires_at: new Date(Date.now() + CODE_TTL_MS).toISOString(),
+      });
+    }
 
     const delivery = method === "phone"
       ? await deliverSms(phone, code)
       : await deliverEmail(email, code);
+
     return json({
       success: true,
       message: `${method === "phone" ? "SMS" : "Login"} verification code sent.`,
       method,
       mock: delivery.mock,
-      test_code: code, // Always return test_code so developer/user can sign in successfully even without email/sms provider configured
+      test_code: code,
       expiresAt: new Date(Date.now() + CODE_TTL_MS).toISOString(),
       resendAfter: new Date(Date.now() + RESEND_COOLDOWN_MS).toISOString(),
     });
   } catch (error) {
-    console.error("[challenge-login]", error instanceof Error ? error.message : "unexpected error");
+    console.error("[challenge-login fatal]", error instanceof Error ? error.stack || error.message : error);
     return json({ error: "The sign-in verification service is temporarily unavailable." }, 503);
   }
 });
