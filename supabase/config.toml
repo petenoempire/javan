@@ -1,1 +1,13 @@
 project_id = "hwvgcysmcexffuoywnol"
+
+[functions.dispatch-dual-verification]
+verify_jwt = false
+
+[functions.confirm-dual-verification]
+verify_jwt = false
+
+[functions.challenge-login]
+verify_jwt = false
+
+[functions.verify-login-2fa]
+verify_jwt = false
