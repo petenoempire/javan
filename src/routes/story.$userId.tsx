@@ -9,12 +9,18 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/story/$userId")({
   loader: async ({ params }) => {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("handle, display_name, avatar_url")
-      .eq("id", params.userId)
-      .maybeSingle();
-    return { profile };
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("handle, display_name, avatar_url")
+        .eq("id", params.userId)
+        .maybeSingle();
+      if (error) throw error;
+      return { profile };
+    } catch (error) {
+      console.error("[SSR] story loader failed", error);
+      return { profile: null };
+    }
   },
   head: ({ params, loaderData }) => {
     const profile = loaderData?.profile;

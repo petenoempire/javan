@@ -12,12 +12,18 @@ import { ReportDialog } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/u/$handle")({
   loader: async ({ params }) => {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("handle, display_name, bio, avatar_url")
-      .eq("handle", params.handle)
-      .maybeSingle();
-    return { profile };
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("handle, display_name, bio, avatar_url")
+        .eq("handle", params.handle)
+        .maybeSingle();
+      if (error) throw error;
+      return { profile };
+    } catch (error) {
+      console.error("[SSR] profile loader failed", error);
+      return { profile: null };
+    }
   },
   head: ({ params, loaderData }) => {
     const profile = loaderData?.profile;

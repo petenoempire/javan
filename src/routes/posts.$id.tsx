@@ -7,22 +7,29 @@ import { ArrowLeft, Heart, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/posts/$id")({
   loader: async ({ params }) => {
-    const { data: post } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("id", params.id)
-      .maybeSingle();
-
-    let author: { handle: string; display_name: string } | null = null;
-    if (post?.user_id) {
-      const { data } = await supabase
-        .from("profiles")
-        .select("handle, display_name")
-        .eq("id", post.user_id)
+    try {
+      const { data: post, error: postError } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("id", params.id)
         .maybeSingle();
-      author = (data as any) ?? null;
+      if (postError) throw postError;
+
+      let author: { handle: string; display_name: string } | null = null;
+      if (post?.user_id) {
+        const { data, error: authorError } = await supabase
+          .from("profiles")
+          .select("handle, display_name")
+          .eq("id", post.user_id)
+          .maybeSingle();
+        if (authorError) throw authorError;
+        author = (data as any) ?? null;
+      }
+      return { post, author };
+    } catch (error) {
+      console.error("[SSR] post loader failed", error);
+      return { post: null, author: null };
     }
-    return { post, author };
   },
   head: ({ params, loaderData }) => {
     const post = loaderData?.post as any;

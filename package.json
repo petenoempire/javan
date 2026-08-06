@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "preview": "npx --yes wrangler dev --config .output/server/wrangler.json",
+    "deploy:cloudflare": "npx --yes wrangler deploy --config .output/server/wrangler.json",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
