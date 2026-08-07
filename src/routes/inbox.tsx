@@ -7,11 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
   ArrowLeft, Heart, MessageCircle, Share2, Bell, Users, Shield,
-  Plus, Camera, Hand, Send, Video, Star, UserPlus, Info,
+  Camera, Hand, Send, Video, Star, UserPlus, Info,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
+import { StoryTray } from "@/components/StoryTray";
 
 export const Route = createFileRoute("/inbox")({
   head: () => ({
@@ -33,9 +34,9 @@ export const Route = createFileRoute("/inbox")({
 
 interface Message {
   id: string;
+  conversation_id: string;
   sender_id: string;
-  receiver_id: string;
-  content: string;
+  body: string;
   created_at: string;
   sender?: { handle: string; display_name: string; avatar_url?: string; is_verified?: boolean };
 }
@@ -50,50 +51,7 @@ interface FollowerNotification {
    STORY CIRCLES — TikTok-style top section
    ────────────────────────────────────────────── */
 function StoryCircles() {
-  const stories = [
-    { id: "your-story", label: "Your Story", avatar: null, isYou: true, hasNew: false },
-    { id: "on-this-day", label: "On this day", avatar: null, isYou: false, hasNew: false },
-    { id: "live-now", label: "LIVE now", avatar: null, isYou: false, hasNew: true },
-    { id: "trending", label: "Trending", avatar: null, isYou: false, hasNew: true },
-    { id: "new-music", label: "New Music", avatar: null, isYou: false, hasNew: true },
-  ];
-
-  return (
-    <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 py-3 border-b border-white/5">
-      {stories.map((story) => (
-        <button key={story.id} className="flex flex-col items-center gap-1.5 shrink-0 active:scale-90 transition-transform">
-          <div className={`relative h-16 w-16 rounded-full flex items-center justify-center ${
-            story.isYou
-              ? "bg-white/10 border-2 border-dashed border-white/30"
-              : story.hasNew
-              ? "bg-gradient-to-br from-cyan-500 via-fuchsia-500 to-amber-400 p-[2.5px]"
-              : "bg-white/10 border border-white/20"
-          }`}>
-            <div className={`h-full w-full rounded-full flex items-center justify-center ${
-              story.isYou ? "bg-[#020210]" : "bg-[#020210] p-[2px]"
-            }`}>
-              {story.isYou ? (
-                <div className="flex flex-col items-center gap-0.5">
-                  <Camera className="h-4 w-4 text-white/60" />
-                  <span className="text-[7px] text-white/40 font-bold">+</span>
-                </div>
-              ) : (
-                <Avatar className="h-full w-full">
-                  <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-purple-500/30 to-cyan-500/30 text-white">
-                    {story.label[0]}
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </div>
-            {story.hasNew && (
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-cyan-400 border-2 border-[#020210] shadow-[0_0_6px_rgba(0,212,255,0.6)]" />
-            )}
-          </div>
-          <span className="text-[10px] text-white/60 font-bold truncate max-w-[56px]">{story.label}</span>
-        </button>
-      ))}
-    </div>
-  );
+  return <StoryTray />;
 }
 
 /* ──────────────────────────────────────────────
@@ -128,7 +86,7 @@ function NotificationCategory({ icon: Icon, iconColor, title, subtitle, count, o
 /* ──────────────────────────────────────────────
    DM LIST ITEM — with wave button and status
    ────────────────────────────────────────────── */
-function DMListItem({ msg, isOnline }: { msg: Message; isOnline?: boolean }) {
+function DMListItem({ msg, userId, isOnline }: { msg: Message; userId: string; isOnline?: boolean }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -137,9 +95,9 @@ function DMListItem({ msg, isOnline }: { msg: Message; isOnline?: boolean }) {
       const { error } = await supabase
         .from("messages")
         .insert({
-          sender_id: "current-user",
-          receiver_id: msg.sender_id,
-          content: "👋",
+          conversation_id: msg.conversation_id,
+          sender_id: userId,
+          body: "👋",
         });
       if (error) throw error;
     },
@@ -187,7 +145,7 @@ function DMListItem({ msg, isOnline }: { msg: Message; isOnline?: boolean }) {
             </span>
           )}
         </div>
-        <p className="text-[11px] text-white/40 truncate mt-0.5">{msg.content}</p>
+        <p className="text-[11px] text-white/40 truncate mt-0.5">{msg.body}</p>
       </div>
       <div className="flex flex-col items-end gap-1.5 shrink-0">
         <span className="text-[10px] text-white/30 font-mono">{timeAgo()}</span>
@@ -215,22 +173,39 @@ function InboxPage() {
     queryKey: ["conversations"],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("messages")
-        .select(
-          `*,
-           sender:sender_id(handle, display_name, avatar_url, is_verified)
-         `
-        )
-        .order("created_at", { ascending: false })
+      const { data: rows, error } = await supabase
+        .from("conversations")
+        .select("id, user_a, user_b, last_message_at")
+        .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
+        .order("last_message_at", { ascending: false })
         .limit(50);
-      return (data as Message[]) ?? [];
+      if (error) throw error;
+      const conversationRows = rows ?? [];
+      if (!conversationRows.length) return [];
+      const otherIds = conversationRows.map((row: any) => row.user_a === user.id ? row.user_b : row.user_a);
+      const [{ data: profiles }, { data: messages }] = await Promise.all([
+        supabase.from("profiles").select("id,handle,display_name,avatar_url,is_verified").in("id", otherIds),
+        supabase.from("messages").select("id,conversation_id,sender_id,body,created_at").in("conversation_id", conversationRows.map((row: any) => row.id)).order("created_at", { ascending: false }).limit(100),
+      ]);
+      const profileMap = new Map((profiles ?? []).map((profile: any) => [profile.id, profile]));
+      const latestByConversation = new Map<string, any>();
+      for (const message of messages ?? []) if (!latestByConversation.has(message.conversation_id)) latestByConversation.set(message.conversation_id, message);
+      return conversationRows.map((row: any) => {
+        const otherId = row.user_a === user.id ? row.user_b : row.user_a;
+        const latest = latestByConversation.get(row.id);
+        return {
+          id: row.id,
+          conversation_id: row.id,
+          sender_id: otherId,
+          body: latest?.body ?? "No messages yet",
+          created_at: latest?.created_at ?? row.last_message_at,
+          sender: profileMap.get(otherId),
+        } as Message;
+      });
     },
   });
 
-  const uniqueConversations = Array.from(
-    new Map(conversations.map((msg) => [msg.sender_id, msg])).values()
-  );
+  const uniqueConversations = conversations;
 
   const { data: followerCount } = useQuery({
     queryKey: ["new-followers-count"],
@@ -289,7 +264,7 @@ function InboxPage() {
         ) : (
           <div className="rounded-2xl bg-white/[0.02] border border-white/5 overflow-hidden">
             {uniqueConversations.map((msg) => (
-              <DMListItem key={msg.id} msg={msg} isOnline={false} />
+              <DMListItem key={msg.id} msg={msg} userId={user!.id} isOnline={false} />
             ))}
           </div>
         )}
@@ -305,9 +280,9 @@ function InboxPage() {
           <button
             onClick={() => navigate({ to: "/discover" })}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 active:scale-90 transition-all"
-            aria-label="Find people"
+            aria-label="Back to home"
           >
-            <Plus className="h-5 w-5 text-white" />
+            <ArrowLeft className="h-5 w-5 text-white" />
           </button>
         </div>
 
@@ -361,7 +336,7 @@ function InboxPage() {
           ) : (
             <div className="divide-y divide-white/5">
               {uniqueConversations.map((msg) => (
-                <DMListItem key={msg.id} msg={msg} isOnline={false} />
+                <DMListItem key={msg.id} msg={msg} userId={user!.id} isOnline={false} />
               ))}
             </div>
           )}

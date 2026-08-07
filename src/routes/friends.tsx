@@ -127,7 +127,7 @@ function FriendsFeed() {
       <h2 className="sr-only">Friends</h2>
       {/* Friends header with back arrow and title */}
       <div className="absolute inset-x-0 top-0 z-40 pointer-events-none">
-        <div className="flex items-center gap-3 px-4 pt-14 pb-3">
+        <div className="flex items-center justify-center px-4 pt-14 pb-3">
           <div className="glass-strong inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-[0_0_15px_rgba(124,58,237,0.3)]">
             <Users className="h-4 w-4 text-purple-400" /> Friends
           </div>
@@ -143,7 +143,7 @@ function FriendsFeed() {
           cta={<Link to="/discover" className="bg-gradient-primary mt-5 inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow"><UserPlus className="h-4 w-4" /> Find people</Link>}
         />
       ) : (
-        <div ref={ref} className="no-scrollbar h-[100dvh] snap-y snap-mandatory overflow-y-scroll">
+        <div ref={ref} className="no-scrollbar h-[100dvh] snap-y snap-mandatory overflow-y-auto scroll-smooth overscroll-contain">
           {videos.map((v, i) => (
             <div key={v.id} data-idx={i}>
               <VideoCard

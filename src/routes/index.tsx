@@ -76,7 +76,7 @@ function CategoryScrollBar({
               key={cat.name}
               onClick={() => {
                 if (cat.name === "LIVE") {
-                  navigate({ to: "/create", search: { mode: "live" } });
+                  setActiveCategory("LIVE");
                 } else {
                   setActiveCategory(cat.name);
                 }
@@ -330,7 +330,29 @@ function HomePage() {
         <div className="space-y-8 max-w-7xl mx-auto px-6 py-8">
           <h1 className="sr-only">{HOME_TITLE}</h1>
           <CategoryScrollBar activeCategory={activeCategory} setActiveCategory={setActiveCategory} isMobile={false} />
-          {posts.length > 0 ? (
+          {activeCategory === "LIVE" ? (
+            liveStreams.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {liveStreams.map((stream: any) => (
+                  <Link key={stream.id} to="/live/$id" params={{ id: stream.id }} search={{ host: undefined }} className="group cursor-pointer block">
+                    <div className="relative aspect-video rounded-2xl overflow-hidden glass border border-rose-500/20 mb-3 bg-black/60">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10" />
+                      <div className="absolute top-3 left-3 z-20 flex gap-2">
+                        <span className="bg-rose-600 text-[10px] font-black px-2 py-1 rounded-md text-white animate-pulse">LIVE</span>
+                        <span className="bg-black/60 text-[10px] font-bold px-2 py-1 rounded-md text-white"><Eye className="inline h-3 w-3 mr-1" />{stream.viewer_count || 1}</span>
+                      </div>
+                      <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center gap-2">
+                        <Avatar className="h-9 w-9 border-2 border-rose-500"><AvatarImage src={stream.host?.avatar_url} /><AvatarFallback>{stream.host?.display_name?.[0] || "C"}</AvatarFallback></Avatar>
+                        <div className="min-w-0"><p className="text-xs font-bold text-white">@{stream.host?.handle || "creator"}</p><p className="text-[11px] text-white/60 truncate">{stream.title || "Live Stream"}</p></div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="py-20 text-center"><Radio className="mx-auto mb-3 h-12 w-12 text-rose-500/30" /><p className="text-white/50">No active live streams right now.</p></div>
+            )
+          ) : posts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {posts.slice(0, 20).map((post) => (
                 <Link key={post.id} to="/posts/$id" params={{ id: post.id }} className="group cursor-pointer block">

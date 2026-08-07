@@ -67,7 +67,7 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
   ];
 
   return (
-    <div className="lg:hidden flex flex-col min-h-[100dvh] bg-[#020210] text-white relative overflow-hidden">
+    <div className="lg:hidden flex h-[100dvh] min-h-0 flex-col bg-[#020210] text-white relative overflow-hidden">
       {/* Aurora Background */}
       <div className="aurora-bg">
         <div className="aurora-ribbon" style={{ top: '20%', opacity: 0.3, filter: 'blur(80px)' }}></div>
@@ -75,7 +75,7 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
       </div>
 
       {/* Main Content */}
-      <main className={`flex-1 overflow-y-auto no-scrollbar ${showNav ? "pb-24" : "pb-4"}`}>
+      <main className={`min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth no-scrollbar ${showNav ? "pb-20" : "pb-4"}`}>
         {children}
       </main>
 
@@ -111,9 +111,9 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 20, opacity: 0 }}
-            className="fixed bottom-6 left-5 right-5 z-50"
+            className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
           >
-            <div className="glass-strong rounded-[2.5rem] px-4 py-3 flex items-center justify-around border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+            <div className="pointer-events-auto flex h-14 w-full max-w-[360px] items-center justify-around rounded-2xl border border-white/10 bg-black/70 px-2 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
               {navItems.map((item) => {
                 const isActive = location.pathname === item.href;
                 if (item.isCenter) {
@@ -122,9 +122,9 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
                       key={item.label}
                       to={item.href}
                       aria-label={item.label}
-                      className="relative -top-6 flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-rose-500 via-purple-600 to-cyan-500 shadow-[0_0_25px_rgba(255,0,128,0.4)] active:scale-90 transition-transform"
+                      className="relative -top-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 via-purple-600 to-cyan-500 shadow-[0_0_18px_rgba(255,0,128,0.4)] active:scale-90 transition-transform"
                     >
-                      <Plus className="h-8 w-8 text-white" />
+                      <Plus className="h-6 w-6 text-white" />
                     </Link>
                   );
                 }
@@ -137,7 +137,7 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
                   >
                     <div className={`p-2 rounded-full transition-all duration-300 ${isActive ? "bg-white/10" : "group-active:scale-90"}`}>
                       <item.icon
-                        className={`h-6 w-6 transition-all duration-300 ${
+                        className={`h-5 w-5 transition-all duration-300 ${
                           isActive ? "text-white" : "text-white/40 group-hover:text-white/70"
                         }`}
                         style={isActive ? { filter: `drop-shadow(0 0 8px ${item.glow})` } : {}}
