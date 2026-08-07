@@ -1,26 +1,22 @@
 import { DesktopLayout } from "@/components/DesktopLayout";
-import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MobileShell } from "@/components/MobileShell";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  Play, Upload, Edit2, LogOut, Heart, MessageCircle, Bookmark, Menu,
-  Eye, Coins, Users, UserPlus, Search, X, ArrowLeft, FileVideo,
-  Repeat2, Share2, Radio, ChevronRight, Grid3X3, Layers, Music2,
-  BookmarkCheck, Flame, TrendingUp, Shield, BadgeCheck, Camera,
-  Wallet, LayoutDashboard, Music, Mic2, Sparkles, Settings, Plus,
-  ChevronDown, ExternalLink, AlertCircle, Gift, Activity, DownloadCloud,
-  QrCode, HelpCircle
+  Play, Heart, Menu, Eye, Coins, Users, UserPlus, Search,
+  ArrowLeft, FileVideo, BookmarkCheck, BadgeCheck, Pencil,
+  UserRoundCheck, Gift, Activity, HelpCircle, Settings, Wallet,
+  Radio, Layers, Music2, Repeat2, Share2
 } from "lucide-react";
 import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const PROFILE_TITLE = "Your Creator Profile · Javan";
-const PROFILE_DESC =
-  "Manage your Javan creator profile: edit your bio and avatar, review your posts, track viewers and follow your earnings.";
+const PROFILE_DESC = "Manage your Javan creator profile: edit your bio and avatar, review your posts, track viewers and follow your earnings.";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -31,8 +27,6 @@ export const Route = createFileRoute("/profile")({
       { property: "og:title", content: PROFILE_TITLE },
       { property: "og:description", content: PROFILE_DESC },
       { property: "og:url", content: "https://javan.lovable.app/profile" },
-      { name: "twitter:title", content: PROFILE_TITLE },
-      { name: "twitter:description", content: PROFILE_DESC },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/profile" }],
   }),
@@ -44,6 +38,7 @@ interface UserPost {
   content: string;
   video_url?: string;
   thumbnail_url?: string;
+  image_url?: string;
   likes_count: number;
   comments_count: number;
   views_count: number;
@@ -59,7 +54,7 @@ function formatCount(n: number): string {
 }
 
 /* ──────────────────────────────────────────────
-   FOLLOWING LIST VIEW (tapped from Following count)
+   FOLLOWING LIST VIEW
    ────────────────────────────────────────────── */
 function FollowingListView({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
@@ -73,111 +68,81 @@ function FollowingListView({ onClose }: { onClose: () => void }) {
       const { data: rows } = await supabase
         .from("follows").select("following_id,created_at")
         .eq("follower_id", user!.id).order("created_at", { ascending: false });
-      const ids = (rows ?? []).map((r) => r.following_id);
+      const ids = (rows ?? []).map((r: any) => r.following_id);
       if (!ids.length) return [];
       const { data: profs } = await supabase
         .from("profiles")
         .select("id,handle,display_name,avatar_url,bio,is_verified")
         .in("id", ids);
-      return (profs ?? []).map((p) => ({
-        ...p,
-        followedAt: (rows ?? []).find((r) => r.following_id === p.id)?.created_at,
-      }));
+      const profileMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      return (rows ?? []).map((r: any) => ({ ...r, profile: profileMap.get(r.following_id) })).filter((r: any) => r.profile);
     },
   });
 
-  const filtered = data
-    .filter((p: any) =>
-      p.display_name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.handle?.toLowerCase().includes(search.toLowerCase())
-    )
-    .sort((a: any, b: any) =>
-      filter === "recent"
-        ? new Date(b.followedAt ?? 0).getTime() - new Date(a.followedAt ?? 0).getTime()
-        : (a.display_name ?? "").localeCompare(b.display_name ?? "")
-    );
+  const filtered = data.filter((d: any) => {
+    const q = search.toLowerCase();
+    if (!q) return true;
+    return (d.profile?.handle ?? "").toLowerCase().includes(q) || (d.profile?.display_name ?? "").toLowerCase().includes(q);
+  });
+
+  const displayed = filter === "recent" ? filtered.slice(0, 20) : filtered;
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-[#020210] flex flex-col"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      className="fixed inset-0 z-[60] bg-[#020210] flex flex-col overflow-hidden"
     >
-      {/* Top bar with back button */}
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Back to profile">
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/60 backdrop-blur-xl">
+        <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Back">
           <ArrowLeft className="h-5 w-5 text-white" />
         </button>
-        <h2 className="font-display text-lg font-black text-chrome flex-1">Following</h2>
-        <div className="flex gap-1">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${
-              filter === "all" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"
-            }`}
-          >A–Z</button>
-          <button
-            onClick={() => setFilter("recent")}
-            className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${
-              filter === "recent" ? "bg-white/20 text-white" : "text-white/50 hover:text-white"
-            }`}
-          >Recent</button>
-        </div>
+        <h1 className="font-display text-lg font-black text-chrome flex-1">Following</h1>
       </div>
 
-      {/* Search bar */}
       <div className="px-4 py-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
           <input
+            type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search following..."
-            className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-1 focus:ring-cyan-500 text-white placeholder-white/40"
+            placeholder="Search users..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-500/40 transition-colors"
           />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
-              <X className="h-4 w-4" />
-            </button>
-          )}
+        </div>
+        <div className="flex gap-2 mt-3">
+          <button onClick={() => setFilter("all")} className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${filter === "all" ? "bg-white/15 text-white" : "bg-white/5 text-white/40"}`}>All ({filtered.length})</button>
+          <button onClick={() => setFilter("recent")} className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${filter === "recent" ? "bg-white/15 text-white" : "bg-white/5 text-white/40"}`}>Recent</button>
         </div>
       </div>
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto px-4">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Users className="h-12 w-12 text-white/20 mb-4" />
-            <p className="text-white/50 text-sm">
-              {search ? "No matching users found" : "Not following anyone yet"}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2 pb-24">
-            {filtered.map((p: any) => (
-              <Link
-                key={p.id}
-                to="/u/$handle"
-                params={{ handle: p.handle }}
-                onClick={onClose}
-                className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 active:scale-[0.98] transition-all border border-white/5"
-              >
-                {p.avatar_url ? (
-                  <img src={p.avatar_url} className="h-12 w-12 rounded-full object-cover" alt="" />
-                ) : (
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-rose-500 to-purple-600" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold truncate">{p.display_name}</span>
-                    {p.is_verified && <BadgeCheck className="h-4 w-4 text-cyan-400 fill-cyan-400" />}
+      <div className="flex-1 overflow-y-auto px-4 pb-8">
+        {displayed.length > 0 ? (
+          <ul className="space-y-1">
+            {displayed.map((row: any) => (
+              <li key={row.following_id}>
+                <Link to="/u/$handle" params={{ handle: row.profile.handle }} onClick={onClose} className="flex items-center gap-3 px-3 py-3 rounded-xl active:bg-white/5 transition-colors">
+                  <Avatar className="h-11 w-11 border border-white/10">
+                    <AvatarImage src={row.profile.avatar_url} />
+                    <AvatarFallback>{row.profile.display_name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 truncate text-sm font-bold">
+                      @{row.profile.handle}
+                      {row.profile.is_verified && <BadgeCheck className="h-4 w-4 shrink-0 text-cyan-400 fill-cyan-400/20" />}
+                    </div>
+                    <div className="truncate text-xs text-white/40">{row.profile.display_name}</div>
                   </div>
-                  <p className="text-xs text-white/50 truncate">@{p.handle}</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-white/30 shrink-0" />
-              </Link>
+                </Link>
+              </li>
             ))}
+          </ul>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <Users className="h-10 w-10 text-white/20 mb-3" />
+            <p className="text-white/40 text-sm">{search ? "No results found" : "You're not following anyone yet"}</p>
           </div>
         )}
       </div>
@@ -186,142 +151,82 @@ function FollowingListView({ onClose }: { onClose: () => void }) {
 }
 
 /* ──────────────────────────────────────────────
-   FOLLOWERS LIST VIEW (tapped from Followers count)
+   FOLLOWERS LIST VIEW
    ────────────────────────────────────────────── */
 function FollowersListView({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const [followedByMe, setFollowedByMe] = useState<Set<string>>(new Set());
 
   const { data = [] } = useQuery({
     queryKey: ["my-followers", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data: rows } = await supabase
-        .from("follows").select("follower_id")
-        .eq("following_id", user!.id);
-      const ids = (rows ?? []).map((r) => r.follower_id);
+        .from("follows").select("follower_id,created_at")
+        .eq("following_id", user!.id).order("created_at", { ascending: false });
+      const ids = (rows ?? []).map((r: any) => r.follower_id);
       if (!ids.length) return [];
       const { data: profs } = await supabase
         .from("profiles")
         .select("id,handle,display_name,avatar_url,bio,is_verified")
         .in("id", ids);
-      return (profs ?? []).map((p) => ({
-        ...p,
-        mutual: false,
-      }));
+      const profileMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      return (rows ?? []).map((r: any) => ({ ...r, profile: profileMap.get(r.follower_id) })).filter((r: any) => r.profile);
     },
   });
 
-  const { data: followingIds = [] } = useQuery({
-    queryKey: ["my-following-ids", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data: rows } = await supabase
-        .from("follows").select("following_id").eq("follower_id", user!.id);
-      return (rows ?? []).map((r) => r.following_id);
-    },
+  const filtered = data.filter((d: any) => {
+    const q = search.toLowerCase();
+    if (!q) return true;
+    return (d.profile?.handle ?? "").toLowerCase().includes(q) || (d.profile?.display_name ?? "").toLowerCase().includes(q);
   });
-
-  useEffect(() => {
-    setFollowedByMe(new Set(followingIds));
-  }, [followingIds]);
-
-  const filtered = data.filter((p: any) =>
-    p.display_name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.handle?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const toggleFollow = async (userId: string) => {
-    if (!user) return;
-    const isFollowing = followedByMe.has(userId);
-    try {
-      if (isFollowing) {
-        await supabase.from("follows").delete().eq("follower_id", user.id).eq("following_id", userId);
-        setFollowedByMe((prev) => {
-          const next = new Set(prev);
-          next.delete(userId);
-          return next;
-        });
-        toast.success("Unfollowed");
-      } else {
-        await supabase.from("follows").insert({ follower_id: user.id, following_id: userId });
-        setFollowedByMe((prev) => new Set(prev).add(userId));
-        toast.success("Followed back");
-      }
-    } catch {
-      toast.error("Failed to update follow status");
-    }
-  };
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-[#020210] flex flex-col"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      className="fixed inset-0 z-[60] bg-[#020210] flex flex-col overflow-hidden"
     >
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Back to profile">
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/60 backdrop-blur-xl">
+        <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Back">
           <ArrowLeft className="h-5 w-5 text-white" />
         </button>
-        <h2 className="font-display text-lg font-black text-chrome flex-1">Followers</h2>
-        <span className="text-xs text-white/50">{data.length} total</span>
+        <h1 className="font-display text-lg font-black text-chrome flex-1">Followers</h1>
       </div>
 
       <div className="px-4 py-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search followers..."
-            className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-1 focus:ring-cyan-500 text-white placeholder-white/40"
-          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search followers..." className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-cyan-500/40 transition-colors" />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Users className="h-12 w-12 text-white/20 mb-4" />
-            <p className="text-white/50 text-sm">{search ? "No matching followers" : "No followers yet"}</p>
-          </div>
-        ) : (
-          <div className="space-y-2 pb-24">
-            {filtered.map((p: any) => {
-              const isMutual = followedByMe.has(p.id);
-              return (
-                <div key={p.id} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-all border border-white/5">
-                  <Link to="/u/$handle" params={{ handle: p.handle }} className="flex-1 min-w-0 flex items-center gap-3">
-                    {p.avatar_url ? (
-                      <img src={p.avatar_url} className="h-12 w-12 rounded-full object-cover" alt="" />
-                    ) : (
-                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-rose-500 to-purple-600" />
-                    )}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-bold truncate">{p.display_name}</span>
-                        {p.is_verified && <BadgeCheck className="h-4 w-4 text-cyan-400 fill-cyan-400" />}
-                      </div>
-                      <p className="text-xs text-white/50 truncate">@{p.handle}</p>
-                      {isMutual && <span className="text-[10px] text-cyan-400 font-bold">Follows you</span>}
+      <div className="flex-1 overflow-y-auto px-4 pb-8">
+        {filtered.length > 0 ? (
+          <ul className="space-y-1">
+            {filtered.map((row: any) => (
+              <li key={row.follower_id}>
+                <Link to="/u/$handle" params={{ handle: row.profile.handle }} onClick={onClose} className="flex items-center gap-3 px-3 py-3 rounded-xl active:bg-white/5 transition-colors">
+                  <Avatar className="h-11 w-11 border border-white/10">
+                    <AvatarImage src={row.profile.avatar_url} />
+                    <AvatarFallback>{row.profile.display_name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 truncate text-sm font-bold">
+                      @{row.profile.handle}
+                      {row.profile.is_verified && <BadgeCheck className="h-4 w-4 shrink-0 text-cyan-400 fill-cyan-400/20" />}
                     </div>
-                  </Link>
-                  {!isMutual && (
-                    <button
-                      onClick={() => toggleFollow(p.id)}
-                      className="px-4 py-1.5 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 text-[11px] font-bold text-white active:scale-90 transition-all shadow-glow"
-                    >
-                      Follow Back
-                    </button>
-                  )}
-                  {isMutual && (
-                    <span className="text-[11px] text-white/40 font-bold px-3">Following</span>
-                  )}
-                </div>
-              );
-            })}
+                    <div className="truncate text-xs text-white/40">{row.profile.display_name}</div>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <UserPlus className="h-10 w-10 text-white/20 mb-3" />
+            <p className="text-white/40 text-sm">{search ? "No results found" : "No followers yet"}</p>
           </div>
         )}
       </div>
@@ -330,587 +235,320 @@ function FollowersListView({ onClose }: { onClose: () => void }) {
 }
 
 /* ──────────────────────────────────────────────
-   PROFILE PAGE — MAIN COMPONENT
+   VIEWERS TRACKING PANEL (30 days)
    ────────────────────────────────────────────── */
-function ProfilePage() {
-  const { user, profile, signOut } = useAuth();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<ProfileTab>("posts");
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showFollowing, setShowFollowing] = useState(false);
-  const [showFollowers, setShowFollowers] = useState(false);
-  const [hoveredPostId, setHoveredPostId] = useState<string | null>(null);
-  const [immersiveViewer, setImmersiveViewer] = useState<string | null>(null);
-  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
-  const queryClient = useQueryClient();
+function ViewersPanel({ onClose }: { onClose: () => void }) {
+  const { user } = useAuth();
 
-  const { data: userPosts = [] } = useQuery({
-    queryKey: ["user-posts", user?.id],
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["profile-viewers", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await supabase
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 86400 * 1000).toISOString();
+      const { data: rows, error } = await supabase
+        .from("profile_views")
+        .select("viewer_id,viewed_at")
+        .eq("profile_id", user!.id)
+        .gte("viewed_at", thirtyDaysAgo)
+        .order("viewed_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      const ids = (rows ?? []).map((row: any) => row.viewer_id);
+      if (!ids.length) return [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id,handle,display_name,avatar_url,bio,is_verified")
+        .in("id", ids);
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      return (rows ?? []).map((row: any) => ({ ...row, profile: profileMap.get(row.viewer_id) })).filter((r: any) => r.profile);
+    },
+  });
+
+  function formatVisit(value: string) {
+    const diff = Date.now() - new Date(value).getTime();
+    const minutes = Math.max(1, Math.floor(diff / 60000));
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="fixed inset-0 z-[60] bg-[#020210] flex flex-col overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/60 backdrop-blur-xl">
+        <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Back">
+          <ArrowLeft className="h-5 w-5 text-white" />
+        </button>
+        <div className="flex-1">
+          <h1 className="font-display text-lg font-black text-chrome">Viewers</h1>
+          <p className="text-[10px] text-white/40">Last 30 days</p>
+        </div>
+        <div className="bg-cyan-500/10 border border-cyan-500/20 flex h-10 w-10 items-center justify-center rounded-full">
+          <Eye className="h-5 w-5 text-cyan-400" />
+        </div>
+      </div>
+
+      <div className="flex gap-3 px-4 py-3 border-b border-white/5">
+        <div className="flex-1 rounded-xl bg-white/5 border border-white/5 p-3 text-center">
+          <div className="text-lg font-black text-white">{data.length}</div>
+          <div className="text-[10px] text-white/40 font-bold uppercase">Views</div>
+        </div>
+        <div className="flex-1 rounded-xl bg-white/5 border border-white/5 p-3 text-center">
+          <div className="text-lg font-black text-white">{new Set(data.map((d: any) => d.viewer_id)).size}</div>
+          <div className="text-[10px] text-white/40 font-bold uppercase">Unique</div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 pb-8">
+        {isLoading ? (
+          <div className="py-10 text-center text-sm text-white/30">Loading viewers...</div>
+        ) : data.length > 0 ? (
+          <ul className="space-y-1 mt-3">
+            {data.map((row: any) => (
+              <li key={`${row.viewer_id}-${row.viewed_at}`}>
+                <Link to="/u/$handle" params={{ handle: row.profile.handle }} onClick={onClose} className="flex items-center gap-3 px-3 py-3 rounded-xl active:bg-white/5 transition-colors">
+                  <Avatar className="h-10 w-10 border border-white/10">
+                    <AvatarImage src={row.profile.avatar_url} />
+                    <AvatarFallback>{row.profile.display_name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 truncate text-sm font-bold">
+                      @{row.profile.handle}
+                      {row.profile.is_verified && <BadgeCheck className="h-4 w-4 shrink-0 text-cyan-400 fill-cyan-400/20" />}
+                    </div>
+                    <div className="truncate text-xs text-white/40">{row.profile.display_name}</div>
+                  </div>
+                  <span className="text-[10px] text-white/30 font-mono">{formatVisit(row.viewed_at)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <UserRoundCheck className="h-10 w-10 text-white/20 mb-3" />
+            <p className="text-white/40 text-sm">No profile visits in the last 30 days</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+/* ──────────────────────────────────────────────
+   MAIN PROFILE PAGE
+   ────────────────────────────────────────────── */
+function ProfilePage() {
+  const { user, profile, loading } = useAuth();
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<ProfileTab>("posts");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showViewers, setShowViewers] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) navigate({ to: "/auth" });
+  }, [loading, user, navigate]);
+
+  const { data: posts = [] } = useQuery<UserPost[]>({
+    queryKey: ["my-posts", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("posts")
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
-        .limit(30);
-      return (data as UserPost[]) ?? [];
+        .limit(50);
+      if (error) throw error;
+      return data as UserPost[];
     },
   });
 
-  const { data: followerCount = 0 } = useQuery({
-    queryKey: ["follower-count", user?.id],
+  const { data: likedPosts = [] } = useQuery<string[]>({
+    queryKey: ["my-liked", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { count } = await supabase
-        .from("follows")
-        .select("*", { count: "exact", head: true })
-        .eq("following_id", user!.id);
-      return count ?? 0;
-    },
-  });
-
-  const { data: followingCount = 0 } = useQuery({
-    queryKey: ["following-count", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("follows")
-        .select("*", { count: "exact", head: true })
-        .eq("follower_id", user!.id);
-      return count ?? 0;
-    },
-  });
-
-  const { data: likedPosts = [] } = useQuery({
-    queryKey: ["user-liked-posts", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data: likes } = await supabase
+      const { data } = await supabase
         .from("video_likes")
         .select("video_id")
-        .eq("user_id", user!.id);
-      const videoIds = (likes ?? []).map((l: any) => l.video_id);
-      if (!videoIds.length) return [];
-      const { data: posts } = await supabase
-        .from("posts")
-        .select("*")
-        .in("id", videoIds)
-        .order("created_at", { ascending: false })
-        .limit(30);
-      return (posts as UserPost[]) ?? [];
+        .eq("user_id", user!.id)
+        .limit(50);
+      return (data ?? []).map((d: any) => d.video_id);
     },
   });
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      queryClient.clear();
-      toast.success("Signed out successfully");
-      navigate({ to: "/auth" });
-    } catch {
-      toast.error("Failed to sign out");
+  const { data: savedPosts = [] } = useQuery<string[]>({
+    queryKey: ["my-saved", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bookmarks")
+        .select("post_id")
+        .eq("user_id", user!.id)
+        .limit(50);
+      return (data ?? []).map((d: any) => d.post_id);
+    },
+  });
+
+  const { data: followStats } = useQuery({
+    queryKey: ["follow-stats", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const [following, followers] = await Promise.all([
+        supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user!.id),
+        supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user!.id),
+      ]);
+      return { following: following.count ?? 0, followers: followers.count ?? 0 };
+    },
+  });
+
+  const renderTabContent = () => {
+    let visiblePosts: UserPost[] = [];
+    switch (tab) {
+      case "posts": visiblePosts = posts; break;
+      case "likes": visiblePosts = posts.filter((p) => likedPosts.includes(p.id)); break;
+      case "saved": visiblePosts = posts.filter((p) => savedPosts.includes(p.id)); break;
+      case "reposts": visiblePosts = posts.filter((p) => p.content?.startsWith("RT:")); break;
     }
-  };
 
-  // Hover preview logic
-  const handleHoverStart = useCallback((postId: string) => {
-    setHoveredPostId(postId);
-    const video = videoRefs.current[postId];
-    if (video) {
-      video.currentTime = 0;
-      video.play().catch(() => {});
-    }
-  }, []);
-
-  const handleHoverEnd = useCallback(() => {
-    setHoveredPostId(null);
-    if (hoveredPostId) {
-      const video = videoRefs.current[hoveredPostId];
-      if (video) {
-        video.pause();
-        video.currentTime = 0;
-      }
-    }
-  }, [hoveredPostId]);
-
-  const openPost = useCallback((postId: string) => {
-    setImmersiveViewer(postId);
-  }, []);
-
-  if (!user) {
-    return (
-      <MobileShell>
-        <div className="flex min-h-[60dvh] flex-col items-center justify-center px-8 text-center">
-          <h2 className="font-display text-xl font-bold">Please sign in to view your profile</h2>
-          <Link
-            to="/auth"
-            className="bg-gradient-to-r from-fuchsia-500 to-rose-500 mt-5 rounded-full px-6 py-2.5 text-sm font-semibold text-white shadow-glow"
-          >
-            Sign in
-          </Link>
+    if (visiblePosts.length === 0) {
+      const labels: Record<ProfileTab, string> = { posts: "posts", likes: "liked posts", saved: "saved posts", reposts: "reposts" };
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <FileVideo className="h-12 w-12 text-white/15 mb-3" />
+          <p className="text-white/30 text-sm">No {labels[tab]} yet.</p>
         </div>
-      </MobileShell>
-    );
-  }
-
-  const currentProfile = profile ?? {
-    display_name: user.email?.split("@")[0] ?? "Creator",
-    handle: user.email?.split("@")[0] ?? "creator",
-    bio: "Welcome to my Javan creator profile!",
-    coins: 0,
-    earned_coins: 0,
-    avatar_url: null,
-    cover_url: null,
-    is_verified: false,
-  };
-
-  const getVisiblePosts = (): UserPost[] => {
-    switch (activeTab) {
-      case "reposts": return userPosts; // In a real system, would query reposts table
-      case "likes": return likedPosts;
-      case "saved": return [];
-      default: return userPosts;
+      );
     }
-  };
 
-  const visiblePosts = getVisiblePosts();
+    return (
+      <div className="grid grid-cols-3 gap-[2px]">
+        {visiblePosts.map((post) => (
+          <Link key={post.id} to="/posts/$id" params={{ id: post.id }} className="relative aspect-[9/16] bg-black/40 overflow-hidden group">
+            {post.image_url || post.thumbnail_url ? (
+              <img src={post.image_url || post.thumbnail_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-purple-900/20 to-black flex items-center justify-center">
+                <FileVideo className="h-6 w-6 text-white/15" />
+              </div>
+            )}
+            <div className="absolute bottom-1 left-1 flex items-center gap-0.5 text-[9px] font-bold text-white/80 bg-black/50 rounded px-1 py-0.5">
+              <Play className="h-2.5 w-2.5" /> {formatCount(post.views_count)}
+            </div>
+          </Link>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <>
-    <ProfileDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
-
-    {/* Following list overlay */}
-    <AnimatePresence>
-      {showFollowing && (
-        <FollowingListView onClose={() => setShowFollowing(false)} />
-      )}
-    </AnimatePresence>
-
-    {/* Followers list overlay */}
-    <AnimatePresence>
-      {showFollowers && (
-        <FollowersListView onClose={() => setShowFollowers(false)} />
-      )}
-    </AnimatePresence>
-
-    {/* Immersive Video Viewer */}
-    <AnimatePresence>
-      {immersiveViewer && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] bg-black"
-        >
-          <div className="relative h-full w-full">
-            <button
-              onClick={() => setImmersiveViewer(null)}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 active:scale-90 transition-all"
-              aria-label="Close viewer"
-            >
-              <X className="h-6 w-6 text-white" />
-            </button>
-            {(() => {
-              const post = [...userPosts, ...likedPosts].find((p) => p.id === immersiveViewer);
-              return post?.video_url ? (
-                <video
-                  src={post.video_url}
-                  autoPlay
-                  loop
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center">
-                  <div className="text-center">
-                    <FileVideo className="h-16 w-16 text-white/20 mx-auto mb-4" />
-                    <p className="text-white/50">Video preview</p>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-
-    {/* ─── DESKTOP LAYOUT ─── */}
-    <DesktopLayout>
-      <div className="max-w-5xl mx-auto py-10 relative">
-        <button
-          onClick={() => setMenuOpen(true)}
-          aria-label="Open menu"
-          className="absolute top-10 right-0 z-20 flex h-12 w-12 items-center justify-center rounded-2xl glass border border-white/20 bg-black/40 hover:bg-black/60 active:scale-95 transition-all shadow-glow"
-        >
-          <Menu className="h-6 w-6 text-white" />
-        </button>
-
-        {/* Immersive 3D Banner */}
-        <div className="relative h-52 rounded-3xl overflow-hidden shadow-glow mb-20">
-          <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-600 via-purple-600 to-rose-600 opacity-90" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,212,255,0.15),transparent_70%)]" />
-          <div className="absolute inset-0 backdrop-blur-[0px]" />
-          {/* Decorative glow orbs */}
-          <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-cyan-500/20 blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/3 w-24 h-24 rounded-full bg-fuchsia-500/20 blur-3xl" />
-          <div className="absolute -bottom-16 left-10 h-36 w-36 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 border-4 border-[#020210] shadow-[0_0_40px_rgba(255,0,128,0.4)] z-10" />
+      {/* Mobile View */}
+      <div className="lg:hidden fixed inset-0 z-[60] bg-[#020210] flex flex-col overflow-hidden">
+        {/* Immersive Background */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/3 w-[400px] h-[400px] rounded-full bg-cyan-500/5 blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] rounded-full bg-fuchsia-500/5 blur-[100px]" />
         </div>
 
-        {/* Profile Info */}
-        <div className="px-8 flex items-start justify-between mb-6">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="font-display text-3xl font-black text-chrome">{currentProfile.display_name}</h2>
-              {currentProfile.is_verified && (
-                <BadgeCheck className="h-6 w-6 text-cyan-400 fill-cyan-400" />
-              )}
-            </div>
-            <p className="text-base text-white/50">@{currentProfile.handle}</p>
-            {currentProfile.bio && <p className="text-sm text-white/80 mt-3 max-w-xl leading-relaxed">{currentProfile.bio}</p>}
+        {/* Header */}
+        <div className="relative z-10 flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/40 backdrop-blur-xl">
+          <div className="flex-1">
+            <p className="text-[11px] text-white/50 font-bold uppercase tracking-widest">@{profile?.handle || "user"}</p>
           </div>
-          <div className="flex gap-3">
-            <Link to="/profile/edit">
-              <button className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold hover:bg-white/10 transition-all active:scale-95">
-                <Edit2 className="h-4 w-4" /> Edit Profile
-              </button>
-            </Link>
-            <button onClick={handleSignOut} className="flex items-center gap-2 rounded-xl bg-rose-600/20 border border-rose-500/30 px-4 py-2.5 text-sm font-bold text-rose-400 hover:bg-rose-600/30 transition-all active:scale-95">
-              <LogOut className="h-4 w-4" /> Sign Out
-            </button>
-          </div>
+          <button onClick={() => setDrawerOpen(true)} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Open menu">
+            <Menu className="h-5 w-5 text-white" />
+          </button>
         </div>
 
-        {/* Core Metrics Bar — Following | Followers | Balance */}
-        <div className="px-8 mb-8">
-          <div className="flex gap-4">
-            <button
-              onClick={() => setShowFollowing(true)}
-              className="flex-1 flex flex-col items-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.97] transition-all group"
-            >
-              <p className="text-2xl font-black text-cyan-400 group-hover:drop-shadow-[0_0_10px_rgba(0,212,255,0.5)] transition-all">{formatCount(followingCount)}</p>
-              <p className="text-[11px] text-white/50 uppercase tracking-widest mt-1">Following</p>
-            </button>
-            <button
-              onClick={() => setShowFollowers(true)}
-              className="flex-1 flex flex-col items-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.97] transition-all group"
-            >
-              <p className="text-2xl font-black text-emerald-400 group-hover:drop-shadow-[0_0_10px_rgba(52,211,153,0.5)] transition-all">{formatCount(followerCount)}</p>
-              <p className="text-[11px] text-white/50 uppercase tracking-widest mt-1">Followers</p>
-            </button>
-            <Link
-              to="/wallet"
-              className="flex-1 flex flex-col items-center p-4 rounded-2xl bg-white/5 border border-amber-500/20 hover:bg-amber-500/10 active:scale-[0.97] transition-all group"
-            >
-              <p className="text-2xl font-black text-amber-400 group-hover:drop-shadow-[0_0_10px_rgba(251,191,36,0.5)] transition-all">
-                ${((currentProfile.coins ?? 0) / 100).toFixed(2)}
-              </p>
-              <p className="text-[11px] text-white/50 uppercase tracking-widest mt-1 flex items-center gap-1">
-                <Coins className="h-3 w-3" /> Balance
-              </p>
-            </Link>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="px-8 flex gap-3 mb-8">
-          <Link
-            to="/profile/edit"
-            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-white/10 border border-white/20 py-3 text-sm font-bold hover:bg-white/20 active:scale-95 transition-all"
-          >
-            <Edit2 className="h-4 w-4" /> Edit Profile
-          </Link>
-          <Link
-            to="/create"
-            search={{ mode: undefined }}
-            className="flex-1 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-600 to-orange-500 py-3 text-sm font-bold text-white hover:from-fuchsia-500 hover:to-rose-500 active:scale-95 transition-all shadow-glow"
-          >
-            <Plus className="h-4 w-4" /> Create
-          </Link>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="px-8 border-b border-white/5 mb-6">
-          <div className="flex gap-1">
-            {[
-              { key: "posts" as const, label: "Posts", icon: FileVideo },
-              { key: "reposts" as const, label: "Reposts", icon: Repeat2 },
-              { key: "likes" as const, label: "Likes", icon: Heart },
-              { key: "saved" as const, label: "Saved", icon: Bookmark },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-2 px-4 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all active:scale-95 ${
-                  activeTab === key
-                    ? "text-white border-cyan-400 shadow-[0_4px_10px_-4px_rgba(0,212,255,0.5)]"
-                    : "text-white/40 border-transparent hover:text-white"
-                }`}
-              >
-                <Icon className="h-4 w-4" /> {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 3-Column Video Grid */}
-        <div className="px-8 grid grid-cols-3 gap-4 pb-20">
-          {activeTab === "saved" ? (
-            <div className="col-span-3 flex flex-col items-center justify-center py-20 text-center glass rounded-3xl border border-white/5">
-              <Bookmark className="h-12 w-12 text-white/10 mb-4" />
-              <p className="text-white/40">Save posts to find them here later.</p>
-            </div>
-          ) : visiblePosts.length === 0 ? (
-            <div className="col-span-3 flex flex-col items-center justify-center py-20 text-center glass rounded-3xl border border-white/5">
-              <Upload className="h-12 w-12 text-white/10 mb-4" />
-              <p className="text-white/40">
-                {activeTab === "posts" ? "No posts yet. Create your first post!" :
-                 activeTab === "reposts" ? "No reposts yet. Share content from other creators!" :
-                 "No liked posts yet."}
-              </p>
-            </div>
-          ) : (
-            visiblePosts.map((post) => (
-              <div
-                key={post.id}
-                className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer border border-white/10 hover:border-cyan-400/50 transition-all duration-300"
-                onMouseEnter={() => handleHoverStart(post.id)}
-                onMouseLeave={handleHoverEnd}
-                onClick={() => openPost(post.id)}
-              >
-                {post.video_url ? (
-                  <video
-                    ref={(el) => { videoRefs.current[post.id] = el; }}
-                    src={post.video_url}
-                    className="h-full w-full object-cover"
-                    muted
-                    loop
-                    playsInline
-                  />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-rose-500/20 to-fuchsia-500/20 flex items-center justify-center">
-                    <FileVideo className="h-10 w-10 text-white/20" />
-                  </div>
-                )}
-                {/* Hover overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-200 ${
-                  hoveredPostId === post.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                }`}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className={`p-3 rounded-full bg-white/20 backdrop-blur-md transition-transform duration-200 ${
-                      hoveredPostId === post.id ? "scale-110" : "scale-100"
-                    }`}>
-                      <Play className="h-8 w-8 text-white" />
-                    </div>
-                  </div>
-                  {/* View count overlay */}
-                  <div className="absolute bottom-2 left-2 flex items-center gap-1 text-[11px] text-white/90 font-bold">
-                    <Eye className="h-3 w-3" /> {formatCount(post.views_count)}
-                  </div>
-                  <div className="absolute bottom-2 right-2 flex items-center gap-2 text-[11px] text-white/70">
-                    <span className="flex items-center gap-0.5">
-                      <Heart className="h-3 w-3" /> {formatCount(post.likes_count)}
-                    </span>
-                  </div>
-                </div>
+        {/* Avatar + Info */}
+        <div className="relative z-10 flex items-center gap-4 px-4 py-5">
+          <div className="relative shrink-0">
+            <div className="h-24 w-24 rounded-full bg-gradient-to-br from-cyan-500 via-fuchsia-500 to-amber-400 p-[3px] shadow-[0_0_20px_rgba(0,212,255,0.4),0_0_40px_rgba(168,85,247,0.2)]">
+              <div className="h-full w-full rounded-full bg-[#020210] p-[2px]">
+                <Avatar className="h-full w-full">
+                  <AvatarImage src={profile?.avatar_url || undefined} className="rounded-full" />
+                  <AvatarFallback className="text-xl font-black bg-gradient-to-br from-cyan-500 to-fuchsia-500 text-white">
+                    {profile?.display_name?.[0] || profile?.handle?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
               </div>
-            ))
-          )}
+            </div>
+            {profile?.is_verified && (
+              <div className="absolute -bottom-1 -right-1 bg-cyan-500 rounded-full p-1 shadow-[0_0_10px_rgba(0,212,255,0.5)]">
+                <BadgeCheck className="h-4 w-4 text-white fill-white" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base font-black truncate">{profile?.display_name || "Creator"}</h2>
+            <p className="text-xs text-white/40 mt-0.5 line-clamp-1">{profile?.bio || "No bio yet"}</p>
+          </div>
         </div>
+
+        {/* Core Metrics: Following, Followers, Balance */}
+        <div className="relative z-10 flex gap-2 px-4 mb-4">
+          <button onClick={() => setShowFollowing(true)} className="flex-1 rounded-xl bg-white/5 border border-white/10 p-3 text-center active:scale-95 transition-all">
+            <div className="text-base font-black text-white">{formatCount(followStats?.following ?? 0)}</div>
+            <div className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Following</div>
+          </button>
+          <button onClick={() => setShowFollowers(true)} className="flex-1 rounded-xl bg-white/5 border border-white/10 p-3 text-center active:scale-95 transition-all">
+            <div className="text-base font-black text-white">{formatCount(followStats?.followers ?? 0)}</div>
+            <div className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Followers</div>
+          </button>
+          <button onClick={() => navigate({ to: "/wallet" })} className="flex-1 rounded-xl bg-white/5 border border-cyan-500/20 p-3 text-center active:scale-95 transition-all">
+            <div className="flex items-center justify-center gap-1">
+              <Coins className="h-3.5 w-3.5 text-cyan-400" />
+              <span className="text-base font-black text-white">{formatCount(profile?.earned_coins ?? 0)}</span>
+            </div>
+            <div className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Balance</div>
+          </button>
+        </div>
+
+        {/* Action Buttons: Edit Profile + Viewers */}
+        <div className="relative z-10 flex gap-3 px-4 mb-5">
+          <button onClick={() => navigate({ to: "/profile/edit" })} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500/20 to-fuchsia-500/20 border border-cyan-500/20 py-3 text-sm font-bold text-white active:scale-95 transition-all shadow-[0_0_15px_rgba(0,212,255,0.15)]">
+            <Pencil className="h-4 w-4" /> Edit Profile
+          </button>
+          <button onClick={() => setShowViewers(true)} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-500/20 to-amber-500/20 border border-fuchsia-500/20 py-3 text-sm font-bold text-white active:scale-95 transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+            <Eye className="h-4 w-4" /> Viewers
+          </button>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="relative z-10 flex border-b border-white/5">
+          {(["posts", "likes", "saved", "reposts"] as ProfileTab[]).map((t) => (
+            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-3 text-[11px] font-black uppercase tracking-wider transition-all relative ${tab === t ? "text-white" : "text-white/30"}`}>
+              {t}
+              {tab === t && <motion.div layoutId="profileTabIndicator" className="absolute bottom-0 left-4 right-4 h-0.5 bg-white rounded-full" transition={{ type: "spring", stiffness: 500, damping: 35 }} />}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div className="relative z-10 flex-1 overflow-y-auto pb-8">
+          <AnimatePresence mode="wait">
+            <motion.div key={tab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              {renderTabContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Drawer */}
+        <ProfileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
+        {/* Overlays */}
+        <AnimatePresence>
+          {showFollowing && <FollowingListView onClose={() => setShowFollowing(false)} />}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showFollowers && <FollowersListView onClose={() => setShowFollowers(false)} />}
+        </AnimatePresence>
+        <AnimatePresence>
+          {showViewers && <ViewersPanel onClose={() => setShowViewers(false)} />}
+        </AnimatePresence>
       </div>
-    </DesktopLayout>
-
-    {/* ─── MOBILE LAYOUT ─── */}
-    <MobileShell immersive>
-      <div className="pb-20 relative">
-        {/* Hamburger */}
-        <button
-          onClick={() => setMenuOpen(true)}
-          aria-label="Open menu"
-          className="absolute top-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full glass border border-white/20 bg-black/40 hover:bg-black/60 active:scale-95 transition-all shadow-glow"
-        >
-          <Menu className="h-5 w-5 text-white" />
-        </button>
-
-        {/* 3D Depth Banner */}
-        <div className="relative h-40 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-600 via-purple-700 to-rose-600" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,212,255,0.12),transparent_70%)]" />
-          {/* Floating orbs */}
-          <div className="absolute top-4 left-8 w-20 h-20 rounded-full bg-cyan-400/10 blur-2xl animate-pulse" />
-          <div className="absolute bottom-2 right-12 w-16 h-16 rounded-full bg-fuchsia-400/10 blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
-          {/* Avatar frame with neon pulse */}
-          <div className="absolute -bottom-10 left-4">
-            <div className="relative">
-              <div className="absolute inset-[-4px] rounded-full bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-rose-500 animate-spin" style={{ animationDuration: "3s" }} />
-              <div className="relative h-[72px] w-[72px] rounded-full bg-[#020210] flex items-center justify-center">
-                {currentProfile.avatar_url ? (
-                  <img src={currentProfile.avatar_url} className="h-[68px] w-[68px] rounded-full object-cover" alt="avatar" />
-                ) : (
-                  <div className="h-[68px] w-[68px] rounded-full bg-gradient-to-br from-rose-500 to-fuchsia-500 flex items-center justify-center">
-                    <span className="text-xl font-black text-white">{currentProfile.display_name?.[0]?.toUpperCase()}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* User Info */}
-        <div className="px-4 pt-14 pb-3">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-display text-xl font-black" role="heading" aria-level={1}>{currentProfile.display_name}</h1>
-                {currentProfile.is_verified && <BadgeCheck className="h-4 w-4 text-cyan-400 fill-cyan-400" />}
-              </div>
-              <p className="text-sm text-white/50">@{currentProfile.handle}</p>
-            </div>
-            <button
-              onClick={handleSignOut}
-              aria-label="Sign out"
-              className="flex items-center gap-1 rounded-full bg-white/10 border border-white/20 px-3 py-2 text-xs font-bold hover:bg-white/20 active:scale-90 transition-all"
-            >
-              <LogOut className="h-3 w-3" />
-            </button>
-          </div>
-
-          {/* Bio */}
-          {currentProfile.bio && <p className="text-sm text-white/80 mb-4 leading-relaxed line-clamp-2">{currentProfile.bio}</p>}
-
-          {/* Core Metrics Bar — Following | Followers | Balance */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <button
-              onClick={() => setShowFollowing(true)}
-              className="flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.95] transition-all"
-            >
-              <p className="text-base font-black text-cyan-400">{formatCount(followingCount)}</p>
-              <p className="text-[10px] text-white/50 uppercase mt-0.5">Following</p>
-            </button>
-            <button
-              onClick={() => setShowFollowers(true)}
-              className="flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.95] transition-all"
-            >
-              <p className="text-base font-black text-emerald-400">{formatCount(followerCount)}</p>
-              <p className="text-[10px] text-white/50 uppercase mt-0.5">Followers</p>
-            </button>
-            <Link
-              to="/wallet"
-              className="flex flex-col items-center p-3 rounded-xl bg-white/5 border border-amber-500/20 hover:bg-amber-500/10 active:scale-[0.95] transition-all"
-            >
-              <p className="text-base font-black text-amber-400">${((currentProfile.coins ?? 0) / 100).toFixed(2)}</p>
-              <p className="text-[10px] text-white/50 uppercase mt-0.5 flex items-center gap-0.5">
-                <Coins className="h-2.5 w-2.5" /> Balance
-              </p>
-            </Link>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2 mb-4">
-            <Link
-              to="/profile/edit"
-              className="flex-1 flex items-center justify-center gap-2 rounded-full bg-white/10 border border-white/20 py-2.5 text-xs font-bold hover:bg-white/20 active:scale-95 transition-all"
-            >
-              <Edit2 className="h-3.5 w-3.5" /> Edit Profile
-            </Link>
-            <Link
-              to="/create"
-              search={{ mode: undefined }}
-              className="flex-1 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-600 to-orange-500 py-2.5 text-xs font-bold text-white hover:from-fuchsia-500 hover:to-rose-500 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,0,128,0.3)]"
-            >
-              <Plus className="h-3.5 w-3.5" /> Create
-            </Link>
-          </div>
-        </div>
-
-        {/* Tab Navigation — 4 Tabs */}
-        <div className="border-t border-white/5">
-          <div role="tablist" aria-label="Profile content" className="flex items-center gap-0 px-4">
-            {[
-              { key: "posts" as const, label: "Posts", icon: FileVideo },
-              { key: "reposts" as const, label: "Reposts", icon: Repeat2 },
-              { key: "likes" as const, label: "Likes", icon: Heart },
-              { key: "saved" as const, label: "Saved", icon: Bookmark },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                role="tab"
-                aria-selected={activeTab === key}
-                onClick={() => setActiveTab(key)}
-                className={`flex-1 flex flex-col items-center gap-1 py-3 border-b-2 transition-all active:scale-95 ${
-                  activeTab === key
-                    ? "text-white border-cyan-400"
-                    : "text-white/40 border-transparent hover:text-white/70"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-wider">{label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 3-Column Video Grid Matrix */}
-        <div className="px-1 pt-3 pb-4 grid grid-cols-3 gap-[2px]">
-          {activeTab === "saved" ? (
-            <div className="col-span-3 flex flex-col items-center justify-center py-12 text-center">
-              <Bookmark className="h-12 w-12 text-white/20 mb-3" />
-              <p className="text-sm text-white/50">Save posts to find them here later.</p>
-            </div>
-          ) : visiblePosts.length === 0 ? (
-            <div className="col-span-3 flex flex-col items-center justify-center py-12 text-center">
-              <Upload className="h-12 w-12 text-white/20 mb-3" />
-              <p className="text-sm text-white/50">
-                {activeTab === "posts" ? "No posts yet. Create your first post!" :
-                 activeTab === "reposts" ? "No reposts yet. Share content!" :
-                 "No liked posts yet."}
-              </p>
-            </div>
-          ) : (
-            visiblePosts.map((post) => (
-              <div
-                key={post.id}
-                className="group relative aspect-[9/16] rounded-lg overflow-hidden cursor-pointer"
-                onTouchStart={() => handleHoverStart(post.id)}
-                onTouchEnd={handleHoverEnd}
-                onClick={() => openPost(post.id)}
-              >
-                {post.video_url ? (
-                  <video
-                    ref={(el) => { videoRefs.current[post.id] = el; }}
-                    src={post.video_url}
-                    className="h-full w-full object-cover"
-                    muted
-                    loop
-                    playsInline
-                  />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-rose-500/20 to-fuchsia-500/20" />
-                )}
-                {/* View count overlay at bottom-left */}
-                <div className="absolute bottom-1 left-1 flex items-center gap-0.5 text-[9px] text-white/90 font-bold bg-black/40 rounded px-1 py-0.5">
-                  <Eye className="h-2.5 w-2.5" /> {formatCount(post.views_count)}
-                </div>
-                {/* 3D micro-scale on active */}
-                <AnimatePresence>
-                  {hoveredPostId === post.id && (
-                    <motion.div
-                      initial={{ scale: 0.95, opacity: 0 }}
-                      animate={{ scale: 1.05, opacity: 1 }}
-                      exit={{ scale: 0.95, opacity: 0 }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <div className="p-2 rounded-full bg-black/50 backdrop-blur-md">
-                        <Play className="h-5 w-5 text-white" />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </MobileShell>
     </>
   );
 }
