@@ -1,3 +1,4 @@
+import React from "react";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +9,7 @@ import {
   Play, Heart, Menu, Eye, Coins, Users, UserPlus, Search,
   ArrowLeft, FileVideo, BookmarkCheck, BadgeCheck, Pencil,
   UserRoundCheck, Gift, Activity, HelpCircle, Settings, Wallet,
-  Radio, Layers, Music2, Repeat2, Share2
+  Radio, Layers, Music2, Repeat2, Share2, Grid3x3
 } from "lucide-react";
 import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { toast } from "sonner";
@@ -516,14 +517,23 @@ function ProfilePage() {
           </button>
         </div>
 
-        {/* Tab Switcher */}
+        {/* TikTok-style Icon Tab Switcher */}
         <div className="relative z-10 flex border-b border-white/5">
-          {(["posts", "likes", "saved", "reposts"] as ProfileTab[]).map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-3 text-[11px] font-black uppercase tracking-wider transition-all relative ${tab === t ? "text-white" : "text-white/30"}`}>
-              {t}
-              {tab === t && <motion.div layoutId="profileTabIndicator" className="absolute bottom-0 left-4 right-4 h-0.5 bg-white rounded-full" transition={{ type: "spring", stiffness: 500, damping: 35 }} />}
-            </button>
-          ))}
+          {(["posts", "saved", "reposts", "likes"] as ProfileTab[]).map((t) => {
+            const iconMap: Record<ProfileTab, React.ComponentType<{ className?: string }>> = {
+              posts: Grid3x3,
+              saved: BookmarkCheck,
+              reposts: Repeat2,
+              likes: Heart,
+            };
+            const Icon = iconMap[t];
+            return (
+              <button key={t} onClick={() => setTab(t)} className={`flex-1 py-3 flex items-center justify-center transition-all relative ${tab === t ? "text-white" : "text-white/30"}`}>
+                <Icon className={`h-5 w-5 transition-all ${tab === t ? "drop-shadow-[0_0_6px_rgba(0,212,255,0.6)]" : ""}`} />
+                {tab === t && <motion.div layoutId="profileTabIndicator" className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-white rounded-full" transition={{ type: "spring", stiffness: 500, damping: 35 }} />}
+              </button>
+            );
+          })}
         </div>
 
         {/* Tab Content */}

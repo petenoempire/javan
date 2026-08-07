@@ -1,23 +1,30 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MobileShell } from "@/components/MobileShell";
 import { DesktopLayout } from "@/components/DesktopLayout";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Heart, MessageCircle, Share2 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth";
+import {
+  ArrowLeft, Heart, MessageCircle, Share2, Bell, Users, Shield,
+  Plus, Camera, Hand, Send, Video, Star, UserPlus, Info,
+} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "motion/react";
 
 export const Route = createFileRoute("/inbox")({
   head: () => ({
     meta: [
       { title: "Messages · Javan" },
-      { name: "description", content: "View and manage your direct messages on Javan." },
+      { name: "description", content: "View and manage your direct messages, stories, and activity notifications on Javan." },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Messages · Javan" },
-      { property: "og:description", content: "View and manage your direct messages on Javan." },
+      { property: "og:description", content: "View and manage your direct messages, stories, and activity notifications on Javan." },
       { property: "og:url", content: "https://javan.lovable.app/inbox" },
       { property: "og:type", content: "website" },
       { name: "twitter:title", content: "Messages · Javan" },
-      { name: "twitter:description", content: "View and manage your direct messages on Javan." },
+      { name: "twitter:description", content: "View and manage your direct messages, stories, and activity notifications on Javan." },
     ],
     links: [{ rel: "canonical", href: "https://javan.lovable.app/inbox" }],
   }),
@@ -30,18 +37,189 @@ interface Message {
   receiver_id: string;
   content: string;
   created_at: string;
-  sender?: { handle: string; display_name: string; avatar_url?: string };
+  sender?: { handle: string; display_name: string; avatar_url?: string; is_verified?: boolean };
 }
 
+interface FollowerNotification {
+  id: string;
+  follower: { handle: string; display_name: string; avatar_url?: string; is_verified?: boolean };
+  created_at: string;
+}
+
+/* ──────────────────────────────────────────────
+   STORY CIRCLES — TikTok-style top section
+   ────────────────────────────────────────────── */
+function StoryCircles() {
+  const stories = [
+    { id: "your-story", label: "Your Story", avatar: null, isYou: true, hasNew: false },
+    { id: "on-this-day", label: "On this day", avatar: null, isYou: false, hasNew: false },
+    { id: "live-now", label: "LIVE now", avatar: null, isYou: false, hasNew: true },
+    { id: "trending", label: "Trending", avatar: null, isYou: false, hasNew: true },
+    { id: "new-music", label: "New Music", avatar: null, isYou: false, hasNew: true },
+  ];
+
+  return (
+    <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 py-3 border-b border-white/5">
+      {stories.map((story) => (
+        <button key={story.id} className="flex flex-col items-center gap-1.5 shrink-0 active:scale-90 transition-transform">
+          <div className={`relative h-16 w-16 rounded-full flex items-center justify-center ${
+            story.isYou
+              ? "bg-white/10 border-2 border-dashed border-white/30"
+              : story.hasNew
+              ? "bg-gradient-to-br from-cyan-500 via-fuchsia-500 to-amber-400 p-[2.5px]"
+              : "bg-white/10 border border-white/20"
+          }`}>
+            <div className={`h-full w-full rounded-full flex items-center justify-center ${
+              story.isYou ? "bg-[#020210]" : "bg-[#020210] p-[2px]"
+            }`}>
+              {story.isYou ? (
+                <div className="flex flex-col items-center gap-0.5">
+                  <Camera className="h-4 w-4 text-white/60" />
+                  <span className="text-[7px] text-white/40 font-bold">+</span>
+                </div>
+              ) : (
+                <Avatar className="h-full w-full">
+                  <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-purple-500/30 to-cyan-500/30 text-white">
+                    {story.label[0]}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+            {story.hasNew && (
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-cyan-400 border-2 border-[#020210] shadow-[0_0_6px_rgba(0,212,255,0.6)]" />
+            )}
+          </div>
+          <span className="text-[10px] text-white/60 font-bold truncate max-w-[56px]">{story.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────
+   NOTIFICATION CATEGORY ROWS — TikTok-style
+   ────────────────────────────────────────────── */
+function NotificationCategory({ icon: Icon, iconColor, title, subtitle, count, onClick }: {
+  icon: any; iconColor: string; title: string; subtitle: string; count?: number; onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl active:bg-white/5 transition-all text-left"
+    >
+      <div className={`flex h-10 w-10 items-center justify-center rounded-full ${iconColor}`}>
+        <Icon className="h-5 w-5 text-white" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-white">{title}</p>
+        <p className="text-[11px] text-white/40 truncate">{subtitle}</p>
+      </div>
+      {count ? (
+        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-cyan-500 px-1.5 text-[10px] font-black text-black">
+          {count > 99 ? "99+" : count}
+        </span>
+      ) : (
+        <ArrowLeft className="h-4 w-4 text-white/20 rotate-180" />
+      )}
+    </button>
+  );
+}
+
+/* ──────────────────────────────────────────────
+   DM LIST ITEM — with wave button and status
+   ────────────────────────────────────────────── */
+function DMListItem({ msg, isOnline }: { msg: Message; isOnline?: boolean }) {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const waveMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("messages")
+        .insert({
+          sender_id: "current-user",
+          receiver_id: msg.sender_id,
+          content: "👋",
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Wave sent!");
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to send wave");
+    },
+  });
+
+  const timeAgo = () => {
+    const diff = Date.now() - new Date(msg.created_at).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    return `${Math.floor(hours / 24)}d`;
+  };
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-3.5 active:bg-white/5 rounded-xl transition-all">
+      <div className="relative shrink-0">
+        <Link to="/inbox/$id" params={{ id: msg.sender_id }}>
+          <Avatar className="h-13 w-13 border border-white/10">
+            <AvatarImage src={msg.sender?.avatar_url} />
+            <AvatarFallback className="text-sm font-bold bg-gradient-to-br from-purple-500/30 to-cyan-500/30 text-white">
+              {msg.sender?.display_name?.[0] || msg.sender?.handle?.[0]?.toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
+        {isOnline && (
+          <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-400 border-2 border-[#020210]" />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1">
+          <span className="text-sm font-bold text-white truncate">
+            {msg.sender?.display_name || msg.sender?.handle || "Unknown"}
+          </span>
+          {msg.sender?.is_verified && (
+            <span className="h-3.5 w-3.5 rounded-full bg-cyan-500/20 flex items-center justify-center shrink-0">
+              <Shield className="h-2.5 w-2.5 text-cyan-400" />
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] text-white/40 truncate mt-0.5">{msg.content}</p>
+      </div>
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
+        <span className="text-[10px] text-white/30 font-mono">{timeAgo()}</span>
+        <button
+          onClick={() => waveMutation.mutate()}
+          disabled={waveMutation.isPending}
+          className="flex items-center justify-center h-8 w-8 rounded-full bg-white/10 border border-white/10 active:scale-90 transition-all hover:bg-white/20"
+          aria-label="Send wave"
+        >
+          <Hand className="h-4 w-4 text-white/60" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────
+   MAIN INBOX PAGE
+   ────────────────────────────────────────────── */
 function InboxPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ["conversations"],
+    enabled: !!user,
     queryFn: async () => {
       const { data } = await supabase
         .from("messages")
         .select(
           `*,
-           sender:sender_id(handle, display_name, avatar_url)
+           sender:sender_id(handle, display_name, avatar_url, is_verified)
          `
         )
         .order("created_at", { ascending: false })
@@ -51,80 +229,143 @@ function InboxPage() {
   });
 
   const uniqueConversations = Array.from(
-    new Map(
-      conversations.map((msg) => [msg.sender_id, msg])
-    ).values()
+    new Map(conversations.map((msg) => [msg.sender_id, msg])).values()
   );
+
+  const { data: followerCount } = useQuery({
+    queryKey: ["new-followers-count"],
+    enabled: !!user,
+    queryFn: async () => {
+      const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+      const { count } = await supabase
+        .from("follows")
+        .select("*", { count: "exact", head: true })
+        .eq("following_id", user!.id)
+        .gte("created_at", since);
+      return count ?? 0;
+    },
+  });
 
   return (
     <>
     <DesktopLayout>
       <div className="max-w-4xl mx-auto py-10">
         <h1 className="text-4xl font-black text-chrome mb-8">Messages</h1>
+        <StoryCircles />
+        <div className="mt-4 space-y-1 rounded-2xl bg-white/[0.02] border border-white/5 overflow-hidden">
+          <NotificationCategory
+            icon={UserPlus}
+            iconColor="bg-gradient-to-r from-purple-500/20 to-purple-600/20"
+            title="New followers"
+            subtitle="People who started following you"
+            count={followerCount}
+            onClick={() => navigate({ to: "/notifications" })}
+          />
+          <NotificationCategory
+            icon={Bell}
+            iconColor="bg-gradient-to-r from-cyan-500/20 to-cyan-600/20"
+            title="Activity"
+            subtitle="Likes, comments, and mentions"
+            onClick={() => navigate({ to: "/notifications" })}
+          />
+          <NotificationCategory
+            icon={Shield}
+            iconColor="bg-gradient-to-r from-amber-500/20 to-amber-600/20"
+            title="System notifications"
+            subtitle="Updates about your account"
+            onClick={() => navigate({ to: "/notifications" })}
+          />
+        </div>
+        <h2 className="text-lg font-black text-chrome mt-8 mb-4">Direct Messages</h2>
         {isLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
           </div>
         ) : uniqueConversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center glass rounded-3xl border border-white/5">
+          <div className="flex flex-col items-center justify-center py-12 text-center glass rounded-2xl border border-white/5">
             <MessageCircle className="h-12 w-12 text-white/10 mb-4" />
-            <p className="text-white/40">No messages yet. Start a conversation!</p>
+            <p className="text-white/40 text-sm">No messages yet. Start a conversation!</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="rounded-2xl bg-white/[0.02] border border-white/5 overflow-hidden">
             {uniqueConversations.map((msg) => (
-              <Link
-                key={msg.id}
-                to="/inbox/$id"
-                params={{ id: msg.sender_id }}
-                className="flex items-center justify-between glass p-4 rounded-2xl border border-white/5 hover:bg-white/5 transition-all"
-              >
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-rose-500 to-purple-600 shadow-lg"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white">{msg.sender?.display_name}</p>
-                    <p className="text-xs text-white/40 mt-1 truncate">{msg.content}</p>
-                  </div>
-                </div>
-                <p className="text-[10px] text-white/20">{new Date(msg.created_at).toLocaleDateString()}</p>
-              </Link>
+              <DMListItem key={msg.id} msg={msg} isOnline={false} />
             ))}
           </div>
         )}
       </div>
     </DesktopLayout>
-    <MobileShell>
-      <div className="px-4 pt-4 pb-20">
-        <h2 className="font-display text-2xl font-black mb-4 text-chrome">Messages</h2>
+    <MobileShell showBack backTo="/">
+      <div className="flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+          <div className="flex-1">
+            <h1 className="font-display text-xl font-black text-chrome">Inbox</h1>
+          </div>
+          <button
+            onClick={() => navigate({ to: "/discover" })}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 active:scale-90 transition-all"
+            aria-label="Find people"
+          >
+            <Plus className="h-5 w-5 text-white" />
+          </button>
+        </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
-          </div>
-        ) : uniqueConversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <MessageCircle className="h-12 w-12 text-white/20 mb-3" />
-            <p className="text-sm text-white/50">No messages yet</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {uniqueConversations.map((msg) => (
-              <Link
-                key={msg.id}
-                to="/inbox/$id"
-                params={{ id: msg.sender_id }}
-                className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 p-3 hover:bg-white/10 transition-all"
-              >
-                <div className="h-12 w-12 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-white truncate">{msg.sender?.display_name}</p>
-                  <p className="text-[10px] text-white/50 truncate">{msg.content}</p>
-                </div>
-                <p className="text-[9px] text-white/40 shrink-0">{new Date(msg.created_at).toLocaleDateString()}</p>
-              </Link>
-            ))}
-          </div>
-        )}
+        {/* Story Circles */}
+        <StoryCircles />
+
+        {/* Notification Categories */}
+        <div className="px-2 py-2 space-y-0.5">
+          <NotificationCategory
+            icon={UserPlus}
+            iconColor="bg-gradient-to-r from-purple-500/20 to-purple-600/20"
+            title="New followers"
+            subtitle="People who started following you"
+            count={followerCount}
+            onClick={() => navigate({ to: "/notifications" })}
+          />
+          <NotificationCategory
+            icon={Bell}
+            iconColor="bg-gradient-to-r from-cyan-500/20 to-cyan-600/20"
+            title="Activity"
+            subtitle="Likes, comments, and mentions"
+            onClick={() => navigate({ to: "/notifications" })}
+          />
+          <NotificationCategory
+            icon={Shield}
+            iconColor="bg-gradient-to-r from-amber-500/20 to-amber-600/20"
+            title="System notifications"
+            subtitle="Updates about your account"
+            onClick={() => navigate({ to: "/notifications" })}
+          />
+        </div>
+
+        {/* Direct Messages Header */}
+        <div className="flex items-center justify-between px-4 py-2">
+          <h2 className="text-sm font-black text-white/70 uppercase tracking-wider">Messages</h2>
+          <span className="text-[10px] text-white/30">{uniqueConversations.length} conversations</span>
+        </div>
+
+        {/* DM List */}
+        <div className="flex-1 overflow-y-auto no-scrollbar pb-8">
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+            </div>
+          ) : uniqueConversations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <MessageCircle className="h-12 w-12 text-white/15 mb-3" />
+              <p className="text-sm text-white/40">No messages yet</p>
+              <p className="text-xs text-white/25 mt-1">Start a conversation to see it here</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {uniqueConversations.map((msg) => (
+                <DMListItem key={msg.id} msg={msg} isOnline={false} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </MobileShell>
     </>

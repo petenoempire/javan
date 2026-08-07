@@ -123,12 +123,13 @@ function FriendsFeed() {
           )}
        </div>
     </DesktopLayout>
-    <MobileShell immersive>
+    <MobileShell showBack backTo="/">
       <h2 className="sr-only">Friends</h2>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-black/55 via-black/15 to-transparent pb-3 pt-3">
-        <div className="pointer-events-auto flex items-center justify-center gap-2">
-          <div className="glass-strong inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold text-white">
-            <Users className="h-3.5 w-3.5" /> Friends
+      {/* Friends header with back arrow and title */}
+      <div className="absolute inset-x-0 top-0 z-40 pointer-events-none">
+        <div className="flex items-center gap-3 px-4 pt-14 pb-3">
+          <div className="glass-strong inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-white shadow-[0_0_15px_rgba(124,58,237,0.3)]">
+            <Users className="h-4 w-4 text-purple-400" /> Friends
           </div>
         </div>
       </div>
