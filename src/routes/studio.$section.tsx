@@ -1,10 +1,44 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import {
-  ArrowLeft, Award, BarChart3, ChevronRight, Crown, Gift,
-  Megaphone, Music2, Plus, Settings, Sparkles, TrendingUp,
-  X, Home, Link as LinkIcon, Wallet, Star, Zap, Shield,
-  Users, DollarSign, Eye, Heart, Play, Radio, Video
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import {
+  ArrowLeft,
+  Award,
+  BarChart3,
+  ChevronRight,
+  Crown,
+  Gift,
+  Megaphone,
+  Music2,
+  Plus,
+  Settings,
+  Sparkles,
+  TrendingUp,
+  X,
+  Home,
+  Link as LinkIcon,
+  Wallet,
+  Star,
+  Zap,
+  Shield,
+  Users,
+  DollarSign,
+  Eye,
+  Heart,
+  Play,
+  Radio,
+  Video,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
@@ -32,16 +66,315 @@ function StudioSection() {
 
   if (section === "service" || section === "monetization") return <MonetizationHub />;
   if (section === "subscriptions") return <SubscriptionHub />;
+  if (section === "live-rewards") return <SuperChatEarningsDashboard />;
   return <GenericSection section={section} />;
+}
+
+/* ──────────────────────────────────────────────
+   SUPER CHAT EARNINGS DASHBOARD
+   ────────────────────────────────────────────── */
+function SuperChatEarningsDashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data, isLoading } = useQuery({
+    queryKey: ["creator-super-chat-earnings", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data: streams, error: streamError } = await supabase
+        .from("live_streams")
+        .select("id,title,started_at")
+        .eq("host_id", user!.id)
+        .order("started_at", { ascending: false })
+        .limit(100);
+      if (streamError) throw streamError;
+      const streamRows = streams ?? [];
+      const streamIds = streamRows.map((stream) => stream.id);
+      if (!streamIds.length)
+        return { totalCoins: 0, creatorCoins: 0, history: [], supporters: [], records: [] };
+
+      const { data: chats, error: chatError } = await supabase
+        .from("live_chat_messages")
+        .select("id,stream_id,user_id,body,gift_coins,created_at")
+        .eq("kind", "super_chat")
+        .in("stream_id", streamIds)
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      if (chatError) throw chatError;
+
+      const records = chats ?? [];
+      const totalCoins = records.reduce((sum, row) => sum + (row.gift_coins ?? 0), 0);
+      const creatorCoins = Math.floor(totalCoins * 0.7);
+      const since = new Date(Date.now() - 30 * 86400000);
+      const buckets = new Map<string, { label: string; coins: number; earnings: number }>();
+      for (let i = 29; i >= 0; i -= 1) {
+        const date = new Date(Date.now() - i * 86400000);
+        const key = date.toISOString().slice(0, 10);
+        buckets.set(key, {
+          label: `${date.getMonth() + 1}/${date.getDate()}`,
+          coins: 0,
+          earnings: 0,
+        });
+      }
+      records.forEach((row) => {
+        const key = row.created_at.slice(0, 10);
+        const bucket = buckets.get(key);
+        if (bucket) {
+          bucket.coins += row.gift_coins ?? 0;
+          bucket.earnings += Math.floor((row.gift_coins ?? 0) * 0.7);
+        }
+      });
+
+      const supporterTotals = new Map<string, number>();
+      records.forEach((row) =>
+        supporterTotals.set(
+          row.user_id,
+          (supporterTotals.get(row.user_id) ?? 0) + (row.gift_coins ?? 0),
+        ),
+      );
+      const supporterIds = Array.from(supporterTotals.keys());
+      const { data: profiles } = supporterIds.length
+        ? await supabase
+            .from("profiles")
+            .select("id,display_name,handle,avatar_url")
+            .in("id", supporterIds)
+        : { data: [] };
+      const profileMap = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+      const supporters = supporterIds
+        .sort((a, b) => (supporterTotals.get(b) ?? 0) - (supporterTotals.get(a) ?? 0))
+        .slice(0, 5)
+        .map((id) => ({ ...profileMap.get(id), coins: supporterTotals.get(id) ?? 0 }));
+      const streamMap = new Map(streamRows.map((stream) => [stream.id, stream]));
+      return {
+        totalCoins,
+        creatorCoins,
+        history: Array.from(buckets.values()),
+        supporters,
+        records: records
+          .slice(0, 12)
+          .map((row) => ({
+            ...row,
+            stream: streamMap.get(row.stream_id),
+            sender: profileMap.get(row.user_id),
+          })),
+      };
+    },
+  });
+
+  return (
+    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-[#020210] text-white">
+      <div className="relative z-10 flex items-center gap-3 border-b border-white/10 bg-black/40 px-4 py-4 backdrop-blur-xl">
+        <button
+          onClick={() => navigate({ to: "/studio" })}
+          className="rounded-full p-2 hover:bg-white/10"
+          aria-label="Back to studio"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-white/50">
+            LIVE rewards
+          </p>
+          <h1 className="font-display text-lg font-black">Super Chat earnings</h1>
+        </div>
+      </div>
+      <div className="relative z-10 flex-1 overflow-y-auto px-4 py-5 pb-10">
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <EarningsMetric
+                label="Creator earnings"
+                value={`${(data?.creatorCoins ?? 0).toLocaleString()} coins`}
+                sub={`$${((data?.creatorCoins ?? 0) / 100).toFixed(2)} estimated`}
+                icon={DollarSign}
+              />
+              <EarningsMetric
+                label="Super Chat volume"
+                value={`${(data?.totalCoins ?? 0).toLocaleString()} coins`}
+                sub={`${data?.records?.length ?? 0} recent messages`}
+                icon={Zap}
+              />
+            </div>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display font-bold">Last 30 days</h2>
+                  <p className="text-[11px] text-white/40">
+                    Your 70% creator share from Super Chats
+                  </p>
+                </div>
+                <BarChart3 className="h-5 w-5 text-amber-300" />
+              </div>
+              <div className="mt-4 h-56">
+                <ResponsiveContainer>
+                  <AreaChart data={data?.history ?? []}>
+                    <defs>
+                      <linearGradient id="superChatEarnings" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.65} />
+                        <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      stroke="rgba(255,255,255,.08)"
+                      strokeDasharray="3 3"
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="label"
+                      stroke="rgba(255,255,255,.35)"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="rgba(255,255,255,.35)"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "#11111f",
+                        border: "1px solid rgba(255,255,255,.15)",
+                        borderRadius: 12,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="earnings"
+                      name="Creator coins"
+                      stroke="#fbbf24"
+                      fill="url(#superChatEarnings)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <h2 className="font-display font-bold">Top supporters</h2>
+              <div className="mt-3 space-y-2">
+                {(data?.supporters ?? []).length === 0 ? (
+                  <p className="py-5 text-center text-sm text-white/40">
+                    Your first Super Chat will appear here.
+                  </p>
+                ) : (
+                  data!.supporters.map((supporter: any, index: number) => (
+                    <div
+                      key={supporter.id}
+                      className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2"
+                    >
+                      <span className="w-5 text-center text-xs font-black text-amber-300">
+                        {index + 1}
+                      </span>
+                      <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-rose-500 to-purple-500">
+                        {supporter.avatar_url && (
+                          <img
+                            src={supporter.avatar_url}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold">
+                          {supporter.display_name || supporter.handle || "Viewer"}
+                        </p>
+                        <p className="text-[10px] text-white/40">@{supporter.handle || "viewer"}</p>
+                      </div>
+                      <span className="text-xs font-black text-amber-300">
+                        {supporter.coins.toLocaleString()} coins
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <h2 className="font-display font-bold">Recent Super Chats</h2>
+              <div className="mt-3 space-y-2">
+                {(data?.records ?? []).length === 0 ? (
+                  <p className="py-5 text-center text-sm text-white/40">
+                    No Super Chat history yet.
+                  </p>
+                ) : (
+                  data!.records.map((record: any) => (
+                    <div
+                      key={record.id}
+                      className="flex items-start gap-3 border-b border-white/5 py-3 last:border-0"
+                    >
+                      <Zap className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold">
+                          {record.sender?.display_name || record.sender?.handle || "Viewer"}
+                        </p>
+                        <p className="truncate text-xs text-white/50">{record.body}</p>
+                        <p className="mt-1 text-[10px] text-white/30">
+                          {record.stream?.title || "Live stream"} ·{" "}
+                          {new Date(record.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <span className="text-xs font-black text-amber-300">
+                        +{Math.floor(record.gift_coins * 0.7).toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EarningsMetric({
+  label,
+  value,
+  sub,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon: any;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <Icon className="h-5 w-5 text-amber-300" />
+      <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-white/45">{label}</p>
+      <p className="mt-1 text-lg font-black">{value}</p>
+      <p className="mt-1 text-[10px] text-white/40">{sub}</p>
+    </div>
+  );
 }
 
 /* ──────────────────────────────────────────────
    MONETIZATION HUB
    ────────────────────────────────────────────── */
 const RESOURCES = [
-  { title: "Monetizing your content", body: "Javan has multiple programs designed to reward what you create.", views: "Official Guide", hue: "from-yellow-400 to-orange-500" },
-  { title: "Creator Monetization Center", body: "Your all-in-one hub for getting rewarded on Javan.", views: "Creator Hub", hue: "from-rose-500 to-red-700" },
-  { title: "Effect Creator Rewards", body: "Get paid for your effects when creators use them.", views: "Rewards Program", hue: "from-indigo-500 to-violet-700" },
+  {
+    title: "Monetizing your content",
+    body: "Javan has multiple programs designed to reward what you create.",
+    views: "Official Guide",
+    hue: "from-yellow-400 to-orange-500",
+  },
+  {
+    title: "Creator Monetization Center",
+    body: "Your all-in-one hub for getting rewarded on Javan.",
+    views: "Creator Hub",
+    hue: "from-rose-500 to-red-700",
+  },
+  {
+    title: "Effect Creator Rewards",
+    body: "Get paid for your effects when creators use them.",
+    views: "Rewards Program",
+    hue: "from-indigo-500 to-violet-700",
+  },
 ];
 
 function MonetizationHub() {
@@ -58,14 +391,26 @@ function MonetizationHub() {
 
       {/* Header */}
       <div className="relative z-10 flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <button onClick={() => navigate({ to: "/studio" })} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Back to studio">
+        <button
+          onClick={() => navigate({ to: "/studio" })}
+          className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all"
+          aria-label="Back to studio"
+        >
           <ArrowLeft className="h-5 w-5 text-white" />
         </button>
         <div className="flex-1">
-          <p className="text-[11px] text-white/50 font-bold uppercase tracking-widest">Monetization</p>
-          <h1 className="font-display text-lg font-black text-chrome">Creator Monetization Center</h1>
+          <p className="text-[11px] text-white/50 font-bold uppercase tracking-widest">
+            Monetization
+          </p>
+          <h1 className="font-display text-lg font-black text-chrome">
+            Creator Monetization Center
+          </h1>
         </div>
-        <Link to="/settings" className="p-2 rounded-full hover:bg-white/10 active:scale-90" aria-label="Settings">
+        <Link
+          to="/settings"
+          className="p-2 rounded-full hover:bg-white/10 active:scale-90"
+          aria-label="Settings"
+        >
           <Settings className="h-5 w-5 text-white/70" />
         </Link>
       </div>
@@ -73,7 +418,9 @@ function MonetizationHub() {
       {/* Earnings Hero */}
       <div className="relative z-10 px-4 py-5">
         <div className="rounded-2xl bg-gradient-to-br from-fuchsia-500/10 to-rose-500/10 border border-white/10 p-5">
-          <p className="text-xs text-white/50 uppercase tracking-widest mb-1">Estimated rewards (7 days)</p>
+          <p className="text-xs text-white/50 uppercase tracking-widest mb-1">
+            Estimated rewards (7 days)
+          </p>
           <div className="flex items-end gap-2 mb-3">
             <span className="text-sm text-white/50">$</span>
             <span className="text-4xl font-black text-white">0.00</span>
@@ -95,7 +442,11 @@ function MonetizationHub() {
       <div className="relative z-10 px-4 pt-2">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-bold">Rewards analytics</h2>
-          <Link to="/studio/$section" params={{ section: "analytics" }} className="flex items-center gap-1 text-sm text-white/50 hover:text-white">
+          <Link
+            to="/studio/$section"
+            params={{ section: "analytics" }}
+            className="flex items-center gap-1 text-sm text-white/50 hover:text-white"
+          >
             View all <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
@@ -105,7 +456,10 @@ function MonetizationHub() {
             { label: "Work with Artists", value: "$0.00" },
           ].map((m) => (
             <div key={m.label} className="rounded-2xl bg-white/5 border border-white/10 p-4">
-              <div className="text-xl font-bold"><span className="text-base text-white/50">$</span>{m.value.replace("$", "")}</div>
+              <div className="text-xl font-bold">
+                <span className="text-base text-white/50">$</span>
+                {m.value.replace("$", "")}
+              </div>
               <div className="mt-1 text-sm font-semibold">{m.label}</div>
               <div className="text-xs text-white/40">0.0% 7d</div>
             </div>
@@ -146,13 +500,17 @@ function MonetizationHub() {
           <ProgramCard
             icon={Gift}
             label="LIVE rewards"
-            onClick={() => navigate({ to: "/studio/$section", params: { section: "live-rewards" } })}
+            onClick={() =>
+              navigate({ to: "/studio/$section", params: { section: "live-rewards" } })
+            }
             color="from-rose-500 to-orange-500"
           />
           <ProgramCard
             icon={Sparkles}
             label="Subscription"
-            onClick={() => navigate({ to: "/studio/$section", params: { section: "subscriptions" } })}
+            onClick={() =>
+              navigate({ to: "/studio/$section", params: { section: "subscriptions" } })
+            }
             color="from-purple-500 to-violet-500"
           />
         </div>
@@ -161,8 +519,13 @@ function MonetizationHub() {
         <h2 className="font-display text-base font-bold mb-4">Resources</h2>
         <div className="space-y-3">
           {RESOURCES.map((r) => (
-            <div key={r.title} className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-start gap-3">
-              <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${r.hue} flex items-center justify-center shrink-0`}>
+            <div
+              key={r.title}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-start gap-3"
+            >
+              <div
+                className={`h-10 w-10 rounded-xl bg-gradient-to-br ${r.hue} flex items-center justify-center shrink-0`}
+              >
                 <FileIcon className="h-5 w-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
@@ -178,12 +541,24 @@ function MonetizationHub() {
   );
 }
 
-function ProgramCard({ icon: Icon, label, href, onClick, color }: {
-  icon: any; label: string; href?: string; onClick?: () => void; color: string;
+function ProgramCard({
+  icon: Icon,
+  label,
+  href,
+  onClick,
+  color,
+}: {
+  icon: any;
+  label: string;
+  href?: string;
+  onClick?: () => void;
+  color: string;
 }) {
   const Content = (
     <div className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/5 border border-white/10 active:scale-95 transition-all">
-      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center`}>
+      <div
+        className={`h-10 w-10 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center`}
+      >
         <Icon className="h-5 w-5 text-white" />
       </div>
       <span className="text-[11px] font-bold text-center">{label}</span>
@@ -196,7 +571,15 @@ function ProgramCard({ icon: Icon, label, href, onClick, color }: {
 
 function FileIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
       <polyline points="14 2 14 8 20 8" />
       <line x1="16" y1="13" x2="8" y2="13" />
@@ -221,11 +604,19 @@ function SubscriptionHub() {
 
       {/* Header */}
       <div className="relative z-10 flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <button onClick={() => navigate({ to: "/studio" })} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Back">
+        <button
+          onClick={() => navigate({ to: "/studio" })}
+          className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all"
+          aria-label="Back"
+        >
           <ArrowLeft className="h-5 w-5 text-white" />
         </button>
         <h1 className="font-display text-lg font-black text-chrome flex-1">Subscription Hub</h1>
-        <button onClick={() => setPolicyOpen(true)} className="p-2 rounded-full hover:bg-white/10 active:scale-90" aria-label="Policy">
+        <button
+          onClick={() => setPolicyOpen(true)}
+          className="p-2 rounded-full hover:bg-white/10 active:scale-90"
+          aria-label="Policy"
+        >
           <Shield className="h-5 w-5 text-white/70" />
         </button>
       </div>
@@ -234,18 +625,44 @@ function SubscriptionHub() {
         {/* Hero */}
         <div className="rounded-3xl bg-gradient-to-br from-purple-500/15 to-fuchsia-500/15 border border-purple-500/20 p-6 mb-6">
           <Star className="h-10 w-10 text-purple-400 mb-3" />
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-1">Earn recurring income</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-1">
+            Earn recurring income
+          </p>
           <h2 className="font-display text-3xl font-bold leading-tight">Subscription Accounts</h2>
-          <p className="text-sm text-white/60 mt-3">Build a loyal fanbase with exclusive content and perks for subscribers.</p>
+          <p className="text-sm text-white/60 mt-3">
+            Build a loyal fanbase with exclusive content and perks for subscribers.
+          </p>
         </div>
 
         {/* Subscription Tiers */}
         <h2 className="font-display text-base font-bold mb-3">Subscription tiers</h2>
         <div className="space-y-3 mb-6">
           {[
-            { name: "Bronze", price: "$4.99/mo", perks: ["Exclusive posts", "Early access to content", "Bronze badge"] },
-            { name: "Silver", price: "$9.99/mo", perks: ["All Bronze perks", "Monthly Q&A sessions", "Silver badge", "Priority comments"] },
-            { name: "Gold", price: "$19.99/mo", perks: ["All Silver perks", "1-on-1 monthly call", "Gold badge", "Custom content requests"] },
+            {
+              name: "Bronze",
+              price: "$4.99/mo",
+              perks: ["Exclusive posts", "Early access to content", "Bronze badge"],
+            },
+            {
+              name: "Silver",
+              price: "$9.99/mo",
+              perks: [
+                "All Bronze perks",
+                "Monthly Q&A sessions",
+                "Silver badge",
+                "Priority comments",
+              ],
+            },
+            {
+              name: "Gold",
+              price: "$19.99/mo",
+              perks: [
+                "All Silver perks",
+                "1-on-1 monthly call",
+                "Gold badge",
+                "Custom content requests",
+              ],
+            },
           ].map((tier) => (
             <div key={tier.name} className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center justify-between mb-2">
@@ -305,7 +722,8 @@ function SubscriptionHub() {
               </div>
               <h3 className="font-display text-xl font-bold leading-tight">Subscription Policy</h3>
               <p className="mt-3 text-sm text-white/60">
-                Starting 05/21/2026, accounts that violate the Subscription Account Policy will have their subscription benefits revoked.
+                Starting 05/21/2026, accounts that violate the Subscription Account Policy will have
+                their subscription benefits revoked.
               </p>
               <div className="bg-white/5 rounded-2xl p-4 mt-4">
                 <div className="text-sm font-bold mb-2">Possible reasons for disqualification:</div>
@@ -332,7 +750,10 @@ function SubscriptionHub() {
 /* ──────────────────────────────────────────────
    GENERIC SECTIONS (analytics, live-rewards, etc.)
    ────────────────────────────────────────────── */
-const genericSections: Record<string, { title: string; kicker: string; icon: any; accent: string; rows: string[] }> = {
+const genericSections: Record<
+  string,
+  { title: string; kicker: string; icon: any; accent: string; rows: string[] }
+> = {
   analytics: {
     title: "Post analytics",
     kicker: "Views, followers, likes",
@@ -380,7 +801,12 @@ const genericSections: Record<string, { title: string; kicker: string; icon: any
     kicker: "Dynamic payout dashboard",
     icon: TrendingUp,
     accent: "gold",
-    rows: ["Reward rate: 100 coins = $0.10", "Eligible creator earnings", "Payout milestones", "Program status"],
+    rows: [
+      "Reward rate: 100 coins = $0.10",
+      "Eligible creator earnings",
+      "Payout milestones",
+      "Program status",
+    ],
   },
 };
 
@@ -407,7 +833,11 @@ function GenericSection({ section }: { section: string }) {
 
       {/* Header */}
       <div className="relative z-10 flex items-center gap-3 px-4 py-4 border-b border-white/10 bg-black/40 backdrop-blur-xl">
-        <button onClick={() => navigate({ to: "/studio" })} className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all" aria-label="Back">
+        <button
+          onClick={() => navigate({ to: "/studio" })}
+          className="p-2 rounded-full hover:bg-white/10 active:scale-90 transition-all"
+          aria-label="Back"
+        >
           <ArrowLeft className="h-5 w-5 text-white" />
         </button>
         <h1 className="font-display text-lg font-black text-chrome flex-1">{cfg.title}</h1>
@@ -417,7 +847,9 @@ function GenericSection({ section }: { section: string }) {
         {/* Hero Card */}
         <div className={`rounded-3xl bg-gradient-to-br ${gradient} border p-6 mb-6`}>
           <Icon className="h-8 w-8 mb-3" />
-          <div className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-1">{cfg.kicker}</div>
+          <div className="text-xs font-bold uppercase tracking-[0.2em] text-white/50 mb-1">
+            {cfg.kicker}
+          </div>
           <h2 className="font-display text-3xl font-bold leading-tight">{cfg.title}</h2>
         </div>
 

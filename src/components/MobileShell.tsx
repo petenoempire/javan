@@ -53,7 +53,7 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
   const pathname = location.pathname;
 
   const showNav = !immersive && shouldShowNav(pathname);
-  const showBackBtn = showBack !== undefined ? showBack : (pathname !== "/");
+  const showBackBtn = showBack !== undefined ? showBack : pathname !== "/";
   const backTarget = backTo ?? getBackTarget(pathname);
 
   if (isDesktop === true) return null;
@@ -70,12 +70,20 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
     <div className="lg:hidden flex h-[100dvh] min-h-0 flex-col bg-[#020210] text-white relative overflow-hidden">
       {/* Aurora Background */}
       <div className="aurora-bg">
-        <div className="aurora-ribbon" style={{ top: '20%', opacity: 0.3, filter: 'blur(80px)' }}></div>
-        <div className="aurora-ribbon" style={{ top: '60%', animationDelay: '-8s', opacity: 0.2, filter: 'blur(80px)' }}></div>
+        <div
+          className="aurora-ribbon"
+          style={{ top: "20%", opacity: 0.3, filter: "blur(80px)" }}
+        ></div>
+        <div
+          className="aurora-ribbon"
+          style={{ top: "60%", animationDelay: "-8s", opacity: 0.2, filter: "blur(80px)" }}
+        ></div>
       </div>
 
       {/* Main Content */}
-      <main className={`min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth no-scrollbar ${showNav ? "pb-20" : "pb-4"}`}>
+      <main
+        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth no-scrollbar ${showNav ? "pb-20" : "pb-4"}`}
+      >
         {children}
       </main>
 
@@ -121,6 +129,7 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
                     <Link
                       key={item.label}
                       to={item.href}
+                      search={item.isCenter ? { mode: "live" } : undefined}
                       aria-label={item.label}
                       className="relative -top-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 via-purple-600 to-cyan-500 shadow-[0_0_18px_rgba(255,0,128,0.4)] active:scale-90 transition-transform"
                     >
@@ -135,7 +144,9 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
                     aria-label={item.label}
                     className="relative flex flex-col items-center gap-1 group"
                   >
-                    <div className={`p-2 rounded-full transition-all duration-300 ${isActive ? "bg-white/10" : "group-active:scale-90"}`}>
+                    <div
+                      className={`p-2 rounded-full transition-all duration-300 ${isActive ? "bg-white/10" : "group-active:scale-90"}`}
+                    >
                       <item.icon
                         className={`h-5 w-5 transition-all duration-300 ${
                           isActive ? "text-white" : "text-white/40 group-hover:text-white/70"

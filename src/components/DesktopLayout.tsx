@@ -1,8 +1,21 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { 
-  Home, Compass, Radio, BookOpen, Film, Users, Music, TrendingUp, Heart, 
-  Bell, Plus, Search, LogOut, ChevronRight, Mic2
+import {
+  Home,
+  Compass,
+  Radio,
+  BookOpen,
+  Film,
+  Users,
+  Music,
+  TrendingUp,
+  Heart,
+  Bell,
+  Plus,
+  Search,
+  LogOut,
+  ChevronRight,
+  Mic2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -44,17 +57,29 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
     <div className="hidden lg:flex min-h-screen bg-[#020210] text-white overflow-hidden">
       {/* Aurora Background */}
       <div className="aurora-bg">
-        <div className="aurora-ribbon" style={{ top: '10%', opacity: 0.5 }}></div>
-        <div className="aurora-ribbon" style={{ top: '40%', animationDelay: '-5s', opacity: 0.3 }}></div>
-        <div className="aurora-ribbon" style={{ top: '70%', animationDelay: '-10s', opacity: 0.4 }}></div>
+        <div className="aurora-ribbon" style={{ top: "10%", opacity: 0.5 }}></div>
+        <div
+          className="aurora-ribbon"
+          style={{ top: "40%", animationDelay: "-5s", opacity: 0.3 }}
+        ></div>
+        <div
+          className="aurora-ribbon"
+          style={{ top: "70%", animationDelay: "-10s", opacity: 0.4 }}
+        ></div>
       </div>
 
       {/* Left Sidebar */}
       <aside className="w-64 glass border-r border-white/10 flex flex-col z-10">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/logo.png" alt="JAVAN" className="h-12 w-12 rounded-xl object-cover shadow-glow" />
-            <span className="text-2xl font-black text-chrome tracking-tighter uppercase">JAVAN</span>
+            <img
+              src="/logo.png"
+              alt="JAVAN"
+              className="h-12 w-12 rounded-xl object-cover shadow-glow"
+            />
+            <span className="text-2xl font-black text-chrome tracking-tighter uppercase">
+              JAVAN
+            </span>
           </Link>
         </div>
 
@@ -68,13 +93,15 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
                 search={item.search}
                 aria-label={item.label}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${
-                  isActive 
-                    ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
+                  isActive
+                    ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                     : "text-white/60 hover:text-white hover:bg-white/5"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon className={`h-5 w-5 ${isActive ? "text-cyan-400 drop-shadow-[0_0_8px_rgba(0,212,255,0.8)]" : "group-hover:text-white"}`} />
+                  <item.icon
+                    className={`h-5 w-5 ${isActive ? "text-cyan-400 drop-shadow-[0_0_8px_rgba(0,212,255,0.8)]" : "group-hover:text-white"}`}
+                  />
                   <span className="font-medium">{item.label}</span>
                 </div>
                 {item.badge && (
@@ -93,15 +120,22 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
               <div className="glass-strong rounded-2xl p-4 border border-white/10 hover:bg-white/5 transition-colors group">
                 <div className="flex items-center gap-3 mb-3">
                   <Avatar className="h-10 w-10 border border-cyan-500/50">
-                    <AvatarImage src={profile?.avatar_url || ""} alt={`${profile?.display_name || 'User'}'s avatar`} />
+                    <AvatarImage
+                      src={profile?.avatar_url || ""}
+                      alt={`${profile?.display_name || "User"}'s avatar`}
+                    />
                     <AvatarFallback>{profile?.display_name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold truncate group-hover:text-cyan-400 transition-colors">{profile?.display_name || "User"}</p>
-                    <p className="text-[10px] text-white/50 truncate">@{profile?.handle || "user"}</p>
+                    <p className="text-sm font-bold truncate group-hover:text-cyan-400 transition-colors">
+                      {profile?.display_name || "User"}
+                    </p>
+                    <p className="text-[10px] text-white/50 truncate">
+                      @{profile?.handle || "user"}
+                    </p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={(e) => {
                     e.preventDefault();
                     signOut();
@@ -120,7 +154,7 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
               </Button>
             </Link>
           )}
-          
+
           <Link to="/create" search={{ mode: undefined }}>
             <Button className="w-full bg-gradient-to-r from-rose-500 to-purple-600 hover:opacity-90 rounded-xl py-6 flex items-center gap-2">
               <Plus className="h-5 w-5" />
@@ -135,37 +169,42 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
         {/* Header - Only visible on Homepage */}
         {isHomepage && (
           <header className="h-20 flex items-center justify-between px-8 border-b border-white/5 bg-[#020210]/50 backdrop-blur-md">
-            <div 
+            <div
               role="button"
               aria-label="Open search"
               tabIndex={0}
               onClick={() => setIsSearchOpen(true)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsSearchOpen(true); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") setIsSearchOpen(true);
+              }}
               className="flex-1 max-w-2xl relative group cursor-pointer"
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-hover:text-cyan-400 transition-colors" aria-hidden="true" />
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-hover:text-cyan-400 transition-colors"
+                aria-hidden="true"
+              />
               <div className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white/40 hover:border-cyan-500/50 hover:bg-white/10 transition-all">
                 Search for videos, creators, or genres...
               </div>
             </div>
-            
+
             <div className="flex items-center gap-6 ml-8">
-              <Link to="/notifications" aria-label="Notifications" className="relative p-2 text-white/60 hover:text-white transition-colors">
+              <Link
+                to="/notifications"
+                aria-label="Notifications"
+                className="relative p-2 text-white/60 hover:text-white transition-colors"
+              >
                 <Bell className="h-6 w-6" />
               </Link>
-              <Link to="/create" search={{ mode: undefined }}>
-                <Button className="bg-gradient-primary rounded-xl px-6">
-                  + Create
-                </Button>
+              <Link to="/create" search={{ mode: "live" }}>
+                <Button className="bg-gradient-primary rounded-xl px-6">+ Go LIVE</Button>
               </Link>
             </div>
           </header>
         )}
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto p-8 no-scrollbar">{children}</div>
       </main>
 
       {/* Search Overlay */}
@@ -181,7 +220,11 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
           <div className="space-y-4">
             <p className="text-xs text-white/20 italic">No trending creators yet.</p>
           </div>
-          <Link to="/discover" className="w-full mt-6 py-2 text-xs text-white/40 hover:text-white flex items-center justify-center gap-1 transition-colors" aria-label="Explore trending creators and videos">
+          <Link
+            to="/discover"
+            className="w-full mt-6 py-2 text-xs text-white/40 hover:text-white flex items-center justify-center gap-1 transition-colors"
+            aria-label="Explore trending creators and videos"
+          >
             Explore Trending Creators <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
