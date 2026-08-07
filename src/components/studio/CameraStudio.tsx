@@ -79,6 +79,12 @@ export function CameraStudio({
   const startCamera = useCallback(async () => {
     setError(null);
     setReady(false);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("This browser or preview window doesn't support camera access. Try opening the app directly in Safari or Chrome instead of a preview frame.");
+      return;
+    }
+
     try {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -92,11 +98,20 @@ export function CameraStudio({
         setReady(true);
       }
     } catch (err: any) {
-      setError(
-        err?.name === "NotAllowedError"
-          ? "Camera access denied. Enable it in your browser settings to record."
-          : "Couldn't access the camera on this device.",
-      );
+      const name = err?.name;
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        setError("Camera access denied. Enable camera permission for this site in your browser settings, then retry.");
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        setError("No camera was found on this device.");
+      } else if (name === "NotReadableError" || name === "TrackStartError") {
+        setError("Your camera is already in use by another app. Close other camera apps and retry.");
+      } else if (name === "OverconstrainedError") {
+        setError("This camera doesn't support the requested settings.");
+      } else if (name === "SecurityError") {
+        setError("Camera access is blocked in this preview. Open the app in its own browser tab (not an embedded preview) and try again.");
+      } else {
+        setError("Couldn't access the camera on this device.");
+      }
     }
   }, [facing]);
 
@@ -367,8 +382,23 @@ export function CameraStudio({
           </div>
         ) : (
           <>
-            <video ref={videoRef} autoPlay playsInline muted className="hidden" />
-            <video ref={pipVideoRef} autoPlay playsInline muted className="hidden" />
+            {/* Kept as a 1x1 visible-but-invisible element rather than display:none —
+                some mobile browsers (notably Safari) stop decoding frames on hidden video
+                elements, which left the canvas blank even though the stream was live. */}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute -z-10 h-px w-px opacity-0"
+            />
+            <video
+              ref={pipVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute -z-10 h-px w-px opacity-0"
+            />
             <canvas
               ref={canvasRef}
               className="h-full w-full object-cover"
