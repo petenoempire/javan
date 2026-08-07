@@ -21,12 +21,14 @@ import {
   MessageSquare,
   Share2,
   TrendingUp,
+  Zap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { fetchStream, postChat, postHeart, postJoin, endStream } from "@/lib/live";
 import { LiveChat } from "@/components/LiveChat";
 import { GiftPanel } from "@/components/GiftPanel";
+import { SuperChatPanel } from "@/components/SuperChatPanel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/live/$id")({
@@ -44,13 +46,18 @@ export const Route = createFileRoute("/live/$id")({
     const title = stream?.title ? `${stream.title} · Live on Javan` : "Live Stream · Javan";
     let description = stream?.description || "Watch this live stream on Javan.";
     if (description.length < 50 && stream?.title) {
-      description = `Join the live conversation: ${stream.title} on Javan. Watch, interact, and send gifts to your favorite creators in real-time on the most interactive live streaming platform.`.slice(0, 150);
+      description =
+        `Join the live conversation: ${stream.title} on Javan. Watch, interact, and send gifts to your favorite creators in real-time on the most interactive live streaming platform.`.slice(
+          0,
+          150,
+        );
     }
     const url = `https://javan.lovable.app/live/${params.id}`;
     const thumbnail: string =
       stream?.thumbnail_url ||
       "https://storage.googleapis.com/gpt-engineer-file-uploads/NJDt3e0YHtQJekjY4JRhK9U6AEH3/social-images/social-1785069433827-javan_social_share_3.webp";
-    const uploadDate: string = stream?.started_at || stream?.created_at || new Date(0).toISOString();
+    const uploadDate: string =
+      stream?.started_at || stream?.created_at || new Date(0).toISOString();
 
     return {
       meta: [
@@ -114,28 +121,88 @@ const PREMIUM_GIFTS: Record<string, GiftAnimationConfig> = {
   cub: { id: "cub", name: "Cub", cost: 500, animationType: "overlay", emoji: "🦁" },
   crown: { id: "crown", name: "Crown", cost: 750, animationType: "overlay", emoji: "👑" },
   rocket: { id: "rocket", name: "Rocket", cost: 1000, animationType: "overlay", emoji: "🚀" },
-  fireworks: { id: "fireworks", name: "Fireworks", cost: 1500, animationType: "overlay", emoji: "🎆" },
+  fireworks: {
+    id: "fireworks",
+    name: "Fireworks",
+    cost: 1500,
+    animationType: "overlay",
+    emoji: "🎆",
+  },
   drum: { id: "drum", name: "Talking Drum", cost: 2000, animationType: "overlay", emoji: "🥁" },
   diamond: { id: "diamond", name: "Diamond", cost: 3500, animationType: "overlay", emoji: "💎" },
   yacht: { id: "yacht", name: "Yacht", cost: 5000, animationType: "overlay", emoji: "🛥️" },
   // Mid tier
   galaxy: { id: "galaxy", name: "Galaxy", cost: 10000, animationType: "screen-shake", emoji: "🌌" },
-  panther: { id: "panther", name: "Panther", cost: 15000, animationType: "screen-shake", emoji: "🐆" },
+  panther: {
+    id: "panther",
+    name: "Panther",
+    cost: 15000,
+    animationType: "screen-shake",
+    emoji: "🐆",
+  },
   eagle: { id: "eagle", name: "Eagle", cost: 25000, animationType: "screen-shake", emoji: "🦅" },
   bull: { id: "bull", name: "Bull", cost: 40000, animationType: "screen-shake", emoji: "🐂" },
   tiger: { id: "tiger", name: "Tiger", cost: 60000, animationType: "screen-shake", emoji: "🐅" },
   rhino: { id: "rhino", name: "Rhino", cost: 90000, animationType: "screen-shake", emoji: "🦏" },
   // Premium tier
-  lioness: { id: "lioness", name: "Lioness", cost: 250000, animationType: "screen-shake", emoji: "🦁" },
-  gorilla: { id: "gorilla", name: "Gorilla", cost: 350000, animationType: "screen-shake", emoji: "🦍" },
-  hisense_tv: { id: "hisense_tv", name: "Hisense Smart TV", cost: 500000, animationType: "screen-shake", emoji: "📺" },
-  yacht_gold: { id: "yacht_gold", name: "Golden Yacht", cost: 650000, animationType: "screen-shake", emoji: "🛳️" },
-  mansion: { id: "mansion", name: "Mansion", cost: 800000, animationType: "screen-shake", emoji: "🏰" },
+  lioness: {
+    id: "lioness",
+    name: "Lioness",
+    cost: 250000,
+    animationType: "screen-shake",
+    emoji: "🦁",
+  },
+  gorilla: {
+    id: "gorilla",
+    name: "Gorilla",
+    cost: 350000,
+    animationType: "screen-shake",
+    emoji: "🦍",
+  },
+  hisense_tv: {
+    id: "hisense_tv",
+    name: "Hisense Smart TV",
+    cost: 500000,
+    animationType: "screen-shake",
+    emoji: "📺",
+  },
+  yacht_gold: {
+    id: "yacht_gold",
+    name: "Golden Yacht",
+    cost: 650000,
+    animationType: "screen-shake",
+    emoji: "🛳️",
+  },
+  mansion: {
+    id: "mansion",
+    name: "Mansion",
+    cost: 800000,
+    animationType: "screen-shake",
+    emoji: "🏰",
+  },
   // Elite / mega tier
-  hippopotamus: { id: "hippopotamus", name: "Hippopotamus", cost: 1000000, animationType: "stampede", emoji: "🦛" },
+  hippopotamus: {
+    id: "hippopotamus",
+    name: "Hippopotamus",
+    cost: 1000000,
+    animationType: "stampede",
+    emoji: "🦛",
+  },
   lion: { id: "lion", name: "Lion", cost: 1500000, animationType: "roar", emoji: "🦁" },
-  private_jet: { id: "private_jet", name: "Private Jet", cost: 1800000, animationType: "stampede", emoji: "✈️" },
-  elephant: { id: "elephant", name: "Elephant", cost: 2500000, animationType: "stampede", emoji: "🐘" },
+  private_jet: {
+    id: "private_jet",
+    name: "Private Jet",
+    cost: 1800000,
+    animationType: "stampede",
+    emoji: "✈️",
+  },
+  elephant: {
+    id: "elephant",
+    name: "Elephant",
+    cost: 2500000,
+    animationType: "stampede",
+    emoji: "🐘",
+  },
 };
 
 // NOTE: this is a real, working subset (~28 gifts) covering every tier and
@@ -150,6 +217,12 @@ function LivePage() {
   const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [giftOpen, setGiftOpen] = useState(false);
+  const [superChatOpen, setSuperChatOpen] = useState(false);
+  const [activeSuperChat, setActiveSuperChat] = useState<{
+    body: string;
+    coins: number;
+    sender: string;
+  } | null>(null);
   const [hearts, setHearts] = useState<number[]>([]);
   const [viewers, setViewers] = useState(0);
   const [hostStream, setHostStream] = useState<MediaStream | null>(null);
@@ -187,8 +260,28 @@ function LivePage() {
       .channel(`live-gifts-${id}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "live_chat_messages", filter: `stream_id=eq.${id}` },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "live_chat_messages",
+          filter: `stream_id=eq.${id}`,
+        },
         (payload: any) => {
+          if (payload.new?.kind === "super_chat") {
+            supabase
+              .from("profiles")
+              .select("display_name,handle")
+              .eq("id", payload.new.user_id)
+              .maybeSingle()
+              .then(({ data: sender }) => {
+                setActiveSuperChat({
+                  body: payload.new.body,
+                  coins: payload.new.gift_coins,
+                  sender: sender?.display_name || sender?.handle || "Viewer",
+                });
+                window.setTimeout(() => setActiveSuperChat(null), 6500);
+              });
+          }
           if (payload.new?.kind === "gift") {
             const matchedGift = PREMIUM_GIFTS[payload.new.gift_key];
             if (matchedGift) {
@@ -196,7 +289,7 @@ function LivePage() {
               setTimeout(() => setActiveGiftAnimation(null), 4500);
             }
           }
-        }
+        },
       )
       .subscribe();
     return () => {
@@ -206,11 +299,17 @@ function LivePage() {
 
   useEffect(() => {
     if (!user) return;
-    const channel = supabase.channel(`live-presence-${id}`, { config: { presence: { key: user.id } } });
+    const channel = supabase.channel(`live-presence-${id}`, {
+      config: { presence: { key: user.id } },
+    });
     presenceChannelRef.current = channel;
     channel
-      .on("presence", { event: "sync" }, () => setViewers(Object.keys(channel.presenceState()).length))
-      .on("broadcast", { event: "heart" }, () => setHearts((h) => [...h, Date.now() + Math.random()]))
+      .on("presence", { event: "sync" }, () =>
+        setViewers(Object.keys(channel.presenceState()).length),
+      )
+      .on("broadcast", { event: "heart" }, () =>
+        setHearts((h) => [...h, Date.now() + Math.random()]),
+      )
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({ online_at: new Date().toISOString() });
@@ -232,7 +331,8 @@ function LivePage() {
       let megabytesConsumed = 0;
       if (videoEl && videoEl.buffered.length > 0) {
         // Rough estimate only — real byte accounting needs the actual playback SDK's stats API.
-        const bufferedSeconds = videoEl.buffered.end(videoEl.buffered.length - 1) - videoEl.buffered.start(0);
+        const bufferedSeconds =
+          videoEl.buffered.end(videoEl.buffered.length - 1) - videoEl.buffered.start(0);
         megabytesConsumed = Number((bufferedSeconds * 0.5).toFixed(2)); // placeholder est. 0.5MB/sec
       }
       fetch("/api/v1/analytics/session-heartbeat", {
@@ -254,7 +354,9 @@ function LivePage() {
 
   const handleControlTrayAction = (key: keyof typeof trayStates) => {
     setTrayStates((prev) => ({ ...prev, [key]: !prev[key] }));
-    toast.success(`${key.charAt(0).toUpperCase() + key.slice(1)} ${trayStates[key] ? "disabled" : "enabled"}`);
+    toast.success(
+      `${key.charAt(0).toUpperCase() + key.slice(1)} ${trayStates[key] ? "disabled" : "enabled"}`,
+    );
   };
 
   const handleSendMessage = async () => {
@@ -350,7 +452,13 @@ function LivePage() {
         {/* Video Stream */}
         <div className="absolute inset-0">
           {wantHost && hostStream ? (
-            <video ref={hostVideoRef} autoPlay muted playsInline className="h-full w-full object-cover" />
+            <video
+              ref={hostVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-black to-neutral-900">
               <div className="text-center">
@@ -411,7 +519,7 @@ function LivePage() {
             })}
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-2 grid grid-cols-5 gap-1">
+          <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-2 grid grid-cols-6 gap-1">
             {[
               { key: "fanclub", label: "Fan Club", icon: UserPlus },
               { key: "interact", label: "Interact", icon: MessageSquare },
@@ -438,6 +546,16 @@ function LivePage() {
               );
             })}
             <button
+              onClick={() => setSuperChatOpen(!superChatOpen)}
+              aria-label="Open Super Chat panel"
+              aria-pressed={superChatOpen}
+              className={`flex flex-col items-center justify-center rounded-xl border p-2 transition-all duration-150 active:scale-90 ${superChatOpen ? "bg-amber-400/30 border-amber-300 text-amber-200" : "bg-white/5 border-white/10 text-white/70 hover:text-white"}`}
+              title="Super Chat"
+            >
+              <Zap className="h-4 w-4" />
+              <span className="text-[7px] uppercase mt-0.5 font-black">Super Chat</span>
+            </button>
+            <button
               onClick={() => setGiftOpen(!giftOpen)}
               aria-label="Open gifts panel"
               aria-pressed={giftOpen}
@@ -456,7 +574,9 @@ function LivePage() {
           {/* Message and Heart Actions */}
           <div className="flex gap-2">
             <div className="flex-1 flex bg-black/40 backdrop-blur-md border border-white/10 rounded-full items-center px-3">
-              <label htmlFor="live-chat-input" className="sr-only">Send a message</label>
+              <label htmlFor="live-chat-input" className="sr-only">
+                Send a message
+              </label>
               <input
                 id="live-chat-input"
                 type="text"
@@ -484,11 +604,37 @@ function LivePage() {
           </div>
         </div>
 
+        {/* Super Chat Panel */}
+        {superChatOpen && (
+          <div className="absolute inset-0 z-50 flex items-end bg-black/50 backdrop-blur-sm">
+            <SuperChatPanel streamId={id} onClose={() => setSuperChatOpen(false)} />
+          </div>
+        )}
+
         {/* Gift Panel */}
         {giftOpen && (
           <div className="absolute inset-0 z-50 flex items-end bg-black/50 backdrop-blur-sm">
-            <GiftPanel gifts={PREMIUM_GIFTS} onClose={() => setGiftOpen(false)} streamId={id} hostId={stream.host_id} />
+            <GiftPanel
+              gifts={PREMIUM_GIFTS}
+              onClose={() => setGiftOpen(false)}
+              streamId={id}
+              hostId={stream.host_id}
+            />
           </div>
+        )}
+
+        {activeSuperChat && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="pointer-events-none absolute left-4 right-4 top-20 z-40 rounded-2xl border border-amber-300/50 bg-gradient-to-r from-amber-500/90 to-rose-500/90 p-3 text-black shadow-[0_0_30px_rgba(251,191,36,0.35)]"
+          >
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+              <Zap className="h-4 w-4 fill-current" />
+              {activeSuperChat.sender} · {activeSuperChat.coins.toLocaleString()} coins
+            </div>
+            <p className="mt-1 text-sm font-bold">{activeSuperChat.body}</p>
+          </motion.div>
         )}
 
         {/* Floating Hearts Animation */}

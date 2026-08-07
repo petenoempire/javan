@@ -23,6 +23,16 @@ export async function postChat(streamId: string, userId: string, content: string
   return data;
 }
 
+export async function sendSuperChat(streamId: string, body: string, coins: number) {
+  const { data, error } = await supabase.rpc("send_super_chat", {
+    _stream_id: streamId,
+    _body: body,
+    _coins: coins,
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function postHeart(streamId: string, userId: string) {
   const { data } = await supabase
     .from('live_chat_messages')
