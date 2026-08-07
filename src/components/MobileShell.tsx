@@ -45,6 +45,15 @@ function getBackTarget(pathname: string): string {
   return "/";
 }
 
+// BIGO-style gold glow used uniformly across all nav icons/active states
+const GOLD_GLOW = "rgba(255, 191, 51, 0.55)";
+
+// Reserved footprint for the bottom nav (bar height + its own vertical padding).
+// Main content's bottom padding is derived from this so the two can never overlap.
+const NAV_BAR_HEIGHT_PX = 44; // h-11
+const NAV_CONTAINER_PADDING_PX = 24; // top+bottom breathing room inside the dedicated nav slot
+const NAV_FOOTPRINT_PX = NAV_BAR_HEIGHT_PX + NAV_CONTAINER_PADDING_PX; // 68px, before safe-area
+
 export function MobileShell({ children, immersive = false, showBack, backTo }: MobileShellProps) {
   const isDesktop = useIsDesktop();
   const location = useLocation();
@@ -59,11 +68,11 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
   if (isDesktop === true) return null;
 
   const navItems = [
-    { icon: Home, label: "Home", href: "/", glow: "rgba(0, 212, 255, 0.5)" },
-    { icon: Users, label: "Friends", href: "/friends", glow: "rgba(124, 58, 237, 0.5)" },
+    { icon: Home, label: "Home", href: "/", glow: GOLD_GLOW },
+    { icon: Users, label: "Friends", href: "/friends", glow: GOLD_GLOW },
     { icon: Plus, label: "Create", href: "/create", isCenter: true },
-    { icon: Mail, label: "Inbox", href: "/inbox", glow: "rgba(255, 0, 128, 0.5)" },
-    { icon: User, label: "Profile", href: "/profile", glow: "rgba(255, 215, 0, 0.5)" },
+    { icon: Mail, label: "Inbox", href: "/inbox", glow: GOLD_GLOW },
+    { icon: User, label: "Profile", href: "/profile", glow: GOLD_GLOW },
   ];
 
   return (
@@ -80,9 +89,18 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
         ></div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content — padding-bottom is derived exactly from the nav's own footprint,
+          so content can never sit behind or overlap the bar. Smooth native scroll,
+          only activates when content actually overflows, no bounce/clip glitches. */}
       <main
-        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth no-scrollbar ${showNav ? "pb-20" : "pb-4"}`}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth no-scrollbar"
+        style={{
+          paddingBottom: showNav
+            ? `calc(${NAV_FOOTPRINT_PX}px + env(safe-area-inset-bottom, 0px) + 12px)`
+            : "1rem",
+          overscrollBehaviorY: "contain",
+          WebkitOverflowScrolling: "touch",
+        }}
       >
         {children}
       </main>
@@ -112,16 +130,31 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
         </motion.div>
       )}
 
-      {/* Bottom Navigation Bar — ONLY on Home root view */}
+      {/* Bottom Navigation Bar — its own dedicated, fixed-height slot.
+          Gold-transparent glass, BIGO-style. Nothing inside it (including the
+          center Create button) extends beyond this container's bounds. */}
       <AnimatePresence>
         {showNav && (
           <motion.nav
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 20, opacity: 0 }}
-            className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+            className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex items-center justify-center px-3"
+            style={{
+              height: `calc(${NAV_FOOTPRINT_PX}px + env(safe-area-inset-bottom, 0px))`,
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            }}
           >
-            <div className="pointer-events-auto flex h-14 w-full max-w-[360px] items-center justify-around rounded-2xl border border-white/10 bg-black/70 px-2 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+            <div
+              className="pointer-events-auto flex w-full max-w-[320px] items-center justify-around rounded-2xl border px-1.5 backdrop-blur-2xl"
+              style={{
+                height: NAV_BAR_HEIGHT_PX,
+                background:
+                  "linear-gradient(180deg, rgba(255,191,51,0.10) 0%, rgba(10,8,2,0.65) 55%, rgba(10,8,2,0.75) 100%)",
+                borderColor: "rgba(255,191,51,0.28)",
+                boxShadow: "0 8px 26px rgba(0,0,0,0.5), 0 0 20px rgba(255,191,51,0.12)",
+              }}
+            >
               {navItems.map((item) => {
                 const isActive = location.pathname === item.href;
                 if (item.isCenter) {
@@ -131,9 +164,13 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
                       to={item.href}
                       search={item.isCenter ? { mode: "live" } : undefined}
                       aria-label={item.label}
-                      className="relative -top-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 via-purple-600 to-cyan-500 shadow-[0_0_18px_rgba(255,0,128,0.4)] active:scale-90 transition-transform"
+                      className="flex h-9 w-9 items-center justify-center rounded-full active:scale-90 transition-transform"
+                      style={{
+                        background: "linear-gradient(135deg, #ffd25a, #ffb020, #a86a00)",
+                        boxShadow: "0 0 16px rgba(255,191,51,0.45)",
+                      }}
                     >
-                      <Plus className="h-6 w-6 text-white" />
+                      <Plus className="h-5 w-5 text-black" />
                     </Link>
                   );
                 }
@@ -145,11 +182,11 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
                     className="relative flex flex-col items-center gap-1 group"
                   >
                     <div
-                      className={`p-2 rounded-full transition-all duration-300 ${isActive ? "bg-white/10" : "group-active:scale-90"}`}
+                      className={`p-1.5 rounded-full transition-all duration-300 ${isActive ? "bg-amber-400/10" : "group-active:scale-90"}`}
                     >
                       <item.icon
                         className={`h-5 w-5 transition-all duration-300 ${
-                          isActive ? "text-white" : "text-white/40 group-hover:text-white/70"
+                          isActive ? "text-amber-300" : "text-white/40 group-hover:text-white/70"
                         }`}
                         style={isActive ? { filter: `drop-shadow(0 0 8px ${item.glow})` } : {}}
                       />
