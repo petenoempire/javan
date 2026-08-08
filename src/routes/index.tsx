@@ -148,11 +148,9 @@ function HomePage() {
         .select("id, handle, display_name, avatar_url")
         .in("id", authorIds);
       const authorMap = new Map((authors ?? []).map((a: any) => [a.id, a]));
-      return rawPosts.map((post: any) => ({
-        ...post,
-        author: authorMap.get(post.user_id) ?? { handle: "user", display_name: "Unknown" },
-        liked_by_user: false,
-      })) as Post[];
+      return rawPosts
+        .map((post: any) => ({ ...post, author: authorMap.get(post.user_id), liked_by_user: false }))
+        .filter((post: any) => post.author) as Post[];
     },
   });
 
@@ -243,7 +241,7 @@ function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-black to-black" />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
                 <div className="absolute right-4 bottom-32 flex flex-col gap-4 items-center z-10">
-                  <Link to="/u/$handle" params={{ handle: posts[0].author?.handle ?? "user" }}>
+                  <Link to="/u/$handle" params={{ handle: posts[0].author.handle }}>
                     <Avatar className="h-11 w-11 border-2 border-white">
                       <AvatarImage src={posts[0].author?.avatar_url} />
                       <AvatarFallback>{posts[0].author?.display_name?.[0]}</AvatarFallback>
@@ -269,7 +267,7 @@ function HomePage() {
                   </div>
                 </div>
                 <div className="absolute bottom-28 left-0 right-14 p-5 z-10">
-                  <Link to="/u/$handle" params={{ handle: posts[0].author?.handle ?? "user" }} className="mb-2 flex items-center gap-2">
+                  <Link to="/u/$handle" params={{ handle: posts[0].author.handle }} className="mb-2 flex items-center gap-2">
                     <span className="text-base font-black text-white">@{posts[0].author?.handle}</span>
                   </Link>
                   <p className="text-sm text-white/90 line-clamp-2 leading-snug">{posts[0].content}</p>

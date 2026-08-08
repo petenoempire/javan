@@ -11,7 +11,7 @@ export function useLiveKitRoom({
   streamId: string | undefined;
   userId: string | undefined;
   isHost: boolean;
-  videoEl: React.RefObject<HTMLVideoElement>;
+  videoEl: React.RefObject<HTMLVideoElement | null>;
 }) {
   const roomRef = useRef<Room | null>(null);
   const [connected, setConnected] = useState(false);

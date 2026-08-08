@@ -5,6 +5,9 @@ import { toast } from "sonner";
 
 interface TopUpDialogProps {
   children: ReactNode;
+  onSubmit?: (coinAmount: number) => void;
+  isSubmitting?: boolean;
+  currentBalance?: number;
 }
 
 const COIN_PACKAGES = [
@@ -14,7 +17,7 @@ const COIN_PACKAGES = [
   { coins: 5000, usd: 35 },
 ];
 
-export function TopUpDialog({ children }: TopUpDialogProps) {
+export function TopUpDialog({ children, onSubmit, isSubmitting = false }: TopUpDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [selectedPackage, setSelectedPackage] = React.useState<(typeof COIN_PACKAGES)[0]>(COIN_PACKAGES[0]);
   const [isProcessing, setIsProcessing] = React.useState(false);
@@ -22,6 +25,11 @@ export function TopUpDialog({ children }: TopUpDialogProps) {
   const handlePurchase = async () => {
     setIsProcessing(true);
     try {
+      if (onSubmit) {
+        onSubmit(selectedPackage.coins);
+        setOpen(false);
+        return;
+      }
       const response = await fetch("/api/v1/wallet/purchase-coins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -67,10 +75,10 @@ export function TopUpDialog({ children }: TopUpDialogProps) {
         </div>
         <button
           onClick={handlePurchase}
-          disabled={isProcessing}
+          disabled={isProcessing || isSubmitting}
           className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-primary py-4 font-black text-white shadow-glow disabled:opacity-50 active:scale-95 transition-all"
         >
-          {isProcessing ? (
+          {isProcessing || isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" /> Processing...
             </>

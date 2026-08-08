@@ -9,7 +9,7 @@ import {
   Play, Heart, Menu, Eye, Coins, Users, UserPlus, Search,
   ArrowLeft, FileVideo, BookmarkCheck, BadgeCheck, Pencil,
   UserRoundCheck, Gift, Activity, HelpCircle, Settings, Wallet,
-  Radio, Layers, Music2, Repeat2, Share2, Grid3x3
+  Radio, Layers, Music2, Repeat2, Share2, Grid3x3, Home, Plus, Mail
 } from "lucide-react";
 import { ProfileDrawer } from "@/components/ProfileDrawer";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ interface UserPost {
   created_at: string;
 }
 
-type ProfileTab = "posts" | "reposts" | "likes" | "saved";
+type ProfileTab = "following" | "reposts" | "likes" | "saved";
 
 function formatCount(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
@@ -341,7 +341,7 @@ function ViewersPanel({ onClose }: { onClose: () => void }) {
 function ProfilePage() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<ProfileTab>("posts");
+  const [tab, setTab] = useState<ProfileTab>("following");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
   const [showFollowers, setShowFollowers] = useState(false);
@@ -363,6 +363,28 @@ function ProfilePage() {
         .limit(50);
       if (error) throw error;
       return data as UserPost[];
+    },
+  });
+
+  const { data: followingPosts = [] } = useQuery<UserPost[]>({
+    queryKey: ["my-following-posts", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data: follows, error: followsError } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", user!.id);
+      if (followsError) throw followsError;
+      const ids = (follows ?? []).map((row: any) => row.following_id).filter(Boolean);
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .in("user_id", ids)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as UserPost[];
     },
   });
 
@@ -407,14 +429,14 @@ function ProfilePage() {
   const renderTabContent = () => {
     let visiblePosts: UserPost[] = [];
     switch (tab) {
-      case "posts": visiblePosts = posts; break;
+      case "following": visiblePosts = followingPosts; break;
       case "likes": visiblePosts = posts.filter((p) => likedPosts.includes(p.id)); break;
       case "saved": visiblePosts = posts.filter((p) => savedPosts.includes(p.id)); break;
       case "reposts": visiblePosts = posts.filter((p) => p.content?.startsWith("RT:")); break;
     }
 
     if (visiblePosts.length === 0) {
-      const labels: Record<ProfileTab, string> = { posts: "posts", likes: "liked posts", saved: "saved posts", reposts: "reposts" };
+      const labels: Record<ProfileTab, string> = { following: "followed posts", likes: "liked posts", saved: "saved posts", reposts: "reposts" };
       return (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <FileVideo className="h-12 w-12 text-white/15 mb-3" />
@@ -519,9 +541,9 @@ function ProfilePage() {
 
         {/* TikTok-style Icon Tab Switcher */}
         <div className="relative z-10 flex border-b border-white/5">
-          {(["posts", "saved", "reposts", "likes"] as ProfileTab[]).map((t) => {
+          {(["following", "saved", "reposts", "likes"] as ProfileTab[]).map((t) => {
             const iconMap: Record<ProfileTab, React.ComponentType<{ className?: string }>> = {
-              posts: Grid3x3,
+              following: Grid3x3,
               saved: BookmarkCheck,
               reposts: Repeat2,
               likes: Heart,
@@ -537,13 +559,24 @@ function ProfilePage() {
         </div>
 
         {/* Tab Content */}
-        <div className="relative z-10 flex-1 overflow-y-auto pb-8">
+        <div className="relative z-10 flex-1 overflow-y-auto pb-24">
           <AnimatePresence mode="wait">
             <motion.div key={tab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               {renderTabContent()}
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {/* Persistent primary navigation */}
+        <nav className="fixed inset-x-0 bottom-0 z-[70] flex items-center justify-center px-3 pb-[env(safe-area-inset-bottom)]">
+          <div className="flex h-11 w-full max-w-[320px] items-center justify-around rounded-2xl border border-cyan-300/35 bg-[#07071e]/90 px-1.5 backdrop-blur-2xl shadow-[0_8px_26px_rgba(0,0,0,0.55),0_0_24px_rgba(0,212,255,0.16)]">
+            <Link to="/" aria-label="Home" className="flex flex-col items-center gap-0.5 text-white/50 active:scale-90"><Home className="h-5 w-5" /><span className="text-[8px]">Home</span></Link>
+            <Link to="/friends" aria-label="Friends" className="flex flex-col items-center gap-0.5 text-white/50 active:scale-90"><Users className="h-5 w-5" /><span className="text-[8px]">Friends</span></Link>
+            <Link to="/create" search={{ mode: "live" }} aria-label="Create" className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 via-violet-600 to-cyan-400 shadow-[0_0_18px_rgba(255,0,128,0.42)] active:scale-90"><Plus className="h-5 w-5 text-white" /></Link>
+            <Link to="/inbox" aria-label="Inbox" className="flex flex-col items-center gap-0.5 text-white/50 active:scale-90"><Mail className="h-5 w-5" /><span className="text-[8px]">Inbox</span></Link>
+            <Link to="/profile" aria-label="Profile" className="flex flex-col items-center gap-0.5 text-fuchsia-300 active:scale-90"><UserRoundCheck className="h-5 w-5" /><span className="text-[8px]">Profile</span></Link>
+          </div>
+        </nav>
 
         {/* Drawer */}
         <ProfileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />

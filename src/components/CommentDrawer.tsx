@@ -76,13 +76,13 @@ export function CommentDrawer({ videoId, onClose }: { videoId: string | null; on
                 <div className="py-10 text-center text-sm text-muted-foreground">Loading…</div>
               ) : comments.length === 0 ? (
                 <div className="py-10 text-center text-sm text-muted-foreground">Be the first to comment.</div>
-              ) : comments.map((c) => (
+              ) : comments.filter((c) => c.profile).map((c) => (
                 <div key={c.id} className="flex gap-3">
                   {c.profile?.avatar_url
                     ? <img src={c.profile.avatar_url} className="h-9 w-9 rounded-full object-cover" alt={`${c.profile.display_name || c.profile.handle}'s avatar`} />
                     : <div className="bg-gradient-primary h-9 w-9 rounded-full" />}
                   <div className="flex-1">
-                    <div className="text-xs text-muted-foreground">@{c.profile?.handle ?? "user"}</div>
+                    <div className="text-xs text-muted-foreground">@{c.profile!.handle}</div>
                     <div className="text-sm">{c.body}</div>
                   </div>
                 </div>

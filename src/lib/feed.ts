@@ -25,14 +25,14 @@ export async function fetchFeed(opts: { followingOf?: string | null; userId?: st
     const userIds = Array.from(new Set(vids.map((v) => v.user_id)));
     const { data: profs } = await supabase.from("profiles").select("id,handle,display_name,avatar_url,is_verified").in("id", userIds);
     const byId = new Map((profs ?? []).map((p: any) => [p.id, p]));
-    return enrich(vids.map((v) => ({ ...v, author: byId.get(v.user_id) })) as any, opts.userId);
+    return enrich(vids.map((v) => ({ ...v, author: byId.get(v.user_id) })).filter((v) => v.author) as any, opts.userId);
   }
 
   const mapped = (data ?? []).map((row: any) => ({
     ...row,
     author: row.profiles as FeedAuthor,
   }));
-  return enrich(mapped, opts.userId);
+  return enrich(mapped.filter((row: any) => row.author), opts.userId);
 }
 
 async function enrich(rows: any[], userId?: string | null): Promise<FeedVideo[]> {
@@ -58,7 +58,7 @@ async function enrich(rows: any[], userId?: string | null): Promise<FeedVideo[]>
     tags: r.tags ?? [],
     created_at: r.created_at,
     views: r.views ?? 0,
-    author: r.author ?? { id: r.user_id, handle: "user", display_name: "User", avatar_url: null, is_verified: false },
+    author: r.author as FeedAuthor,
     like_count: likeCount.get(r.id) ?? 0,
     comment_count: commentCount.get(r.id) ?? 0,
     liked_by_me: myLikes.has(r.id),

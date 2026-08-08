@@ -111,8 +111,8 @@ function SupportChat() {
       return;
     }
     setEscalating(true);
+    const ticket = generateTicketNumber();
     try {
-      const ticket = generateTicketNumber();
       setTicketNumber(ticket);
       const transcript = messages.map((m) => `${m.role === "user" ? "User" : "Bot"}: ${m.content}`).join("\n");
 

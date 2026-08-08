@@ -90,7 +90,6 @@ export function DesktopLayout({ children }: DesktopLayoutProps) {
               <Link
                 key={item.label}
                 to={item.href as any}
-                search={item.search}
                 aria-label={item.label}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${
                   isActive

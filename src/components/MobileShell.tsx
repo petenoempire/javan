@@ -13,12 +13,11 @@ interface MobileShellProps {
 }
 
 /**
- * ABSOLUTE ROOT VISIBILITY CONSTRAINT:
- * The primary bottom tab navigation bar MUST ONLY be rendered and visible
- * when the user is actively viewing the primary root "Home" video feed ("/").
- * Friends, Inbox, Profile and ALL sub-pages unmount the bottom nav immediately.
+ * The primary bottom tab navigation remains available across the five primary
+ * product views so users can move between Home, Friends, Create, Inbox, and Profile
+ * without relying on back buttons or hidden navigation.
  */
-const BOTTOM_NAV_ALLOWED_PATHS = ["/"];
+const BOTTOM_NAV_ALLOWED_PATHS = ["/", "/friends", "/create", "/inbox", "/profile"];
 
 function shouldShowNav(pathname: string): boolean {
   return BOTTOM_NAV_ALLOWED_PATHS.includes(pathname);
@@ -45,8 +44,8 @@ function getBackTarget(pathname: string): string {
   return "/";
 }
 
-// BIGO-style gold glow used uniformly across all nav icons/active states
-const GOLD_GLOW = "rgba(255, 191, 51, 0.55)";
+// Concept 01 uses a cyan / magenta / violet aurora accent system.
+const AURORA_GLOW = "rgba(0, 212, 255, 0.65)";
 
 // Reserved footprint for the bottom nav (bar height + its own vertical padding).
 // Main content's bottom padding is derived from this so the two can never overlap.
@@ -62,17 +61,17 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
   const pathname = location.pathname;
 
   const showNav = !immersive && shouldShowNav(pathname);
-  const showBackBtn = showBack !== undefined ? showBack : pathname !== "/";
+  const showBackBtn = showBack !== undefined ? showBack : !BOTTOM_NAV_ALLOWED_PATHS.includes(pathname);
   const backTarget = backTo ?? getBackTarget(pathname);
 
   if (isDesktop === true) return null;
 
   const navItems = [
-    { icon: Home, label: "Home", href: "/", glow: GOLD_GLOW },
-    { icon: Users, label: "Friends", href: "/friends", glow: GOLD_GLOW },
+    { icon: Home, label: "Home", href: "/", glow: AURORA_GLOW },
+    { icon: Users, label: "Friends", href: "/friends", glow: "rgba(168, 85, 247, 0.65)" },
     { icon: Plus, label: "Create", href: "/create", isCenter: true },
-    { icon: Mail, label: "Inbox", href: "/inbox", glow: GOLD_GLOW },
-    { icon: User, label: "Profile", href: "/profile", glow: GOLD_GLOW },
+    { icon: Mail, label: "Inbox", href: "/inbox", glow: "rgba(244, 63, 94, 0.65)" },
+    { icon: User, label: "Profile", href: "/profile", glow: "rgba(236, 72, 153, 0.65)" },
   ];
 
   return (
@@ -149,10 +148,10 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
               className="pointer-events-auto flex w-full max-w-[320px] items-center justify-around rounded-2xl border px-1.5 backdrop-blur-2xl"
               style={{
                 height: NAV_BAR_HEIGHT_PX,
-                background:
-                  "linear-gradient(180deg, rgba(255,191,51,0.10) 0%, rgba(10,8,2,0.65) 55%, rgba(10,8,2,0.75) 100%)",
-                borderColor: "rgba(255,191,51,0.28)",
-                boxShadow: "0 8px 26px rgba(0,0,0,0.5), 0 0 20px rgba(255,191,51,0.12)",
+background:
+                          "linear-gradient(180deg, rgba(18,14,45,0.82) 0%, rgba(4,6,24,0.92) 55%, rgba(2,2,16,0.96) 100%)",
+                        borderColor: "rgba(111, 211, 255, 0.42)",
+                        boxShadow: "0 8px 26px rgba(0,0,0,0.55), 0 0 24px rgba(0,212,255,0.16), inset 0 0 20px rgba(168,85,247,0.08)",
               }}
             >
               {navItems.map((item) => {
@@ -166,8 +165,8 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
                       aria-label={item.label}
                       className="flex h-9 w-9 items-center justify-center rounded-full active:scale-90 transition-transform"
                       style={{
-                        background: "linear-gradient(135deg, #ffd25a, #ffb020, #a86a00)",
-                        boxShadow: "0 0 16px rgba(255,191,51,0.45)",
+                        background: "linear-gradient(135deg, #ff0080, #7c3aed 55%, #00d4ff)",
+                        boxShadow: "0 0 18px rgba(255,0,128,0.42), 0 0 26px rgba(0,212,255,0.24)",
                       }}
                     >
                       <Plus className="h-5 w-5 text-black" />
@@ -186,7 +185,7 @@ export function MobileShell({ children, immersive = false, showBack, backTo }: M
                     >
                       <item.icon
                         className={`h-5 w-5 transition-all duration-300 ${
-                          isActive ? "text-amber-300" : "text-white/40 group-hover:text-white/70"
+                          isActive ? "text-cyan-300" : "text-white/45 group-hover:text-white/80"
                         }`}
                         style={isActive ? { filter: `drop-shadow(0 0 8px ${item.glow})` } : {}}
                       />

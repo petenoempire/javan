@@ -3,7 +3,6 @@ import type { StudioMode } from "@/lib/studio/types";
 
 const MODES: { key: StudioMode; label: string }[] = [
   { key: "photo", label: "PHOTO" },
-  { key: "10s", label: "10s" },
   { key: "15s", label: "15s" },
   { key: "60s", label: "60s" },
   { key: "text", label: "TEXT" },

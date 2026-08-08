@@ -218,14 +218,14 @@ function InboxPage() {
       const { data: rows, error } = await supabase
         .from("conversations")
         .select("id, user_a, user_b, last_message_at")
-        .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
+        .or(`user_a.eq.${user!.id},user_b.eq.${user!.id}`)
         .order("last_message_at", { ascending: false })
         .limit(50);
       if (error) throw error;
       const conversationRows = rows ?? [];
       if (!conversationRows.length) return [];
       const otherIds = conversationRows.map((row: any) =>
-        row.user_a === user.id ? row.user_b : row.user_a,
+        row.user_a === user!.id ? row.user_b : row.user_a,
       );
       const [{ data: profiles }, { data: messages }] = await Promise.all([
         supabase
@@ -248,7 +248,7 @@ function InboxPage() {
         if (!latestByConversation.has(message.conversation_id))
           latestByConversation.set(message.conversation_id, message);
       return conversationRows.map((row: any) => {
-        const otherId = row.user_a === user.id ? row.user_b : row.user_a;
+        const otherId = row.user_a === user!.id ? row.user_b : row.user_a;
         const latest = latestByConversation.get(row.id);
         return {
           id: row.id,
@@ -283,14 +283,14 @@ function InboxPage() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`inbox-message-notifications:${user.id}`)
+      .channel(`inbox-message-notifications:${user!.id}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "notifications",
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${user!.id}`,
         },
         async (payload: any) => {
           if (payload.new?.kind !== "message") return;
@@ -305,7 +305,7 @@ function InboxPage() {
             action: { label: "Open Inbox", onClick: () => navigate({ to: "/inbox" }) },
           });
           queryClient.invalidateQueries({ queryKey: ["conversations"] });
-          queryClient.invalidateQueries({ queryKey: ["unread-message-notifications", user.id] });
+          queryClient.invalidateQueries({ queryKey: ["unread-message-notifications", user!.id] });
         },
       )
       .subscribe();
