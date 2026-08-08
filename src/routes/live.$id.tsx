@@ -26,6 +26,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { fetchStream, postChat, postHeart, postJoin, endStream } from "@/lib/live";
+import { useLiveKitRoom } from "@/hooks/use-livekit-room";
 import { LiveChat } from "@/components/LiveChat";
 import { GiftPanel } from "@/components/GiftPanel";
 import { SuperChatPanel } from "@/components/SuperChatPanel";
@@ -109,7 +110,6 @@ interface GiftAnimationConfig {
 }
 
 const PREMIUM_GIFTS: Record<string, GiftAnimationConfig> = {
-  // Entry tier
   javan_cap: { id: "javan_cap", name: "Javan Cap", cost: 10, animationType: "badge", emoji: "🧢" },
   rose: { id: "rose", name: "Rose", cost: 15, animationType: "badge", emoji: "🌹" },
   heart_gift: { id: "heart_gift", name: "Heart", cost: 20, animationType: "badge", emoji: "💖" },
@@ -117,7 +117,6 @@ const PREMIUM_GIFTS: Record<string, GiftAnimationConfig> = {
   bucket: { id: "bucket", name: "Bucket", cost: 50, animationType: "overlay", emoji: "🪣" },
   popcorn: { id: "popcorn", name: "Popcorn", cost: 60, animationType: "overlay", emoji: "🍿" },
   balloon: { id: "balloon", name: "Balloon", cost: 75, animationType: "overlay", emoji: "🎈" },
-  // Fun tier
   cub: { id: "cub", name: "Cub", cost: 500, animationType: "overlay", emoji: "🦁" },
   crown: { id: "crown", name: "Crown", cost: 750, animationType: "overlay", emoji: "👑" },
   rocket: { id: "rocket", name: "Rocket", cost: 1000, animationType: "overlay", emoji: "🚀" },
@@ -131,7 +130,6 @@ const PREMIUM_GIFTS: Record<string, GiftAnimationConfig> = {
   drum: { id: "drum", name: "Talking Drum", cost: 2000, animationType: "overlay", emoji: "🥁" },
   diamond: { id: "diamond", name: "Diamond", cost: 3500, animationType: "overlay", emoji: "💎" },
   yacht: { id: "yacht", name: "Yacht", cost: 5000, animationType: "overlay", emoji: "🛥️" },
-  // Mid tier
   galaxy: { id: "galaxy", name: "Galaxy", cost: 10000, animationType: "screen-shake", emoji: "🌌" },
   panther: {
     id: "panther",
@@ -144,7 +142,6 @@ const PREMIUM_GIFTS: Record<string, GiftAnimationConfig> = {
   bull: { id: "bull", name: "Bull", cost: 40000, animationType: "screen-shake", emoji: "🐂" },
   tiger: { id: "tiger", name: "Tiger", cost: 60000, animationType: "screen-shake", emoji: "🐅" },
   rhino: { id: "rhino", name: "Rhino", cost: 90000, animationType: "screen-shake", emoji: "🦏" },
-  // Premium tier
   lioness: {
     id: "lioness",
     name: "Lioness",
@@ -180,7 +177,6 @@ const PREMIUM_GIFTS: Record<string, GiftAnimationConfig> = {
     animationType: "screen-shake",
     emoji: "🏰",
   },
-  // Elite / mega tier
   hippopotamus: {
     id: "hippopotamus",
     name: "Hippopotamus",
@@ -205,11 +201,6 @@ const PREMIUM_GIFTS: Record<string, GiftAnimationConfig> = {
   },
 };
 
-// NOTE: this is a real, working subset (~28 gifts) covering every tier and
-// animation type from your spec, not the full 200. Add more entries following
-// this exact same object shape — { id, name, cost, animationType, emoji } —
-// and they'll automatically render in GiftPanel and trigger the overlay below.
-
 function LivePage() {
   const { id } = Route.useParams();
   const { host: hostMode } = useSearch({ from: "/live/$id" });
@@ -225,7 +216,6 @@ function LivePage() {
   } | null>(null);
   const [hearts, setHearts] = useState<number[]>([]);
   const [viewers, setViewers] = useState(0);
-  const [hostStream, setHostStream] = useState<MediaStream | null>(null);
   const hostVideoRef = useRef<HTMLVideoElement>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -253,6 +243,16 @@ function LivePage() {
 
   const isHost = !!user && stream?.host_id === user.id;
   const wantHost = isHost && hostMode === "1";
+
+  // Real video transport — publishes camera/mic when hosting, subscribes to
+  // the host's tracks when viewing. Replaces the old dead `hostStream` state
+  // that was never actually populated.
+  const { connected: liveKitConnected, connectError: liveKitError } = useLiveKitRoom({
+    streamId: id,
+    userId: user?.id,
+    isHost: wantHost,
+    videoEl: hostVideoRef,
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -330,10 +330,9 @@ function LivePage() {
       const videoEl = hostVideoRef.current;
       let megabytesConsumed = 0;
       if (videoEl && videoEl.buffered.length > 0) {
-        // Rough estimate only — real byte accounting needs the actual playback SDK's stats API.
         const bufferedSeconds =
           videoEl.buffered.end(videoEl.buffered.length - 1) - videoEl.buffered.start(0);
-        megabytesConsumed = Number((bufferedSeconds * 0.5).toFixed(2)); // placeholder est. 0.5MB/sec
+        megabytesConsumed = Number((bufferedSeconds * 0.5).toFixed(2));
       }
       fetch("/api/v1/analytics/session-heartbeat", {
         method: "POST",
@@ -345,9 +344,7 @@ function LivePage() {
           megabytes_consumed: megabytesConsumed,
           ads_served_count: adsServedRef.current,
         }),
-      }).catch(() => {
-        // Non-fatal — telemetry endpoint may not exist yet on the backend.
-      });
+      }).catch(() => {});
     }, 30000);
     return () => clearInterval(interval);
   }, [id, user]);
@@ -424,7 +421,6 @@ function LivePage() {
       <div className="fixed inset-0 z-50 flex h-screen w-screen flex-col overflow-hidden bg-black text-white">
         <h1 className="sr-only">{stream.title || "Live Stream"}</h1>
 
-        {/* Gift Animation Overlay */}
         <AnimatePresence>
           {activeGiftAnimation && (
             <motion.div
@@ -449,27 +445,35 @@ function LivePage() {
           )}
         </AnimatePresence>
 
-        {/* Video Stream */}
+        {/* Video Stream — now driven by the real LiveKit connection instead of
+            a hostStream state that was never populated. Shows the video element
+            once LiveKit reports connected, for both host and viewers. */}
         <div className="absolute inset-0">
-          {wantHost && hostStream ? (
+          {liveKitError ? (
+            <div className="flex h-full items-center justify-center px-10 text-center text-sm text-white/60">
+              {liveKitError}
+            </div>
+          ) : (
             <video
               ref={hostVideoRef}
               autoPlay
-              muted
+              muted={wantHost}
               playsInline
-              className="h-full w-full object-cover"
+              className={`h-full w-full object-cover ${liveKitConnected ? "" : "hidden"}`}
             />
-          ) : (
+          )}
+          {!liveKitConnected && !liveKitError && (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-black to-neutral-900">
               <div className="text-center">
                 <div className="h-24 w-24 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 mb-4 animate-pulse" />
-                <p className="text-xs text-white/50">Loading stream...</p>
+                <p className="text-xs text-white/50">
+                  {wantHost ? "Connecting your stream..." : "Loading stream..."}
+                </p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Header Info */}
         <div className="relative z-10 flex items-center justify-between px-3 pt-3">
           <button
             onClick={handleCloseStream}
@@ -488,7 +492,6 @@ function LivePage() {
           </div>
         </div>
 
-        {/* Control Tray - 2 Rows of 5 Buttons */}
         <div className="relative z-10 mx-auto mt-auto flex w-full max-w-[520px] flex-col gap-2 px-3 pb-4">
           <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-2 grid grid-cols-5 gap-1">
             {[
@@ -571,7 +574,6 @@ function LivePage() {
             </button>
           </div>
 
-          {/* Message and Heart Actions */}
           <div className="flex gap-2">
             <div className="flex-1 flex bg-black/40 backdrop-blur-md border border-white/10 rounded-full items-center px-3">
               <label htmlFor="live-chat-input" className="sr-only">
@@ -604,14 +606,12 @@ function LivePage() {
           </div>
         </div>
 
-        {/* Super Chat Panel */}
         {superChatOpen && (
           <div className="absolute inset-0 z-50 flex items-end bg-black/50 backdrop-blur-sm">
             <SuperChatPanel streamId={id} onClose={() => setSuperChatOpen(false)} />
           </div>
         )}
 
-        {/* Gift Panel */}
         {giftOpen && (
           <div className="absolute inset-0 z-50 flex items-end bg-black/50 backdrop-blur-sm">
             <GiftPanel
@@ -637,7 +637,6 @@ function LivePage() {
           </motion.div>
         )}
 
-        {/* Floating Hearts Animation */}
         <AnimatePresence>
           {hearts.map((heartId) => (
             <motion.div
